@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flowerman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="accessibility.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="icon" href="media/flowerman-logo.PNG" />
+  </head>
+  <body>
+       <div class="accessibility">
+      <div class="access-content">
+        <h3 data-translation="accessibility_h">כלי הנגישות</h3>
+        <button>
+          <span data-translation="accessibility_font_sizeup">הגדל טקסט</span>
+          <i class="fa-solid fa-magnifying-glass-plus"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_font_sizedown"> הקטן טקסט</span>
+          <i class="fa-solid fa-magnifying-glass-minus"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_grey">גווני אפור</span>
+          <i class="fa-solid fa-grip-lines-vertical"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_contrast">ניגודיות גבוהה</span>
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_opposite_contrast"
+            >ניגודיות הפוכה</span
+          >
+          <i class="fa-solid fa-eye"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_light_bg">רקע בהיר</span>
+          <i class="fa-regular fa-lightbulb"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_links">הדגשת קישורים</span>
+          <i class="fa-solid fa-link"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_readble_font">פונט קריא</span>
+          <i class="fa-solid fa-font"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_reset">איפוס</span>
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+        </button>
+      </div>
+      <div class="access-logo" tabindex="0">
+        <i class="fa-solid fa-wheelchair"></i>
+      </div>
+    </div>
+
+    <div id="site-content">
+      <header>
+        <a href="index.html"
+          ><img src="media/flowerman-logo.PNG" alt="logo" id="mobile-logo"
+        /></a>
+        <div class="navbar">
+          <input type="checkbox" id="sidebar-active" />
+          <label for="sidebar-active" class="open-sidebar-btn"
+            ><i class="fa-solid fa-bars"></i
+          ></label>
+          <label id="overall" for="sidebar-active"></label>
+          <div class="navbar-content">
+            <label for="sidebar-active" class="close-sidebar-btn"
+              ><i class="fa-solid fa-xmark"></i
+            ></label>
+            <button class="nav-login-btn"  id="adminLoginBtn" data-translation="nav_login">התחברות מנהל</button>
+            <div class="navbar-a">
+              <div class="lang-select">
+                <div class="selected">
+                  <img src="media/Israel_flag_icon.svg.png" />
+                </div>
+                <ul class="options">
+                  <li data-value="he">
+                    עברית <img src="media/Israel_flag_icon.svg.png" />
+                  </li>
+                  <li data-value="eng">
+                    English <img src="media/usa_flag_icon.png" />
+                  </li>
+                </ul>
+              </div>
+              <a href="index.html" data-translation="nav_home">דף הבית</a>
+              <a href="#about-ariel" data-translation="nav_about">על אריאל</a>
+              <a href="#flowerman-project" data-translation="nav_project">על הפרוייקט</a>
+              <a href="#support-flowerman" data-translation="nav_support">תמכו בנו</a>
+              <a href="#gallery" data-translation="nav_gallery">גלריה</a>
+              <a href="#massages-wall" data-translation="nav_massages">השיתופים שלכם</a>
+              <a href="#join-us" data-translation="nav_join">צרו קשר</a>
+            </div>
+            <div class="navbar-logo">
+              <a href="index.html"
+                ><img src="media/flowerman-logo.PNG" alt=""
+              /></a>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main>
+        <section>
+          <div class="hero">
+            <div class="hero-content">
+              <div class="hero-head">
+                <h1 data-translation="hero_h1">פלאוורמן</h1>
+                <h2 data-translation="hero_h2">
+                  לזכרו של סמל אריאל סוסנוב הי"ד
+                </h2>
+              </div>
+              <div class="hero-p">
+                <p data-translation="hero_p">זר קטן שמספר סיפור גדול</p>
+              </div>
+              <div class="hero-btns">
+                <a
+                  href="https://chat.whatsapp.com/GLZZSB1UUvQIfHgGd5PnBR"
+                  target="_blank"
+                  class="hero-join-btn"
+                  ><span data-translation="hero_join_btn">הצטרפו אלינו </span>
+                  <i class="fa-brands fa-whatsapp"></i
+                ></a>
+                <a href="#support-flowerman" class="hero-donate-btn">
+                  <span data-translation="hero_donate_btn">תרמו עכשיו</span>
+                  <i class="fa-solid fa-heart"></i
+                ></a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div class="about-ariel" id="about-ariel">
+            <div class="about-ariel-content">
+              <div class="about-ariel-head">
+                <h2 data-translation="about_head_h2">סמל אריאל סוסנוב הי"ד</h2>
+              </div>
+              <div class="about-ariel-text-pic-content">
+                <div class="about-ariel-img">
+                  <img
+                    src="media/ariel-pic.jpg"
+                    alt="תמונה של סמל אריאל סוסנוב זל"
+                  />
+                </div>
+                <div class="about-ariel-text-main-text">
+                  <h3 data-translation="about_text_h3">הסיפור של אריאל</h3>
+                  <p data-translation="about_text_p1">
+                    אריאל סוסנוב הי"ד היה לוחם בהנדסה קרבית, גדוד 605, ונלחם במסגרת חטיבה
+                    188 - עוצבת "ברק" - הן בעזה והן בגבול הצפון, במהלך מלחמת
+                    חרבות ברזל.
+                  </p>
+                  <p data-translation="about_text_p2">
+                    מעבר להיותו לוחם אמיץ, אריאל היה אדם מלא כריזמה, שמחת חיים,
+                    צחוק וחיוך שלא ירד מהפנים. הייתה לו יכולת נדירה לסחוף אחריו
+                    אנשים - ולגעת עמוק בלב.
+                  </p>
+                  <p data-translation="about_text_p3">
+                    אריאל חלם להיות איש חינוך - להצמיח נוער מאוכלוסיות מוחלשות,
+                    כמו בני נוער בסיכון ונוער עם צרכים מיוחדים. הוא האמין בכוח של
+                    כל ילד לפרוח, והקדיש את חייו הקצרים לעשייה למען אחרים. בין
+                    השאר, התנדב בארבע תנועות נוער במקביל:
+                  </p>
+                  <p data-translation="about_text_p4">
+                    כנפיים של קרמבו, בני עקיבא, "אחריי", ומועצת הנוער של
+                    ירושלים. לפני גיוסו, בחר לעשות שנת שירות בתנועת כנפיים של
+                    קרמבו - כדי "להשפיע עוד קצת על העולם", כפי שאמר.
+                  </p>
+                  <p data-translation="about_text_p5">
+                    אריאל נפל בקרב בתאריך ו' בחשוון תשפ"ה (6.11.2024), בלחימה
+                    בגבול לבנון, סמוך ליישוב אביבים, בן 20 בלבד.
+                  </p>
+                  <p data-translation="about_text_p6">
+                    הוא הותיר אחריו הורים, חמישה אחיםת בת זוג אהובה <br />
+                    ודרך ומורשת שלמה של עשיית הטוב.
+                  </p>
+                  <p data-translation="about_text_p7">מתוך צוואתו של אריאל:</p>
+                  <p data-translation="about_text_p8"></p>
+                </div>
+                <!-- <div class="about-ariel-text-read-more">
+                  <a href=""
+                    >קראו עוד על הפרוייקט <i class="fa-solid fa-arrow-left"></i
+                  ></a>
+                </div> -->
+              </div>
+            </div>
+          </div>
+        </section>
+        <!--  <section>
+          <div class="about-ariel-cards">
+            <div class="about-ariel-cards-content">
+              <div class="about-ariel-cards-items">
+                <div class="about-ariel-card-item1">
+                  <i class="fa-solid fa-quote-right"></i>
+                  <p data-translation="about_card_1_p1">
+                    ״פרח אחד יכול להאיר את היום של מישהו. זה מה שאריאל תמיד
+                    האמין בו.״
+                  </p>
+                  <p data-translation="about_card_1_p2">- עטרה</p>
+                </div>
+                <div class="about-ariel-card-item2">
+                  <img src="media/atara-and-ariel.jpg" alt="תמוונה של פרחים" />
+                  <p data-translation="about_card_2_p1">לזכרו של אריאל</p>
+                  <p data-translation="about_card_2_b">
+                    <b>ה' במרחשוון ה'תשפ"ה</b>
+                  </p>
+                </div>
+                <div class="about-ariel-card-item3">
+                  <i class="fa-solid fa-heart"></i>
+                  <p data-translation="about_card_3">
+                    ״אריאל ידע תמיד לראות את היופי בדברים הקטנים. הפרחים היו
+                    הדרך שלו להזכיר לכולנו לעצור ולהעריך את הרגעים היפים בחיים.״
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section> -->
+
+        <section>
+          <div class="flowerman-project" id="flowerman-project">
+            <div class="flowerman-project-content">
+              <div class="flowerman-project-content-head">
+                <h2 data-translation="project_h2">על הפרוייקט</h2>
+                <h3 data-translation="project_h3">מחווה קטנה שמספרת סיפור גדול</h3>
+              </div>
+              <div class="flowerman-project-main-content">
+                <div class="flowerman-project-main-content-info">
+                  <div class="flowerman-project-main-content-text">
+                    <p data-translation="project_content_p1">
+לאריאל היה הרגל להביא לבת זוגתו זר פרחים מדי שבוע לכבוד שבת. גם כשהיה עמוק בלחימה בעזה או בלבנון, הוא דאג לשלוח לה את הזר – דרך משלוח או דרך אחיה הקטן. כך תמיד הצליח לשמח אותה.
+
+                    </p>
+                    <p data-translation="project_content_p2">
+                     מתוך הרצון להמשיך את הלב הטוב של אריאל ולהפיץ את הדרך שלו לכל חייל וחיילת בישראל, הקמנו את פרויקט פלאוורמן.
+
+                    </p>
+                    <p data-translation="project_content_p3">
+                      יום לאחר השבעה, כמה חברים התחילו לחלק זרי פרחים בתחנה המרכזית. מאז התרחבנו משמעותית.
+                    </p>
+                    <p data-translation="project_content_p4">
+                     היום, אנחנו מחלקים זרי פרחים לחיילים מדי שבוע במספר נקודות ברחבי הארץ, באמצעות מערך מתנדבים מדהים בפריסה ארצית. בדוכנים, המתנדבים שוזרים את הפרחים בעצמם, ומצרפים לזר פתק אישי – אותו החיילים יכולים למלא ולהעניק לאדם שיקר להם.
+
+                    </p>
+                    <p data-translation="project_content_p5">
+                     כך, המעגל של הטוב והאהבה מתרחב – ולא נשאר רק אצלנו.
+
+                    </p>
+                  </div>
+                  <div class="flowerman-project-main-content-btns">
+                    <a
+                      href="https://chat.whatsapp.com/GLZZSB1UUvQIfHgGd5PnBR"
+                      target="_blank"
+                      class="flowerman-project-main-content-btns-btn1"
+                    >
+                      <span data-translation="project_join_btn"
+                        >הצטרפו כמתנדבים </span
+                      ><i class="fa-brands fa-whatsapp"></i
+                    ></a>
+                    <!--  <a
+                      href="#support-flowerman"
+                      class="flowerman-project-main-content-btns-btn2"
+                      ><span data-translation="project_support_btn"
+                        >תמכו בפרוייקט</span
+                      ><i class="fa-solid fa-heart"></i
+                    ></a> -->
+                  </div>
+                </div>
+                <div class="flowerman-project-main-content-vid">
+                  <video
+                    src="media/project-video.mp4"
+                    width="300"
+                    controls
+                    autoplay
+                    muted
+                    loop
+                  ></video>
+                </div>
+              </div>
+              <div class="flowerman-project-content-cards">
+                <div
+                  class="flowerman-project-content-cards-card"
+                  id="project-card1"
+                >
+                  <i class="fa-solid fa-leaf"></i>
+                  <b data-translation="project_card_1_b">8500+</b>
+                  <p data-translation="project_card_1_p">פרחים חולקו</p>
+                </div>
+                <div
+                  class="flowerman-project-content-cards-card"
+                  id="project-card2"
+                >
+                  <i class="fa-solid fa-location-dot"></i>
+                  <b data-translation="project_card_2_b">8+</b>
+                  <p data-translation="project_card_2_p">מקומות אליהם הגענו</p>
+                </div>
+                <div
+                  class="flowerman-project-content-cards-card"
+                  id="project-card3"
+                >
+                  <i class="fa-solid fa-user-group"></i>
+                  <b data-translation="project_card_3_b">350+</b>
+                  <p data-translation="project_card_3_p">מתנדבים פעילים</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="support-flowerman" id="support-flowerman">
+            <div class="support-flowerman-content">
+              <div class="support-flowerman-content-info">
+                <div class="support-flowerman-content-info-head">
+                  <h4 data-translation="support_head_h4">תמכו בפרוייקט פלאוורמן</h4>
+                  <p data-translation="support_head_p" >
+                    הפרויקט שלנו מבוסס כולו על תרומות.
+                    <br />
+                    כל תרומה, קטנה כגדולה- מאפשרת לנו להמשיך בפעילות ולחלק זר
+                    פרחים נוסף לחייל. זו מחווה פשוטה אך עם המון משמעות.
+                  </p>
+                </div>
+                <div class="support-flowerman-content-info-options">
+                  <h4 data-translation="support_content_h4">
+                    עלות זר פרחים היא 15 ש"ח בלבד <br />
+                    עלות הפעלת דוכן שבועי הוא 700 ש"ח
+                  </h4>
+                  <p data-translation="support_content_p">
+                    כל זר הוא חיוך, ואתם יכולים להיות הסיבה לחיוך הבא. <br />
+                    עזרו לנו להתרחב, להגיע ליותר בסיסים- ולשמח עוד ועוד חיילים,
+                    לזכרו של אריאל.
+                  </p>
+                </div>
+                <div class="support-flowerman-content-info-donate-btn">
+                  <a href="https://mrng.to/zkPUuwSgFd" target="_blank"> <span data-translation="support_btn">תרמו עכשיו</span>
+                  <i class="fa-solid fa-heart"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="support-flowerman-content-img">
+                <img src="media/atara-and-ariel.jpg" alt="" />
+                <div class="support-flowerman-content-img-color-overlay"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div class="gallery" id="homepage-gallery">
+            <div class="gallery-content">
+              <div class="gallery-content-head">
+                <h2 data-translation="gallery_h2">גלריה</h2>
+                <h3 data-translation="gallery_h3">תמונות מפעילות פרוייקט פלאוורמן</h3>
+              </div>
+              <div class="gallery-img-boxs"></div>
+              <div class="gallery-add-imgs-btn">
+                <a href="gallery.html"
+                  > <span data-translation="gallery_btn">צפו בגלרייה המלאה</span><i class="fa-solid fa-images"></i
+                ></a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div class="activity">
+            <div class="activity-content">
+              <div class="activity-head">
+                <h3 data-translation="activity_head_h3">הפעילות של פלאוורמן</h3>
+                <h4 data-translation="activity_head_h4">חלוקת הפרחים מתחלקת לשניים</h4>
+              </div>
+              <div class="activity-main-content">
+                <div class="weekly-activity">
+                  <div class="weekly-activity-head">
+                    <h5 data-translation="weekly_activity_head_h5">נקודות החלוקה הקבועות</h5>
+                    <h6 data-translation="weekly_activity_head_h61">
+                      בכל יום שישי אנחנו מחלקים כ-200 זרי פרחים לחיילים בשלושה
+                      מוקדים מרכזיים: התחנה המרכזית בירושלים, תחנת רכבת תל אביב
+                      סבידור מרכז, ותחנת לב המפרץ בחיפה.
+                      <h6 data-translation="weekly_activity_head_h62">
+                        המיקומים והשעות נבחרו בקפידה – כדי לפגוש את החיילים
+                        בדיוק כשהם יוצאים הביתה לשבת. המטרה: להגיע לכמה שיותר
+                        מהם עם מחווה קטנה של הכרת תודה ואהבה.
+                      </h6>
+                      <h6 data-translation="weekly_activity_head_h63">
+                        אנחנו שואפים להתרחב לכמה שיותר ערים כדי להגיע לכמה שיותר
+                        חיילים.
+                      </h6>
+                  </div>
+                  <div class="weekly-activity-content">
+                    <div class="weekly-activity-content-sliding-imgs">
+                      <div class="weekly-activity-content-img">
+                        <div class="sliding-img-overlay">
+                          <a href="gallery.html?tag=jerusalem" data-translation="weekly_activity_jerusalem_tag">מרכזית ירושלים</a
+                          >
+                        </div>
+                        <img src="media/jerusalem-sliding-img.JPG" alt="" />
+                      </div>
+
+                      <div class="weekly-activity-content-img">
+                        <div class="sliding-img-overlay">
+                          <a href="gallery.html?tag=heifa" data-translation="weekly_activity_heifa_tag">מרכזית המפרץ</a>
+                        </div>
+                        <img src="media/heifa-sliding-img.JPG" alt="" />
+                      </div>
+
+                      <div class="weekly-activity-content-img">
+                        <div class="sliding-img-overlay">
+                          <a href="gallery.html?tag=savidor" data-translation="weekly_activity_savidor_tag">סבידור מרכז</a>
+                        </div>
+                        <img src="media/savidor-sliding-img.JPG" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="special-activity">
+                  <div class="special-activity-head">
+                    <h5 data-translation="special_activity_head_h5">חלוקה בבסיסים</h5>
+                    <h6 data-translation="special_activity_head_h6">
+                        פעם בחודש אנחנו יוצאים אל בסיסים ומוצבים – כדי לחלק פרחים לחיילי מילואים שסיימו סבב לחימה.
+                        הם חוזרים הביתה אחרי שבועות ולעיתים חודשים – ואנחנו מעניקים להם זר פרחים ומילה טובה למשפחה שמחכה.
+                        עד היום הגענו ל: בה"ד 1, מוצב ג'וליס, מוצב כיסופים ולכנסי משפחות מילואים בסיום סבבי לחימה. 
+                        בכל מקום חילקנו מאות זרים. <br />
+                        המחווה הפשוטה הזו מאפשרת להם לחזור מהלחימה עם משהו בידיים – תזכורת קטנה לאהבה הגדולה שמחכה בבית.
+                    </h6>
+                  </div>
+                  <div class="special-activity-content">
+                    <div class="special-activity-content-sliding-img">
+                      <div class="special-activity-content-img">
+                        <div class="sliding-img-overlay">
+                          <a href="gallery.html?tag=kisufim" data-translation="special_activity_kisufim_tag">מוצב כיסופים</a>
+                        </div>
+                        <img src="media/kisufim-sliding-img.jpg" alt="" />
+                      </div>
+
+                      <div class="special-activity-content-img">
+                        <div class="sliding-img-overlay">
+                          <a href="gallery.html?tag=bhd1" data-translation="special_activity_bhd1_tag">בה"ד 1</a>
+                        </div>
+                        <img src="media/bhd1-sliding-img.JPG" alt="" />
+                      </div>
+
+                      <div class="special-activity-content-img">
+                        <div class="sliding-img-overlay">
+                          <a href="gallery.html?tag=julis" data-translation="special_activity_julis_tag">מוצב ג'וליס</a>
+                        </div>
+                        <img src="media/julis-sliding-img.JPG" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="massages-wall" id="massages-wall">
+            <div class="massages-wall-content">
+              <div class="massages-wall-head">
+                <h3 data-translation="massages_wall_h3">קיר השיתופים</h3>
+                <h4 data-translation="massages_wall_h4">שיתופים מכם שמחממים את הלב</h4>
+              </div>
+              <div class="massages-wall-cards" tabindex="-1">
+              </div>
+              <div class="massages-wall-form">
+                <h5 data-translation="massages_wall_form_h5">שתפו אותנו בחוויה שלכם מפלאוורמן</h5>
+            <form id="share-form" enctype="multipart/form-data" class="massages-wall-form-content">
+    <div class="massages-wall-form-top">
+      <div>
+        <label data-translation="massages_form_name_label">שם</label>
+        <input id="share-name" type="text" placeholder="השם שלך, אנונימי/ת" required data-translation="massages_form_name_input"/>
+      </div>
+    </div>
+
+    <div class="massages-wall-form-bottom">
+      <label data-translation="massages_form_text_label">השיתוף שלכם</label>
+      <textarea id="share-massege" data-translation="massages_form_text_iput"
+        name="message"
+        placeholder="שתפו את החוויה שהייתה לכם איתנו (עד 450 תווים)"
+        maxlength="450"
+        required
+      ></textarea>
+    </div>
+
+    <div class="massages-wall-form-upload">
+      <label for="file" data-translation="massages_form_file_label">העלו תמונה של הזר שלכם</label>
+      <input type="file" name="share-image" id="file" accept="image/*"/>
+      <button type="button" id="clear-file">
+      <i class="fa-solid fa-xmark"></i>
+      </button>
+      </div>
+
+    <div class="massages-wall-form-button">
+      <button type="submit"><span data-translation="massages_form_send_btn">שתפו אותנו </span>
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="join-us" id="join-us">
+            <div class="join-us-content">
+              <div class="join-us-head">
+                <h3 data-translation="contact_h3">צרו קשר</h3>
+                <h4 data-translation="contact_h4">פנו אלינו וקחו חלק מפרוייקט פלאוורמן</h4>
+              </div>
+              <div class="join-us-boxs">
+                <div class="join-us-content-boxs">
+                  <div class="join-us-options">
+                    <h5 data-translation="contact_options_h5">דרכים בהם תוכלו לסייע</h5>
+                    <div class="join-us-options-option">
+                      <i class="fa-solid fa-handshake-angle"></i>
+                      <div class="join-us-options-option-text">
+                        <b data-translation="contact_options_1_b">עמדות חלוקה</b>
+                        <p data-translation="contact_options_1_p">
+                          בואו להיות חלק מצוות פלאוורמן בחלוקת פרחים בכל יום
+                          שישי בנקודות החלוקה השונות
+                        </p>
+                      </div>
+                    </div>
+                    <div class="join-us-options-option">
+                      <i class="fa-solid fa-leaf"></i>
+                      <div class="join-us-options-option-text">
+                        <b data-translation="contact_options_2_b">תרומת פרחים</b>
+                        <p data-translation="contact_options_2_p">נשמח לשיתופי פעולה עם חנויות פרחים או משתלות</p>
+                      </div>
+                    </div>
+                    <div class="join-us-options-option">
+                      <i class="fa-solid fa-camera"></i>
+                      <div class="join-us-options-option-text">
+                        <b data-translation="contact_options_3_b">צילום ותיעוד</b>
+                        <p data-translation="contact_options_3_p">
+                          בעלי ידע במקצועות המדיה? בואו להיות חלק מהצוות ולסייע
+                          ביצירת תוכן
+                        </p>
+                      </div>
+                    </div>
+                    <div class="join-us-options-option">
+                      <i class="fa-solid fa-bullhorn"></i>
+                      <div class="join-us-options-option-text">
+                        <b data-translation="contact_options_4_b">פרסום והפצה</b>
+                        <p data-translation="contact_options_4_p">
+                          אם אתם מכירים חברות פרסום או שיש לכם קהל רחב זה המקום
+                          שלכם להיות שותפים
+                        </p>
+                      </div>
+                    </div>
+                    <div class="join-us-options-option">
+                      <i class="fa-solid fa-heart heart-option"></i>
+                      <div class="join-us-options-option-text">
+                        <b data-translation="contact_options_5_b">כל דבר שעולה על ליבכם</b>
+                        <p data-translation="contact_options_5_p">
+                          יש לכם כישרון או יכולת שיכולה לסייע לנו? נשמע להכיר
+                          אתכם
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="join-us-strait-contact">
+                    <div class="join-us-strait-contact-content">
+                      <h5 data-translation="strait_contact_h5">צרו איתנו קשר ישירות</h5>
+                      <p data-translation="strait_contact_p1">לשאלות נוספות או תיאום נקודת חלוקה, אתם מוזמנים ליצור קשר</p>
+                      <p data-translation="strait_contact_p2"><i class="fa-brands fa-whatsapp"></i><span>050-2322244</span></p>
+                      <p data-translation="strait_contact_hp3"><i class="fa-solid fa-envelope"></i><span>hakoltov.amuta@gmail.com</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="join-us-form">
+                  <h3 data-translation="contact_form_h3">טופס פניות</h3>
+                  <form action="">
+                    <label data-translation="contact_form_name_label">שם מלא</label>
+                    <input type="text" placeholder="השם המלא שלך" required data-translation="contact_form_name_input"/>
+                    <label>טלפון נייד</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      placeholder="050-1234567"
+                      required
+                      pattern="[0-9]{2,3}-[0-9]{6,7}"
+                    />
+                    <label data-translation="contact_form_region_lable">אזור מגורים</label>
+                    <select name="rigion" id="" required>
+                      <option value="choose" data-translation="contact_form_region_input_defult">בחרו אזור</option>
+                      <option value="north" data-translation="contact_form_region_input_north">צפון</option>
+                      <option value="south" data-translation="contact_form_region_input_south">דרום</option>
+                      <option value="center" data-translation="contact_form_region_input_center">מרכז</option>
+                      <option value="jerusalem" data-translation="contact_form_region_input_jerusalem">ירושלים</option>
+                    </select>
+                    <label data-translation="contact_form_textarea_label">כיצד תרצו לסייע ולהיות חלק</label>
+                    <textarea data-translation="contact_form_textarea_input"
+                      name=""
+                      id=""
+                      placeholder="ספרו לנו מעט על עצמכם וכיצד אתם חושבים שתוכלו לסייע"
+                      required
+                    ></textarea>
+                    <button> <span data-translation="contact_form_btn"> שליחת טופס</span>
+                     <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!--   <section>
+        <div class="blog">
+          <div class="blog-content">
+            <div class="blog-content-head">
+              <h3>בלוג</h3>
+              <h4>עדכונים ומחשבות מעטרה ומצוות פלאוורמן</h4>
+            </div>
+            <div class="blog-cards"></div>
+            <button class="blog-more-btn">
+              לכל הפוסטים <i class="fa-solid fa-arrow-left"></i>
+            </button>
+          </div>
+        </div>
+      </section> -->
+
+        <section>
+          <div class="footer">
+            <div class="footer-content">
+              <div class="footer-about-option">
+                <h6 data-translation="footer_about_h6">פרוייקט פלאוורמן</h6>
+                <p data-translation="footer_about_p1">לזכרו של סמל אריאל סוסנוב</p>
+                <p data-translation="footer_about_p2">זר קטן שמספר סיפור גדול</p>
+              </div>
+              <div class="footer-navigation-option">
+                <h6 data-translation="footer_nav_h6">ניווט מהיר</h6>
+                <a href="index.html" data-translation="footer_nav_home_a">דף הבית</a>
+                <a href="#about-ariel" data-translation="footer_nav_about_a">על אריאל</a>
+                <a href="#flowerman-project" data-translation="footer_nav_project_a">על הפרוייקט</a>
+                <a href="#support-flowerman" data-translation="footer_nav_support_a">תמכו בנו</a>
+                <a href="#gallery" data-translation="footer_nav_gallery_a">גלריה</a>
+                <a href="#massages-wall" data-translation="footer_nav_sharing_a">השיתופים שלכם</a>
+                <a href="#join-us" data-translation="footer_nav_contact_a">צרו קשר</a>
+                <!--            <a href="">בלוג</a> -->
+              </div>
+              <div class="footer-follow-option">
+                <h6 data-translation="footer_nav_follow_h6">עקבו אחרינו</h6>
+                <div class="footer-follow-option-a">
+                  <a
+                    href="https://www.facebook.com/people/The-Flowers-Man-%D7%9C%D7%96%D7%9B%D7%A8%D7%95-%D7%A9%D7%9C-%D7%90%D7%A8%D7%99%D7%90%D7%9C-%D7%A1%D7%95%D7%A1%D7%A0%D7%95%D7%91-%D7%94%D7%99%D7%93/61577230404446/#"
+                    target="_blank"
+                    ><i class="fa-brands fa-facebook-f"></i
+                  ></a>
+                  <a
+                    href="https://www.instagram.com/the_flowers_man/"
+                    target="_blank"
+                    ><i class="fa-brands fa-instagram"></i
+                  ></a>
+                  <a href="https://www.tiktok.com/@flower.man__" target="_blank"
+                    ><i class="fa-brands fa-tiktok"></i
+                  ></a>
+                </div>
+              </div>
+            </div>
+            <div class="footer-end">
+              <a href="accessibility.html" data-translation="footer_nav_accessibillity">הצהרת נגישות</a>
+              <p data-translation="footer_credit">© 2025 ינאי אילוז. כל הזכויות שמורות</p>
+            </div>
+          </div>
+        </section>
+      </main>
+      <script src="index.js"></script>
+      <script src="gallery.js"></script>
+      <script src="accessibility.js"></script>
+      <script src="admin-client.js"></script>
+    </div>
+  </body>
+</html>

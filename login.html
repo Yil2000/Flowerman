@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flowerman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="loginAdmin.css" />
+    <link rel="stylesheet" href="accessibility.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="icon" href="media/flowerman-logo.PNG" />
+  </head>
+  <body>
+    <div class="accessibility">
+      <div class="access-content">
+        <h3 data-translation="accessibility_h">כלי הנגישות</h3>
+        <button>
+          <span data-translation="accessibility_font_sizeup">הגדל טקסט</span>
+          <i class="fa-solid fa-magnifying-glass-plus"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_font_sizedown"> הקטן טקסט</span>
+          <i class="fa-solid fa-magnifying-glass-minus"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_grey">גווני אפור</span>
+          <i class="fa-solid fa-grip-lines-vertical"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_contrast">ניגודיות גבוהה</span>
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_opposite_contrast"
+            >ניגודיות הפוכה</span
+          >
+          <i class="fa-solid fa-eye"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_light_bg">רקע בהיר</span>
+          <i class="fa-regular fa-lightbulb"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_links">הדגשת קישורים</span>
+          <i class="fa-solid fa-link"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_readble_font">פונט קריא</span>
+          <i class="fa-solid fa-font"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_reset">איפוס</span>
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+        </button>
+      </div>
+      <div class="access-logo" tabindex="0">
+        <i class="fa-solid fa-wheelchair"></i>
+      </div>
+    </div>
+
+    <div id="site-content">
+      <div class="login-box">
+        <form id="login-form">
+          <h1>התחברות צוות פלאוורמן</h1>
+          <input type="text" id="username" placeholder="שם משתמש" required />
+          <input type="password" id="password" placeholder="סיסמה" required />
+          <button type="submit">התחבר</button>
+        </form>
+      </div>
+
+      <p id="error-msg" style="color: red"></p>
+    </div>
+
+    <script src="login.js"></script>
+    <script src="accessibility.js"></script>
+  </body>
+</html>

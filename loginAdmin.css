@@ -1,0 +1,236 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+:root {
+
+    /* colors */
+    --h-color: black;
+    --p-color: #4b5563;
+    --pink: #FF6B6B;
+    --purple: #9B59B6;
+
+
+    /* fonts */
+    --h-font: "Heebo", sans-serif;
+    --p-font: "Rubik", sans-serif;
+
+    /* font-sizes */
+    --fs-h1: 3.75rem;
+    /* 60px */
+    --fs-h2: 3rem;
+    /* 48px */
+    --fs-h3: 2.25rem;
+    /* 36px */
+    --fs-h4: 1.75rem;
+    /* 28px */
+    --fs-h5: 1.5rem;
+    /* 24px */
+    --fs-h6: 1.25rem;
+    /* 20px */
+    --fs-p: 1rem;
+    /* 16px */
+    --fs-small: 0.875rem;
+    /* 14px */
+}
+
+
+/* login css */
+
+#site-content{
+    height: 100vh;
+    width: 100vw;
+    background:linear-gradient(128deg,#741d96,#a32751 );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box{
+    max-width: 60%;
+    height: fit-content;
+    background: rgba(255, 255, 255, 0.171); 
+    border-radius: 15px;            
+    padding: 2rem;
+    width: fit-content;
+    text-align: center;
+    backdrop-filter: blur(10px);      
+    -webkit-backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);  
+    padding:2em;
+}
+
+#login-form{
+    font-family: var(--h-font);
+    font-size: var(--fs-p);
+    gap: 2em;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-direction: column;
+}
+
+
+#login-form input{
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);  
+    backdrop-filter: blur(10px);        
+    -webkit-backdrop-filter: blur(10px);   
+    color: white;                    
+    font-size: var(--fs-p);
+    padding: 1em;
+    width: 100%;
+    border-radius: 50px;
+    border: none;
+
+}
+
+
+#login-form input::placeholder {
+    color: whi;                      
+    font-size: var(--fs-p);  
+}
+
+#login-form input:focus {
+    outline: none;      
+     border: 1px solid var(--purple);
+              
+}
+
+#login-form button{
+    cursor: pointer;
+    margin-top: 2em;
+    padding: 1em;
+    width: 80%;
+    border-radius: 50px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);  
+    backdrop-filter: blur(10px);        
+    -webkit-backdrop-filter: blur(10px); 
+    transition: 0.3s;
+    color: white;                   
+}
+
+#login-form button:hover{
+    background: rgba(255, 255, 255, 0.356);  
+    border: none;
+}
+
+
+
+/* ADMIN CSS */
+      #admin-content{
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: row;
+      }
+
+      /* Sidebar */
+      #sidebar{
+        height: 100vh;
+        width: 220px;
+        background: #ff9b9b65;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+      }
+
+      #logout-btn{
+        cursor: pointer;
+        z-index: 10;
+        position: fixed;
+        top: 2em;
+        left: 2em;
+        padding: 1em 1.5em;
+        font-family: var(--p-font);
+        background-color: var(--purple);
+        border: none;
+        border-radius: 20px;
+        color: white;
+      }
+
+      #sidebar button{
+        background: none;
+        border: none;
+        color: black;
+        text-align: right;
+        padding: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: 0.2s;
+      }
+
+      #sidebar button:hover {
+        background: var(--purple);
+      }
+
+      /* Content area */
+      #content{
+        flex: 1;
+        background: #f4f4f4;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .section {
+        display: none;
+        height: 100%;
+        padding: 2em;
+        
+      }
+
+      .section.active {
+        display: block;
+      }
+
+       .comment-cards{
+        display: flex;
+        gap: 1em;
+        flex-wrap: wrap;
+       }
+
+      .comment-card {
+        width: 230px;
+        height: fit-content;
+        display: flex;
+        align-items: flex-start;
+        gap: 2em;
+        flex-direction: column;
+        background: white;
+        padding: 15px;
+        margin-top: 5em;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .comment-card img {
+        max-width: 100%;
+        border-radius: 5px;
+        margin-top: 10px;
+      }
+
+      .comment-card button {
+        align-items: flex-end;
+        margin-top: 10px;
+        padding: 5px 10px;
+        background: var(--purple);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      /* העלאת תמונות */
+      #upload-section input,
+      #upload-section button {
+        display: block;
+        margin: 10px 0;
+      }

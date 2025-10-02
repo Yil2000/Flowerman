@@ -1,0 +1,174 @@
+<html lan="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flowerman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Heebo:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="accessibility.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="icon" href="media/flowerman-logo.PNG" />
+  </head>
+  <body>
+    <div class="accessibility">
+      <div class="access-content">
+        <h3 data-translation="accessibility_h">כלי הנגישות</h3>
+        <button>
+          <span data-translation="accessibility_font_sizeup">הגדל טקסט</span>
+          <i class="fa-solid fa-magnifying-glass-plus"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_font_sizedown"> הקטן טקסט</span>
+          <i class="fa-solid fa-magnifying-glass-minus"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_grey">גווני אפור</span>
+          <i class="fa-solid fa-grip-lines-vertical"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_contrast">ניגודיות גבוהה</span>
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_opposite_contrast"
+            >ניגודיות הפוכה</span
+          >
+          <i class="fa-solid fa-eye"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_light_bg">רקע בהיר</span>
+          <i class="fa-regular fa-lightbulb"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_links">הדגשת קישורים</span>
+          <i class="fa-solid fa-link"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_readble_font">פונט קריא</span>
+          <i class="fa-solid fa-font"></i>
+        </button>
+        <button>
+          <span data-translation="accessibility_reset">איפוס</span>
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+        </button>
+      </div>
+      <div class="access-logo" tabindex="0">
+        <i class="fa-solid fa-wheelchair"></i>
+      </div>
+    </div>
+
+    <div id="site-content">
+      <header>
+        <a href="index.html"
+          ><img src="media/flowerman-logo.PNG" alt="logo" id="mobile-logo"
+        /></a>
+        <div class="navbar">
+          <input type="checkbox" id="sidebar-active" />
+          <label for="sidebar-active" class="open-sidebar-btn"
+            ><i class="fa-solid fa-bars"></i
+          ></label>
+
+          <label id="overall" for="sidebar-active"></label>
+          <div class="navbar-content">
+            <label for="sidebar-active" class="close-sidebar-btn"
+              ><i class="fa-solid fa-xmark"></i
+            ></label>
+            <button
+              class="nav-login-btn"
+              id="adminLoginBtn"
+              data-translation="nav_login"
+            >
+              התחברות מנהל
+            </button>
+            <div class="navbar-a">
+              <div class="lang-select">
+                <div class="selected">
+                  <img src="media/Israel_flag_icon.svg.png" />
+                </div>
+                <ul class="options">
+                  <li data-value="he">
+                    עברית <img src="media/Israel_flag_icon.svg.png" />
+                  </li>
+                  <li data-value="eng">
+                    English <img src="media/usa_flag_icon.png" />
+                  </li>
+                </ul>
+              </div>
+              <a href="index.html" data-translation="nav_home">דף הבית</a>
+              <a href="#about-ariel" data-translation="nav_about">על אריאל</a>
+              <a href="#flowerman-project" data-translation="nav_project"
+                >על הפרוייקט</a
+              >
+              <a href="#support-flowerman" data-translation="nav_support"
+                >תמכו בנו</a
+              >
+              <a href="#gallery" data-translation="nav_gallery">גלריה</a>
+              <a href="#join-us" data-translation="nav_join">צרו קשר</a>
+              <a href="#massages-wall" data-translation="nav_massages"
+                >תגובות ושיתופים</a
+              >
+            </div>
+            <div class="navbar-logo">
+              <a href="index.html"
+                ><img src="media/flowerman-logo.PNG" alt=""
+              /></a>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="gallery-page">
+        <div class="gallery-page-head">
+          <h2>גלרייה</h2>
+          <h3>כל התמונות מפעילות פלאוורמן בנקודות השונות</h3>
+        </div>
+        <div class="gallery-page-head-btns">
+          <button
+            id="jerusalem"
+            class="no-hover"
+            data-translation="html_gallery_jerusalem_btn"
+          >
+            מרכזית ירושלים
+          </button>
+          <button
+            id="heifa"
+            class="no-hover"
+            data-translation="html_gallery_heifa_btn"
+          >
+            מרכזית המפרץ
+          </button>
+          <button id="savidor" data-translation="html_gallery_savidor_btn">
+            סבידור מרכז
+          </button>
+          <button id="kisufim" data-translation="html_gallery_kisufim_btn">
+            בסיס כיסופים
+          </button>
+          <button id="julis" data-translation="html_gallery_julis_btn">
+            מחנה ג'וליס
+          </button>
+          <button id="bhd1" data-translation="html_gallery_bhd1_btn">
+            בה"ד 1
+          </button>
+          <button id="shatz" data-translation="html_gallery_shatz_btn">
+            שערי צדק
+          </button>
+        </div>
+
+        <div class="gallery-page-main-content" id="gallery"></div>
+      </main>
+    </div>
+    <script src="accessibility.js"></script>
+    <script src="gallery.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>

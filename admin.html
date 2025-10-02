@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adm</title>
+    <link rel="stylesheet" href="loginAdmin.css" />
+  </head>
+  <body>
+    <div id="admin-content" style="display: none">
+      <!-- Sidebar -->
+      <div id="sidebar">
+        <img src="media/flowerman-logo.PNG" alt="" />
+        <button data-target="comments-section">קיר השיתופים</button>
+        <button data-target="contact-section">טפסי יצירת קשר</button>
+        <button data-target="upload-section">העלאת תמונות</button>
+      </div>
+
+      <!-- Content -->
+      <div id="content">
+        <button id="logout-btn">התנתקות</button>
+        <!-- תגובות -->
+        <div id="comments-section" class="section">
+          <h2>שיתופים שהתקבלו</h2>
+          <div class="comment-cards" id="comment-cards"></div>
+        </div>
+
+        <!-- צור קשר -->
+        <div id="contact-section" class="section">
+          <h2>טפסי צור קשר</h2>
+          <ul>
+            <li>שם: יוסי | אימייל: yossi@test.com | הודעה: שלום</li>
+            <li>
+              שם: מיכל | אימייל: michal@test.com | הודעה: אשמח לשמוע פרטים
+            </li>
+          </ul>
+        </div>
+
+        <!-- העלאת תמונות -->
+        <div id="upload-section" class="section">
+          <h2>העלאת תמונות</h2>
+          <label for="upload-tag">בחירת קטגורייה</label>
+          <select name="" id="upload-tag">
+            <option value="">מרכזית ירושלים</option>
+            <option value="">סבידור מרכז</option>
+            <option value="">חיפה לב המפרץ</option>
+            <option value=""></option>
+            <option value=""></option>
+            <option value=""></option>
+          </select>
+
+          <input type="file" id="upload-files" multiple />
+          <button id="upload-btn">העלה</button>
+          <div id="upload-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="unauthorized" style="display: none">
+      <h1>גישה לא מורשית</h1>
+      <p>אנא התחבר מחדש</p>
+    </div>
+
+    <script src="/admin.js" defer></script>
+    <script src="/admin-index.js"></script>
+  </body>
+</html>
