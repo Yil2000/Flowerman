@@ -61,10 +61,6 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Ensure uploads folder exists
-const uploadsDir = path.join(publicPath, "uploads");
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
 // ===== JWT Middleware =====
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -230,4 +226,5 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
