@@ -1,4 +1,4 @@
-// server.js (גרסה מתוקנת ומלאה)
+// server.js 
 import express from "express";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
@@ -20,16 +20,14 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 
-// Middleware
+// ===== Middleware =====
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files
 app.use(express.static(__dirname));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
-// Uploads folder
+// ===== Uploads folder =====
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
@@ -55,8 +53,8 @@ async function initAdmin() {
       )
     `);
 
-    const username = process.env.ADMIN_USERNAME;
-    const password = process.env.ADMIN_PASSWORD;
+    const username = process.env.ADMIN_USER;
+    const password = process.env.ADMIN_PASS;
 
     const res = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
     if (res.rows.length === 0) {
@@ -115,7 +113,6 @@ app.post("/admin/login", async (req, res) => {
   }
 });
 
-// ===== Verify Admin Token =====
 app.post("/admin/verify-token", authenticateToken, (req, res) => {
   res.json({ valid: true });
 });
@@ -178,7 +175,7 @@ app.get("/shares/published", async (req, res) => {
   }
 });
 
-// ===== Admin Shares Endpoints =====
+// ===== Admin Shares =====
 app.get("/admin/shares", authenticateToken, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
@@ -219,6 +216,33 @@ app.delete("/admin/shares/:id", authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("Error deleting share:", err);
     res.status(500).json({ error: "DB error" });
+  }
+});
+
+// ===== Gallery Endpoint (Cloudinary) =====
+app.get("/images/:tag", async (req, res) => {
+  const { tag } = req.params;
+  try {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(500).json({ error: "Cloudinary not configured" });
+    }
+
+    const resources = await cloudinary.api.resources({
+      type: "upload",
+      prefix: `gallery/${tag}/`, // תיקייה לפי tag ב-Cloudinary
+      max_results: 50,
+      sort_by: [{ field: "public_id", order: "desc" }]
+    });
+
+    const images = resources.resources.map(r => ({
+      public_id: r.public_id,
+      secure_url: r.secure_url
+    }));
+
+    res.json(images);
+  } catch (err) {
+    console.error("Cloudinary fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch images from Cloudinary" });
   }
 });
 
