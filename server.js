@@ -1,4 +1,4 @@
-// server.js (גרסה מתוקנת)
+// server.js (גרסה מתוקנת ומלאה)
 import express from "express";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
@@ -167,28 +167,10 @@ async function initSharesTable() {
 }
 initSharesTable();
 
-app.post("/shares", async (req, res) => {
-  const { name, message, imageUrl } = req.body;
-  if (!name || !message) return res.status(400).json({ error: "Missing fields" });
-
-  try {
-    const result = await db.query(
-      "INSERT INTO shares (name, message, imageUrl, published) VALUES ($1, $2, $3, FALSE) RETURNING id",
-      [name, message, imageUrl || ""]
-    );
-    res.json({ success: true, id: result.rows[0].id });
-  } catch (err) {
-    console.error("Error inserting share:", err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-// ===== Published Shares Endpoint =====
+// ===== Public Shares =====
 app.get("/shares/published", async (req, res) => {
-  console.log("Fetching published shares...");
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
-    console.log("Shares fetched:", result.rows.length);
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching published shares:", err);
@@ -225,4 +207,20 @@ app.post("/admin/shares/unpublish/:id", authenticateToken, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("Error unpublishing share:", err);
-    res.status(500).json({ error
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+app.delete("/admin/shares/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query("DELETE FROM shares WHERE id=$1", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting share:", err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+// ===== Start Server =====
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
