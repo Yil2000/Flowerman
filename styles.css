@@ -225,7 +225,7 @@
     display: none;
     padding: 1em 1em 0 0;
     font-size: 1.5em;
-    color: var(--pink);
+    color: var(--purple);
 }
 
 #sidebar-active {
@@ -1976,4 +1976,5 @@ a {
 
     
 }
+
 
