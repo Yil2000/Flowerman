@@ -7,7 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== בדיקת טוקן =====
   async function checkToken() {
     const token = sessionStorage.getItem("adminToken");
-    if (!token) return showError();
+    console.log("Token in session:", token);
+
+    if (!token) {
+      console.warn("No token found in sessionStorage");
+      return showError("אין טוקן");
+    }
 
     try {
       const res = await fetch("/admin/verify-token", {
@@ -17,23 +22,37 @@ document.addEventListener("DOMContentLoaded", () => {
           "Content-Type": "application/json"
         }
       });
+
+      if (!res.ok) {
+        console.warn("Fetch failed with status:", res.status);
+        return showError("שגיאה בשרת");
+      }
+
       const data = await res.json();
+      console.log("Token verification result:", data);
+
       if (data.valid) {
         content.style.display = "flex";
         errorDiv.style.display = "none";
-        loadShares();
-      } else showError();
+        loadShares(); // הפונקציה הקיימת שלך
+      } else {
+        console.warn("Token not valid");
+        showError("טוקן לא תקין");
+      }
     } catch (err) {
       console.error("Token verification error:", err);
-      showError();
+      showError("שגיאה ברשת");
     }
   }
 
-  function showError() {
-    errorDiv.style.display = "block";
+  // ===== הצגת הודעת שגיאה =====
+  function showError(reason) {
+    console.log("Showing unauthorized div. Reason:", reason);
     content.style.display = "none";
+    errorDiv.style.display = "block";
   }
 
+  // ===== התנתקות =====
   logoutBtn.addEventListener("click", () => {
     sessionStorage.removeItem("adminToken");
     window.location.href = "/login.html";
@@ -87,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
         div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
       }
 
-      // מאזין למחיקה
       div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
     });
   }
@@ -158,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== פונקציה להוספת שיתוף ל-massages-wall בצד לקוח =====
+  // ===== הוספת שיתוף ל-massages-wall =====
   function addShareToWall(share) {
     const wallContainer = document.querySelector(".massages-wall-cards");
     if (!wallContainer) return;
@@ -179,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wallContainer.prepend(div);
   }
 
-  // ===== הפונקציה להצגת הודעת פופאפ למנהל =====
+  // ===== פופאפ למנהל =====
   function showNotification(text) {
     const notif = document.createElement("div");
     notif.textContent = text;
@@ -195,8 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => notif.remove(), 2000);
   }
 
+  // ===== הפעלת בדיקת טוקן =====
   checkToken();
 });
-
-
-
