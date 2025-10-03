@@ -1,4 +1,4 @@
-// server.js
+// server.js (גרסה מתוקנת)
 import express from "express";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
@@ -26,12 +26,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
-const publicPath = __dirname;
-app.use(express.static(publicPath));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
-});
+app.use(express.static(__dirname));
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
 // Uploads folder
 const uploadsDir = path.join(__dirname, "uploads");
@@ -40,15 +36,13 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 // ===== Database setup =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 });
 pool.connect()
   .then(() => console.log("✅ Connected to Postgres"))
-  .catch(err => console.error("❌ DB connection error:", err));
+  .catch((err) => console.error("❌ DB connection error:", err));
 
-const db = {
-  query: (text, params) => pool.query(text, params)
-};
+const db = { query: (text, params) => pool.query(text, params) };
 
 // ===== Ensure admin table & default user =====
 async function initAdmin() {
@@ -69,9 +63,7 @@ async function initAdmin() {
       const hash = await bcrypt.hash(password, 10);
       await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
       console.log("✅ Admin user created from ENV");
-    } else {
-      console.log("ℹ️ Admin user already exists");
-    }
+    } else console.log("ℹ️ Admin user already exists");
   } catch (err) {
     console.error("❌ Error initializing admin:", err);
   }
@@ -91,12 +83,12 @@ const upload = multer({ storage });
 
 // ===== JWT Middleware =====
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.sendStatus(401);
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "No token provided" });
 
   jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) return res.status(403).json({ error: "Invalid token" });
     req.user = user;
     next();
   });
@@ -118,18 +110,15 @@ app.post("/admin/login", async (req, res) => {
     const token = jwt.sign({ username: row.username }, SECRET_KEY, { expiresIn: "1h" });
     res.json({ token });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
 
 // ===== Verify Admin Token =====
 app.post("/admin/verify-token", authenticateToken, (req, res) => {
-  // אם הגענו לכאן, הטוקן תקין
   res.json({ valid: true });
 });
-
-
 
 // ===== Upload Endpoint =====
 app.post("/upload", upload.single("file"), async (req, res) => {
@@ -154,22 +143,27 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     fs.writeFileSync(filePath, req.file.buffer);
     res.json({ url: `/uploads/${fileName}` });
   } catch (err) {
-    console.error(err);
+    console.error("Upload error:", err);
     res.status(500).json({ error: "Upload failed" });
   }
 });
 
 // ===== Shares Table & Endpoints =====
 async function initSharesTable() {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS shares (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      message TEXT NOT NULL,
-      imageUrl TEXT,
-      published BOOLEAN DEFAULT FALSE
-    )
-  `);
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS shares (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        message TEXT NOT NULL,
+        imageUrl TEXT,
+        published BOOLEAN DEFAULT FALSE
+      )
+    `);
+    console.log("✅ Shares table ready");
+  } catch (err) {
+    console.error("❌ Error initializing shares table:", err);
+  }
 }
 initSharesTable();
 
@@ -184,17 +178,20 @@ app.post("/shares", async (req, res) => {
     );
     res.json({ success: true, id: result.rows[0].id });
   } catch (err) {
-    console.error(err);
+    console.error("Error inserting share:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
 
+// ===== Published Shares Endpoint =====
 app.get("/shares/published", async (req, res) => {
+  console.log("Fetching published shares...");
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
+    console.log("Shares fetched:", result.rows.length);
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching published shares:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
@@ -205,7 +202,7 @@ app.get("/admin/shares", authenticateToken, async (req, res) => {
     const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching admin shares:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
@@ -216,7 +213,7 @@ app.post("/admin/shares/publish/:id", authenticateToken, async (req, res) => {
     await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [id]);
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error("Error publishing share:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
@@ -227,37 +224,5 @@ app.post("/admin/shares/unpublish/:id", authenticateToken, async (req, res) => {
     await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [id]);
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-app.delete("/admin/shares/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.query("DELETE FROM shares WHERE id=$1", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-// ===== Cloudinary Images API =====
-app.get("/images/:tag", async (req, res) => {
-  const { tag } = req.params;
-  try {
-    const result = await cloudinary.search
-      .expression(`tags=${tag}`)
-      .max_results(30)
-      .execute();
-    res.json(result.resources);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Cloudinary error" });
-  }
-});
-
-// ===== Start Server =====
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
+    console.error("Error unpublishing share:", err);
+    res.status(500).json({ error
