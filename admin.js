@@ -32,9 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function showError() {
     errorDiv.style.display = "block";
     content.style.display = "none";
-    setTimeout(() => {
-      window.location.href = "/login.html";
-    }, 2000);
   }
 
   logoutBtn.addEventListener("click", () => {
@@ -200,4 +197,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   checkToken();
 });
+
 
