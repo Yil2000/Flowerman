@@ -1,5 +1,5 @@
 // gallery.js
-const serverUrl = "http://localhost:4000";
+const serverUrl = "https://flowerman.onrender.com";
 const useServer = true;
 
 const homepageGallery = document.querySelector("#homepage-gallery .gallery-img-boxs");
@@ -169,3 +169,4 @@ buttons.forEach(button => {
 // ====== הרצת ברירת מחדל ======
 renderHomepageGallery();
 renderMainGallery();
+
