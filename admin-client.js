@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadRes = await fetch("http://localhost:4000/upload", {
+        const uploadRes = await fetch("https://flowerman.onrender.com/", {
           method: "POST",
           body: formData
         });
@@ -126,3 +126,4 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
 });
+
