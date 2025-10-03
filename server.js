@@ -44,6 +44,10 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false } // חובה ב-Render PostgreSQL
 });
+pool.connect()
+  .then(() => console.log("✅ Connected to Postgres"))
+  .catch(err => console.error("❌ DB connection error:", err));
+
 
 // Wrapper for queries
 const db = {
@@ -226,5 +230,6 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
 
