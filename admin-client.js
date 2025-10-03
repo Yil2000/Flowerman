@@ -4,23 +4,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.getElementById("file");
   const clearBtn = document.getElementById("clear-file");
 
-  // ==== כתובת השרת ב-Render ====
-  const serverUrl = "https://flowerman.onrender.com";
+  const serverUrl = "https://flowerman.onrender.com"; // כתובת השרת
 
-  // הפוך את הכפתור X לגלוי רק אם יש קובץ
+  // ===== הפעלת כפתור X לניקוי הקובץ =====
   function toggleClearBtn() {
     clearBtn.style.display = fileInput.files.length > 0 ? "inline-block" : "none";
   }
-
   toggleClearBtn();
   fileInput.addEventListener("change", toggleClearBtn);
-
   clearBtn.addEventListener("click", () => {
     fileInput.value = "";
     toggleClearBtn();
   });
 
-  // מזהי שיתופים שכבר מוצגים
+  // ===== סט שיתופים מוצגים כדי למנוע שכפולים =====
   const displayedShares = new Set();
 
   // ===== שליחת שיתוף =====
@@ -43,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("file", file);
 
-        // 📌 חשוב לוודא שבשרת באמת יש endpoint כזה
         const uploadRes = await fetch(`${serverUrl}/upload`, {
           method: "POST",
           body: formData
@@ -67,19 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(errData.error || "שגיאה בשליחת השיתוף");
       }
 
-      const notif = document.createElement("div");
-      notif.textContent = "✅ השיתוף נשלח לבדיקת מנהל!";
-      notif.style.position = "fixed";
-      notif.style.top = "20px";
-      notif.style.right = "20px";
-      notif.style.background = "#4caf50";
-      notif.style.color = "white";
-      notif.style.padding = "10px 20px";
-      notif.style.borderRadius = "5px";
-      notif.style.zIndex = "9999";
-      document.body.appendChild(notif);
-      setTimeout(() => notif.remove(), 3000);
-
+      showNotification("✅ השיתוף נשלח לבדיקת מנהל!");
       form.reset();
       toggleClearBtn();
 
@@ -91,8 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== פונקציה להוספת שיתוף ל-wall =====
   function addShareToWall(share) {
-    const id = share.id || share._id; // תומך גם ב-id וגם ב-_id
-
+    const id = share.id || share._id;
     if (!wallContainer || displayedShares.has(id)) return;
 
     const div = document.createElement("div");
@@ -112,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     displayedShares.add(id);
   }
 
-  // ===== Polling לקבלת שיתופים שפורסמו =====
+  // ===== Polling לשיתופים שפורסמו =====
   async function fetchPublishedShares() {
     try {
       const res = await fetch(`${serverUrl}/shares/published`);
@@ -124,6 +107,22 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  // ===== הצגת הודעה זמנית =====
+  function showNotification(text) {
+    const notif = document.createElement("div");
+    notif.textContent = text;
+    notif.style.position = "fixed";
+    notif.style.top = "20px";
+    notif.style.right = "20px";
+    notif.style.background = "#4caf50";
+    notif.style.color = "white";
+    notif.style.padding = "10px 20px";
+    notif.style.borderRadius = "5px";
+    notif.style.zIndex = "9999";
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
   }
 
   fetchPublishedShares();
