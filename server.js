@@ -17,7 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 
 // Middleware
@@ -25,13 +25,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 // Serve static files
-const publicPath = path.join(__dirname, "public");
+const publicPath = __dirname; // כל הקבצים באותו level
 app.use(express.static(publicPath));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
+
+// Uploads folder
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
 
 // ===== Database setup =====
 const pool = new Pool({
@@ -224,3 +230,4 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
