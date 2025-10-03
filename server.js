@@ -42,12 +42,41 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
-
 pool.connect()
   .then(() => console.log("✅ Connected to Postgres"))
   .catch(err => console.error("❌ DB connection error:", err));
 
-const db = { query: (text, params) => pool.query(text, params) };
+const db = {
+  query: (text, params) => pool.query(text, params)
+};
+
+// ===== Ensure admin table & default user =====
+async function initAdmin() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS admins (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL
+      )
+    `);
+
+    const username = process.env.ADMIN_USERNAME;
+    const password = process.env.ADMIN_PASSWORD;
+
+    const res = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
+    if (res.rows.length === 0) {
+      const hash = await bcrypt.hash(password, 10);
+      await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
+      console.log("✅ Admin user created from ENV");
+    } else {
+      console.log("ℹ️ Admin user already exists");
+    }
+  } catch (err) {
+    console.error("❌ Error initializing admin:", err);
+  }
+}
+initAdmin();
 
 // ===== Cloudinary config =====
 cloudinary.config({
@@ -73,41 +102,6 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// ===== Ensure Admin User Exists =====
-async function ensureAdmin() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS admins (
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
-      )
-    `);
-
-    const result = await db.query("SELECT COUNT(*) FROM admins");
-    const count = parseInt(result.rows[0].count, 10);
-
-    if (count === 0) {
-      const username = process.env.ADMIN_USER || "admin";
-      const plainPassword = process.env.ADMIN_PASS || "123456";
-
-      const hashedPassword = await bcrypt.hash(plainPassword, 10);
-      await db.query(
-        "INSERT INTO admins (username, password) VALUES ($1, $2)",
-        [username, hashedPassword]
-      );
-      console.log(`✅ נוצר משתמש מנהל ראשוני (${username})`);
-    } else {
-      console.log("ℹ️ משתמש מנהל כבר קיים");
-    }
-  } catch (err) {
-    console.error("❌ שגיאה בבדיקת משתמש מנהל:", err);
-  }
-}
-
-// להריץ בהפעלה
-ensureAdmin();
-
 // ===== Admin Login =====
 app.post("/admin/login", async (req, res) => {
   const { username, password } = req.body;
@@ -129,20 +123,6 @@ app.post("/admin/login", async (req, res) => {
   }
 });
 
-// ===== Verify Token =====
-app.post("/admin/verify-token", (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.json({ valid: false });
-
-  const token = authHeader.split(" ")[1];
-  try {
-    jwt.verify(token, SECRET_KEY);
-    res.json({ valid: true });
-  } catch {
-    res.json({ valid: false });
-  }
-});
-
 // ===== Upload Endpoint =====
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
@@ -161,7 +141,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       return res.json({ url: result.secure_url });
     }
 
-    // Save locally if Cloudinary not configured
     const fileName = Date.now() + "-" + req.file.originalname.replace(/\s+/g, "_");
     const filePath = path.join(uploadsDir, fileName);
     fs.writeFileSync(filePath, req.file.buffer);
@@ -172,7 +151,20 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// ===== Shares Endpoints =====
+// ===== Shares Table & Endpoints =====
+async function initSharesTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS shares (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      imageUrl TEXT,
+      published BOOLEAN DEFAULT FALSE
+    )
+  `);
+}
+initSharesTable();
+
 app.post("/shares", async (req, res) => {
   const { name, message, imageUrl } = req.body;
   if (!name || !message) return res.status(400).json({ error: "Missing fields" });
