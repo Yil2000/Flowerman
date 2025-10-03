@@ -219,7 +219,7 @@ app.delete("/admin/shares/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// ===== Gallery Endpoint (Cloudinary) =====
+// ===== Gallery Endpoint (Cloudinary, tags) =====
 app.get("/images/:tag", async (req, res) => {
   const { tag } = req.params;
 
@@ -228,30 +228,25 @@ app.get("/images/:tag", async (req, res) => {
       return res.status(500).json({ error: "Cloudinary not configured" });
     }
 
-    // שליפת כל התמונות (עד 100)
-    const resources = await cloudinary.api.resources({
-      type: "upload",
-      max_results: 100,
-      sort_by: [{ field: "public_id", order: "desc" }]
-    });
+    // מחפש לפי tag
+    const resources = await cloudinary.api.resources_by_tag(tag, { max_results: 100 });
 
-    // סינון לפי tag
-    const images = resources.resources
-      .filter(r => r.public_id.toLowerCase().includes(tag.toLowerCase()))
-      .map(r => ({
-        public_id: r.public_id,
-        secure_url: r.secure_url
-      }));
+    const images = resources.resources.map(r => ({
+      public_id: r.public_id,
+      secure_url: r.secure_url
+    }));
 
-    if (images.length === 0) return res.status(404).json({ error: "No images found for tag: " + tag });
-
+    // מחזיר גם אם אין תמונות (ריק)
     res.json(images);
+
   } catch (err) {
     console.error("Cloudinary fetch error:", err);
     res.status(500).json({ error: "Failed to fetch images from Cloudinary" });
   }
 });
 
+
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
