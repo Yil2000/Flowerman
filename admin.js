@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout-btn");
   const sharesContainer = document.getElementById("comment-cards");
 
+  if (!sharesContainer) {
+    console.error("sharesContainer לא נמצא! בדוק את האלמנט HTML עם id='comment-cards'");
+  }
+
   // ===== בדיקת טוקן =====
   async function checkToken() {
     const token = sessionStorage.getItem("adminToken");
@@ -34,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.valid) {
         content.style.display = "flex";
         errorDiv.style.display = "none";
-        loadShares(); // הפונקציה הקיימת שלך
+        loadShares();
       } else {
         console.warn("Token not valid");
         showError("טוקן לא תקין");
@@ -62,14 +66,24 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadShares() {
     const token = sessionStorage.getItem("adminToken");
     try {
-      const res = await fetch("/admin/shares", {
+      // מניעת cache
+      const res = await fetch("/admin/shares?" + Date.now(), {
         headers: { "Authorization": "Bearer " + token }
       });
       if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
+
       const shares = await res.json();
-      renderShares(shares);
+      console.log("Loaded shares:", shares);
+
+      if (shares && shares.length > 0) {
+        renderShares(shares);
+      } else {
+        console.warn("No shares to display");
+        sharesContainer.innerHTML = "<p>לא נמצאו שיתופים</p>";
+      }
     } catch (err) {
       console.error("Error loading shares:", err);
+      sharesContainer.innerHTML = "<p>שגיאה בשליפת שיתופים</p>";
     }
   }
 
@@ -78,9 +92,10 @@ document.addEventListener("DOMContentLoaded", () => {
     sharesContainer.innerHTML = "";
 
     shares.forEach(share => {
+      const id = share.id || share._id; // טיפול במפתחות שונים
       const div = document.createElement("div");
       div.classList.add("comment-card");
-      div.dataset.id = share.id;
+      div.dataset.id = id;
       div.dataset.name = share.name;
       div.dataset.message = share.message;
       div.dataset.imageUrl = share.imageUrl || "";
@@ -105,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
       }
-
       div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
     });
   }
@@ -159,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = sessionStorage.getItem("adminToken");
     const id = adminDiv.dataset.id;
 
-    if (!confirm(" פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח בפעולה זו?")) return;
+    if (!confirm("פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח בפעולה זו?")) return;
 
     try {
       const res = await fetch(`/admin/shares/${id}`, {
