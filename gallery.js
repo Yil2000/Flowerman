@@ -11,7 +11,7 @@ const allTags = ["jerusalem", "heifa", "beerSheva", "savidor", "kisufim", "julis
 // פונקציה לשליפת תמונות לפי tag
 async function fetchImagesByTag(tag) {
   try {
-    const res = await fetch(`${serverUrl}/images/${tag}`);
+    const res = await fetch(`${serverUrl}images/${tag}`);
     if (!res.ok) throw new Error(`שגיאה בשרת: ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -169,5 +169,6 @@ buttons.forEach(button => {
 // ====== הרצת ברירת מחדל ======
 renderHomepageGallery();
 renderMainGallery();
+
 
 
