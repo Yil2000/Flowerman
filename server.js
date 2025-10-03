@@ -17,7 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 4000;
 const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 
 // Middleware
@@ -25,9 +25,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // Serve static files
-const publicPath = __dirname; // כל הקבצים באותו level
+const publicPath = __dirname;
 app.use(express.static(publicPath));
 
 app.get("/", (req, res) => {
@@ -38,21 +37,17 @@ app.get("/", (req, res) => {
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-
 // ===== Database setup =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // חובה ב-Render PostgreSQL
+  ssl: { rejectUnauthorized: false }
 });
+
 pool.connect()
   .then(() => console.log("✅ Connected to Postgres"))
   .catch(err => console.error("❌ DB connection error:", err));
 
-
-// Wrapper for queries
-const db = {
-  query: (text, params) => pool.query(text, params)
-};
+const db = { query: (text, params) => pool.query(text, params) };
 
 // ===== Cloudinary config =====
 cloudinary.config({
@@ -77,6 +72,41 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
+
+// ===== Ensure Admin User Exists =====
+async function ensureAdmin() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS admins (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+      )
+    `);
+
+    const result = await db.query("SELECT COUNT(*) FROM admins");
+    const count = parseInt(result.rows[0].count, 10);
+
+    if (count === 0) {
+      const username = process.env.ADMIN_USER || "admin";
+      const plainPassword = process.env.ADMIN_PASS || "123456";
+
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+      await db.query(
+        "INSERT INTO admins (username, password) VALUES ($1, $2)",
+        [username, hashedPassword]
+      );
+      console.log(`✅ נוצר משתמש מנהל ראשוני (${username})`);
+    } else {
+      console.log("ℹ️ משתמש מנהל כבר קיים");
+    }
+  } catch (err) {
+    console.error("❌ שגיאה בבדיקת משתמש מנהל:", err);
+  }
+}
+
+// להריץ בהפעלה
+ensureAdmin();
 
 // ===== Admin Login =====
 app.post("/admin/login", async (req, res) => {
@@ -230,6 +260,3 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
-
