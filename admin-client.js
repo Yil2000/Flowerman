@@ -4,24 +4,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.getElementById("file");
   const clearBtn = document.getElementById("clear-file");
 
+  // ==== כתובת השרת ב-Render ====
+  const serverUrl = "https://flowerman.onrender.com";
+
   // הפוך את הכפתור X לגלוי רק אם יש קובץ
   function toggleClearBtn() {
     clearBtn.style.display = fileInput.files.length > 0 ? "inline-block" : "none";
   }
 
-  // התחלה - מסתיר את הכפתור
   toggleClearBtn();
-
-  // מאזין לשינויים באינפוט
   fileInput.addEventListener("change", toggleClearBtn);
 
-  // כפתור מחיקה מנקה את הבחירה ומסתיר את הכפתור
   clearBtn.addEventListener("click", () => {
     fileInput.value = "";
     toggleClearBtn();
   });
 
-  // שמירת מזהי השיתופים שכבר מוצגים
+  // מזהי שיתופים שכבר מוצגים
   const displayedShares = new Set();
 
   // ===== שליחת שיתוף =====
@@ -44,10 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadRes = await fetch("https://flowerman.onrender.com/", {
+        // 📌 חשוב לוודא שבשרת באמת יש endpoint כזה
+        const uploadRes = await fetch(`${serverUrl}/upload`, {
           method: "POST",
           body: formData
         });
+
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok || !uploadData.url) {
           throw new Error(uploadData.error || "שגיאה בהעלאת התמונה");
@@ -55,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
         imageUrl = uploadData.url;
       }
 
-      const shareRes = await fetch("http://localhost:4000/shares", {
+      const shareRes = await fetch(`${serverUrl}/shares`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, message, imageUrl })
@@ -80,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => notif.remove(), 3000);
 
       form.reset();
-      toggleClearBtn(); // עדכון הכפתור לאחר איפוס
+      toggleClearBtn();
 
     } catch (err) {
       console.error(err);
@@ -90,7 +91,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== פונקציה להוספת שיתוף ל-wall =====
   function addShareToWall(share) {
-    if (!wallContainer || displayedShares.has(share.id)) return;
+    const id = share.id || share._id; // תומך גם ב-id וגם ב-_id
+
+    if (!wallContainer || displayedShares.has(id)) return;
 
     const div = document.createElement("div");
     div.classList.add("massages-wall-card");
@@ -106,13 +109,13 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
     wallContainer.prepend(div);
-    displayedShares.add(share.id);
+    displayedShares.add(id);
   }
 
   // ===== Polling לקבלת שיתופים שפורסמו =====
   async function fetchPublishedShares() {
     try {
-      const res = await fetch("http://localhost:4000/shares/published");
+      const res = await fetch(`${serverUrl}/shares/published`);
       if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
 
       const shares = await res.json();
@@ -126,4 +129,3 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
 });
-
