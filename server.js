@@ -123,6 +123,14 @@ app.post("/admin/login", async (req, res) => {
   }
 });
 
+// ===== Verify Admin Token =====
+app.post("/admin/verify-token", authenticateToken, (req, res) => {
+  // אם הגענו לכאן, הטוקן תקין
+  res.json({ valid: true });
+});
+
+
+
 // ===== Upload Endpoint =====
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
@@ -252,3 +260,4 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
