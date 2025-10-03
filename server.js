@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import multer from "multer";
 import fs from "fs";
-import db from "./db.js";
+import { Pool } from "pg";
 
 dotenv.config();
 
@@ -33,14 +33,25 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// Cloudinary config
+// ===== Database setup =====
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // חובה ב-Render PostgreSQL
+});
+
+// Wrapper for queries
+const db = {
+  query: (text, params) => pool.query(text, params)
+};
+
+// ===== Cloudinary config =====
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
   api_key: process.env.CLOUDINARY_API_KEY || "",
   api_secret: process.env.CLOUDINARY_API_SECRET || ""
 });
 
-// Multer setup
+// ===== Multer setup =====
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
@@ -66,15 +77,20 @@ app.post("/admin/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: "Missing username or password" });
 
-  const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-  const row = result.rows[0];
-  if (!row) return res.status(401).json({ error: "User not found" });
+  try {
+    const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
+    const row = result.rows[0];
+    if (!row) return res.status(401).json({ error: "User not found" });
 
-  const match = await bcrypt.compare(password, row.password);
-  if (!match) return res.status(401).json({ error: "Wrong password" });
+    const match = await bcrypt.compare(password, row.password);
+    if (!match) return res.status(401).json({ error: "Wrong password" });
 
-  const token = jwt.sign({ username: row.username }, SECRET_KEY, { expiresIn: "1h" });
-  res.json({ token });
+    const token = jwt.sign({ username: row.username }, SECRET_KEY, { expiresIn: "1h" });
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
+  }
 });
 
 // ===== Verify Token =====
@@ -109,7 +125,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       return res.json({ url: result.secure_url });
     }
 
-    // Save locally
+    // Save locally if Cloudinary not configured
     const fileName = Date.now() + "-" + req.file.originalname.replace(/\s+/g, "_");
     const filePath = path.join(uploadsDir, fileName);
     fs.writeFileSync(filePath, req.file.buffer);
