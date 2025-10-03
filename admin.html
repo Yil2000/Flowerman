@@ -10,7 +10,7 @@
     <div id="admin-content" style="display: none">
       <!-- Sidebar -->
       <div id="sidebar">
-        <img src="flowerman-logo.PNG" alt="" />
+        <img src="flowerman-logo.PNG" alt="Flowerman Logo" />
         <button data-target="comments-section">קיר השיתופים</button>
         <button data-target="contact-section">טפסי יצירת קשר</button>
         <button data-target="upload-section">העלאת תמונות</button>
@@ -19,10 +19,11 @@
       <!-- Content -->
       <div id="content">
         <button id="logout-btn">התנתקות</button>
+
         <!-- תגובות -->
         <div id="comments-section" class="section">
           <h2>שיתופים שהתקבלו</h2>
-          <div class="comment-cards" id="comment-cards"></div>
+          <div class="massages-wall-cards" id="comment-cards"></div>
         </div>
 
         <!-- צור קשר -->
@@ -30,9 +31,7 @@
           <h2>טפסי צור קשר</h2>
           <ul>
             <li>שם: יוסי | אימייל: yossi@test.com | הודעה: שלום</li>
-            <li>
-              שם: מיכל | אימייל: michal@test.com | הודעה: אשמח לשמוע פרטים
-            </li>
+            <li>שם: מיכל | אימייל: michal@test.com | הודעה: אשמח לשמוע פרטים</li>
           </ul>
         </div>
 
@@ -40,17 +39,18 @@
         <div id="upload-section" class="section">
           <h2>העלאת תמונות</h2>
           <label for="upload-tag">בחירת קטגורייה</label>
-          <select name="" id="upload-tag">
-            <option value="">מרכזית ירושלים</option>
-            <option value="">סבידור מרכז</option>
-            <option value="">חיפה לב המפרץ</option>
-            <option value=""></option>
-            <option value=""></option>
-            <option value=""></option>
+          <select id="upload-tag">
+            <option value="jerusalem">מרכזית ירושלים</option>
+            <option value="savidor">סבידור מרכז</option>
+            <option value="heifa">חיפה לב המפרץ</option>
+            <option value="beerSheva">באר שבע</option>
+            <option value="kisufim">כיסופים</option>
+            <option value="julis">ג'וליס</option>
           </select>
 
           <input type="file" id="upload-files" multiple />
           <button id="upload-btn">העלה</button>
+          <button id="clear-file" style="display:none">X</button>
           <div id="upload-status"></div>
         </div>
       </div>
@@ -62,7 +62,6 @@
     </div>
 
     <script src="/admin.js" defer></script>
-    <script src="/admin-index.js"></script>
+    <script src="/admin-index.js" defer></script>
   </body>
 </html>
-
