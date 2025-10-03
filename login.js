@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // שמירת הטוקן ב-sessionStorage
-      sessionStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminToken", data.token);
 
       // הפניה לעמוד המוגן
       window.location.href = "/admin.html";
@@ -39,3 +39,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
