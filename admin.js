@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== בדיקת טוקן =====
   async function checkToken() {
-    const token = sessionStorage.getItem("adminToken");
+    const token = localStorage.getItem("adminToken");
     if (!token) return showError();
 
     try {
@@ -38,13 +38,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   logoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("adminToken");
+    localStorage.removeItem("adminToken");
     window.location.href = "/login.html";
   });
 
   // ===== טעינת שיתופים =====
   async function loadShares() {
-    const token = sessionStorage.getItem("adminToken");
+    const token = localStorage.getItem("adminToken");
     try {
       const res = await fetch("/admin/shares", {
         headers: { "Authorization": "Bearer " + token }
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== פרסום שיתוף =====
   async function publishShare(adminDiv) {
-    const token = sessionStorage.getItem("adminToken");
+    const token = localStorage.getItem("adminToken");
     const id = adminDiv.dataset.id;
     try {
       const res = await fetch(`/admin/shares/publish/${id}`, {
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== החזרת שיתוף ל"לא מפורסם" =====
   async function unpublishShare(adminDiv) {
-    const token = sessionStorage.getItem("adminToken");
+    const token = localStorage.getItem("adminToken");
     const id = adminDiv.dataset.id;
     try {
       const res = await fetch(`/admin/shares/unpublish/${id}`, {
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== מחיקת שיתוף =====
   async function deleteShare(adminDiv) {
-    const token = sessionStorage.getItem("adminToken");
+    const token = localStorage.getItem("adminToken");
     const id = adminDiv.dataset.id;
 
     if (!confirm(" פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח בפעולה זו?")) return;
@@ -200,3 +200,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   checkToken();
 });
+
