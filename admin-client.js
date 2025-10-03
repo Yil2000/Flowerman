@@ -1,12 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("share-form");
+  const form = document.getElementById("share-form"); // אם יש לך form קיים
   const wallContainer = document.querySelector(".massages-wall-cards");
-  const fileInput = document.getElementById("file");
+  const fileInput = document.getElementById("upload-files");
   const clearBtn = document.getElementById("clear-file");
 
-  const serverUrl = "https://flowerman.onrender.com"; // כתובת השרת
+  const serverUrl = "https://flowerman.onrender.com";
 
-  // ===== הפעלת כפתור X לניקוי הקובץ =====
+  // ===== הצגת/הסתרת כפתור X =====
   function toggleClearBtn() {
     clearBtn.style.display = fileInput.files.length > 0 ? "inline-block" : "none";
   }
@@ -17,61 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleClearBtn();
   });
 
-  // ===== סט שיתופים מוצגים כדי למנוע שכפולים =====
+  // ===== סט לשיתופים שמוצגים =====
   const displayedShares = new Set();
-
-  // ===== שליחת שיתוף =====
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById("share-name").value.trim();
-    const message = document.getElementById("share-massege").value.trim();
-    const file = fileInput.files[0];
-
-    if (!name || !message) {
-      alert("נא למלא שם והודעה");
-      return;
-    }
-
-    try {
-      let imageUrl = "";
-
-      if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const uploadRes = await fetch(`${serverUrl}/upload`, {
-          method: "POST",
-          body: formData
-        });
-
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok || !uploadData.url) {
-          throw new Error(uploadData.error || "שגיאה בהעלאת התמונה");
-        }
-        imageUrl = uploadData.url;
-      }
-
-      const shareRes = await fetch(`${serverUrl}/shares`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, message, imageUrl })
-      });
-
-      if (!shareRes.ok) {
-        const errData = await shareRes.json();
-        throw new Error(errData.error || "שגיאה בשליחת השיתוף");
-      }
-
-      showNotification("✅ השיתוף נשלח לבדיקת מנהל!");
-      form.reset();
-      toggleClearBtn();
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
-  });
 
   // ===== פונקציה להוספת שיתוף ל-wall =====
   function addShareToWall(share) {
@@ -102,8 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
 
       const shares = await res.json();
-      shares.forEach(share => addShareToWall(share));
-
+      shares.forEach(addShareToWall);
     } catch (err) {
       console.error(err);
     }
@@ -127,4 +73,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
+
+  // ===== Upload button =====
+  const uploadBtn = document.getElementById("upload-btn");
+  const uploadTag = document.getElementById("upload-tag");
+  const uploadStatus = document.getElementById("upload-status");
+
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", async () => {
+      const files = fileInput.files;
+      const tag = uploadTag.value;
+      if (!files.length || !tag) {
+        alert("בחר קבצים וקטגוריה");
+        return;
+      }
+
+      uploadStatus.textContent = "מעלה קבצים...";
+      for (let file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const res = await fetch(`${serverUrl}/upload`, { method: "POST", body: formData });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "שגיאה בהעלאה");
+
+          // כאן ניתן לשלוח את הקובץ גם ל־Cloudinary עם tag אם רוצים
+          console.log("Uploaded:", data.url);
+
+        } catch (err) {
+          console.error(err);
+          alert("שגיאה בהעלאת הקובץ: " + err.message);
+        }
+      }
+      uploadStatus.textContent = "✅ העלאה הושלמה";
+      fileInput.value = "";
+      toggleClearBtn();
+    });
+  }
 });
