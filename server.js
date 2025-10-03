@@ -222,22 +222,28 @@ app.delete("/admin/shares/:id", authenticateToken, async (req, res) => {
 // ===== Gallery Endpoint (Cloudinary) =====
 app.get("/images/:tag", async (req, res) => {
   const { tag } = req.params;
+
   try {
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       return res.status(500).json({ error: "Cloudinary not configured" });
     }
 
+    // שליפת כל התמונות (עד 100)
     const resources = await cloudinary.api.resources({
       type: "upload",
-      prefix: `gallery/${tag}/`, // תיקייה לפי tag ב-Cloudinary
-      max_results: 50,
+      max_results: 100,
       sort_by: [{ field: "public_id", order: "desc" }]
     });
 
-    const images = resources.resources.map(r => ({
-      public_id: r.public_id,
-      secure_url: r.secure_url
-    }));
+    // סינון לפי tag
+    const images = resources.resources
+      .filter(r => r.public_id.toLowerCase().includes(tag.toLowerCase()))
+      .map(r => ({
+        public_id: r.public_id,
+        secure_url: r.secure_url
+      }));
+
+    if (images.length === 0) return res.status(404).json({ error: "No images found for tag: " + tag });
 
     res.json(images);
   } catch (err) {
@@ -248,3 +254,4 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
