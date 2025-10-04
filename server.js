@@ -20,6 +20,17 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 
+// ===== Temporary loading page until server is ready =====
+let serverReady = false;
+
+app.get("*", (req, res, next) => {
+  if (!serverReady && !req.path.includes("loading.html")) {
+    return res.sendFile(path.join(__dirname, "loading.html"));
+  }
+  next();
+});
+
+
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
@@ -164,6 +175,13 @@ async function initSharesTable() {
 }
 initSharesTable();
 
+  .then(() => {
+    serverReady = true;
+    console.log("✅ Server is fully ready!");
+  })
+  .catch(err => console.error("❌ Error initializing server:", err));
+
+
 // ===== Public Shares =====
 app.get("/shares/published", async (req, res) => {
   try {
@@ -248,5 +266,6 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
 
