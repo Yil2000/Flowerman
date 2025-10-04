@@ -1,21 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("share-form"); // אם יש לך form קיים
+  const form = document.getElementById("share-form");
   const wallContainer = document.querySelector(".massages-wall-cards");
   const fileInput = document.getElementById("upload-files");
   const clearBtn = document.getElementById("clear-file");
-
   const serverUrl = "https://flowerman.onrender.com";
 
-  // ===== הצגת/הסתרת כפתור X =====
-  function toggleClearBtn() {
-    clearBtn.style.display = fileInput.files.length > 0 ? "inline-block" : "none";
-  }
-  toggleClearBtn();
-  fileInput.addEventListener("change", toggleClearBtn);
-  clearBtn.addEventListener("click", () => {
-    fileInput.value = "";
+  // בדוק אם האלמנטים קיימים לפני שמשתמשים בהם
+  if (fileInput && clearBtn) {
+    function toggleClearBtn() {
+      clearBtn.style.display = fileInput.files.length > 0 ? "inline-block" : "none";
+    }
     toggleClearBtn();
-  });
+    fileInput.addEventListener("change", toggleClearBtn);
+    clearBtn.addEventListener("click", () => {
+      fileInput.value = "";
+      toggleClearBtn();
+    });
+  }
 
   // ===== סט לשיתופים שמוצגים =====
   const displayedShares = new Set();
@@ -34,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${share.message}</p>
         </div>
         <div class="massages-wall-card-img">
-          <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="" />
+          <img src="${share.imageUrl || 'flowerman-logo.PNG'}" alt="" />
         </div>
       </div>
     `;
@@ -55,60 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== הצגת הודעה זמנית =====
-  function showNotification(text) {
-    const notif = document.createElement("div");
-    notif.textContent = text;
-    notif.style.position = "fixed";
-    notif.style.top = "20px";
-    notif.style.right = "20px";
-    notif.style.background = "#4caf50";
-    notif.style.color = "white";
-    notif.style.padding = "10px 20px";
-    notif.style.borderRadius = "5px";
-    notif.style.zIndex = "9999";
-    document.body.appendChild(notif);
-    setTimeout(() => notif.remove(), 3000);
-  }
-
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
-
-  // ===== Upload button =====
-  const uploadBtn = document.getElementById("upload-btn");
-  const uploadTag = document.getElementById("upload-tag");
-  const uploadStatus = document.getElementById("upload-status");
-
-  if (uploadBtn) {
-    uploadBtn.addEventListener("click", async () => {
-      const files = fileInput.files;
-      const tag = uploadTag.value;
-      if (!files.length || !tag) {
-        alert("בחר קבצים וקטגוריה");
-        return;
-      }
-
-      uploadStatus.textContent = "מעלה קבצים...";
-      for (let file of files) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-          const res = await fetch(`${serverUrl}/upload`, { method: "POST", body: formData });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "שגיאה בהעלאה");
-
-          // כאן ניתן לשלוח את הקובץ גם ל־Cloudinary עם tag אם רוצים
-          console.log("Uploaded:", data.url);
-
-        } catch (err) {
-          console.error(err);
-          alert("שגיאה בהעלאת הקובץ: " + err.message);
-        }
-      }
-      uploadStatus.textContent = "✅ העלאה הושלמה";
-      fileInput.value = "";
-      toggleClearBtn();
-    });
-  }
 });
