@@ -77,7 +77,6 @@ async function initAdmin() {
     console.error("❌ Error initializing admin:", err);
   }
 }
-initAdmin();
 
 // ===== Cloudinary config =====
 cloudinary.config({
@@ -173,13 +172,14 @@ async function initSharesTable() {
     console.error("❌ Error initializing shares table:", err);
   }
 }
-initSharesTable();
 
+Promise.all([initAdmin(), initSharesTable()])
   .then(() => {
     serverReady = true;
     console.log("✅ Server is fully ready!");
   })
   .catch(err => console.error("❌ Error initializing server:", err));
+
 
 
 // ===== Public Shares =====
@@ -266,6 +266,7 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
 
 
