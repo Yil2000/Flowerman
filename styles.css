@@ -267,7 +267,7 @@
         height: 100vh;
         z-index: 11;
         background-color: #ffffff;
-        transition: 1s ease-in;
+        transition: 0.5s ease-in;
     }
 
     .navbar{
@@ -1976,6 +1976,7 @@ a {
 
     
 }
+
 
 
 
