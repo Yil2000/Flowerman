@@ -1897,7 +1897,7 @@ a {
 .gallery-page-head-btns button{
     background: none;
     padding: 0.5em 1em;
-    border: 1px solid var(--pink);
+    border: 1px solid var(--purple);
     border-radius: 2em;
     color: var(--purple);
     font-size: var(--fs-p);
@@ -1976,6 +1976,7 @@ a {
 
     
 }
+
 
 
 
