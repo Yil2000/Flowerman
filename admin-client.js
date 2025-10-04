@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("share-form");
   const wallContainer = document.querySelector(".massages-wall-cards");
-  const fileInput = document.getElementById("upload-files");
+  const fileInput = document.getElementById("file");
   const clearBtn = document.getElementById("clear-file");
   const serverUrl = "https://flowerman.onrender.com";
 
@@ -96,5 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
 });
+
 
 
