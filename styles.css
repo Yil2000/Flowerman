@@ -1899,7 +1899,7 @@ a {
     padding: 0.5em 1em;
     border: 1px solid var(--pink);
     border-radius: 2em;
-    color: var(--pink);
+    color: var(--purple);
     font-size: var(--fs-p);
     transition: 0.3s;
     cursor: pointer;
@@ -1976,5 +1976,6 @@ a {
 
     
 }
+
 
 
