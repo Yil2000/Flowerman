@@ -116,7 +116,7 @@ app.post("/admin/login", async (req, res) => {
     const match = await bcrypt.compare(password, row.password);
     if (!match) return res.status(401).json({ error: "Wrong password" });
 
-    const token = jwt.sign({ username: row.username }, SECRET_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ username: row.username }, SECRET_KEY, { expiresIn: "30m" });
     res.json({ token });
   } catch (err) {
     console.error("Login error:", err);
@@ -266,6 +266,7 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
 
 
