@@ -1,7 +1,6 @@
-//admin-client.js
 // admin-client.js
 document.addEventListener("DOMContentLoaded", () => {
-  const serverUrl = "https://flowerman.onrender.com"; // URL של השרת שלך ב-Render
+  const serverUrl = "https://flowerman.onrender.com"; 
   const content = document.getElementById("admin-content");
   const errorDiv = document.getElementById("unauthorized");
   const logoutBtn = document.getElementById("logout-btn");
@@ -87,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       sharesContainer.appendChild(div);
 
-      // מאזינים לכפתורים
       if (share.published) {
         div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
       } else {
@@ -197,6 +195,3 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== הפעלת בדיקת טוקן =====
   checkToken();
 });
-
-
-
