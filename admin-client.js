@@ -6,6 +6,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearBtn = document.getElementById("clear-file");
   const serverUrl = "https://flowerman.onrender.com";
 
+  if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = form.querySelector('input[name="name"]').value.trim();
+    const message = form.querySelector('textarea[name="message"]').value.trim();
+    const file = fileInput?.files[0];
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("message", message);
+    if (file) formData.append("file", file);
+
+    try {
+      const res = await fetch(`${serverUrl}/shares`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "שגיאה בשליחה");
+
+      // ✅ הודעה ירוקה של הצלחה
+      alert("✅ השיתוף נשלח בהצלחה! ממתין לאישור מנהל.");
+
+      // ניקוי הטופס
+      form.reset();
+      if (clearBtn) clearBtn.style.display = "none";
+    } catch (err) {
+      console.error("Error submitting share:", err);
+      alert("❌ שגיאה בשליחת השיתוף, נסה שוב מאוחר יותר.");
+    }
+  });
+}
+
+
   // בדוק אם האלמנטים קיימים לפני שמשתמשים בהם
   if (fileInput && clearBtn) {
     function toggleClearBtn() {
@@ -60,4 +96,5 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
 });
+
 
