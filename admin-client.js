@@ -1,67 +1,167 @@
 //admin-client.js
+// admin-client.js
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("share-form");
-  const wallContainer = document.querySelector(".massages-wall-cards");
-  const fileInput = document.getElementById("file");
-  const clearBtn = document.getElementById("clear-file");
-  const serverUrl = "https://flowerman.onrender.com";
+  const serverUrl = "https://flowerman.onrender.com"; // URL של השרת שלך ב-Render
+  const content = document.getElementById("admin-content");
+  const errorDiv = document.getElementById("unauthorized");
+  const logoutBtn = document.getElementById("logout-btn");
+  const sharesContainer = document.getElementById("comment-cards");
 
-  if (form) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const name = form.querySelector('input[name="name"]').value.trim();
-    const message = form.querySelector('textarea[name="message"]').value.trim();
-    const file = fileInput?.files[0];
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("message", message);
-    if (file) formData.append("file", file);
+  // ===== בדיקת טוקן =====
+  async function checkToken() {
+    const token = sessionStorage.getItem("adminToken");
+    if (!token) return showError("אין טוקן");
 
     try {
-      const res = await fetch(`${serverUrl}/shares`, {
+      const res = await fetch(`${serverUrl}/admin/verify-token`, {
         method: "POST",
-        body: formData
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        }
       });
 
+      if (!res.ok) return showError("טוקן לא תקין");
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "שגיאה בשליחה");
-
-      // ✅ הודעה ירוקה של הצלחה
-      alert("✅ השיתוף נשלח בהצלחה! ממתין לאישור מנהל.");
-
-      // ניקוי הטופס
-      form.reset();
-      if (clearBtn) clearBtn.style.display = "none";
+      if (data.valid) {
+        content.style.display = "flex";
+        errorDiv.style.display = "none";
+        loadShares();
+      } else showError("טוקן לא תקין");
     } catch (err) {
-      console.error("Error submitting share:", err);
-      alert("❌ שגיאה בשליחת השיתוף, נסה שוב מאוחר יותר.");
+      console.error(err);
+      showError("שגיאה ברשת");
     }
+  }
+
+  function showError(reason) {
+    console.log("Unauthorized:", reason);
+    content.style.display = "none";
+    errorDiv.style.display = "block";
+  }
+
+  logoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("adminToken");
+    window.location.href = "/login.html";
   });
-}
 
+  // ===== טעינת שיתופים =====
+  async function loadShares() {
+    const token = sessionStorage.getItem("adminToken");
+    try {
+      const res = await fetch(`${serverUrl}/admin/shares?` + Date.now(), {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
 
-  // בדוק אם האלמנטים קיימים לפני שמשתמשים בהם
-  if (fileInput && clearBtn) {
-    function toggleClearBtn() {
-      clearBtn.style.display = fileInput.files.length > 0 ? "inline-block" : "none";
+      const shares = await res.json();
+      renderShares(shares);
+    } catch (err) {
+      console.error("Error loading shares:", err);
+      sharesContainer.innerHTML = "<p>שגיאה בשליפת שיתופים</p>";
     }
-    toggleClearBtn();
-    fileInput.addEventListener("change", toggleClearBtn);
-    clearBtn.addEventListener("click", () => {
-      fileInput.value = "";
-      toggleClearBtn();
+  }
+
+  function renderShares(shares) {
+    sharesContainer.innerHTML = "";
+    shares.forEach(share => {
+      const div = document.createElement("div");
+      div.classList.add("comment-card");
+      div.dataset.id = share.id;
+      div.dataset.name = share.name;
+      div.dataset.message = share.message;
+      div.dataset.imageUrl = share.imageUrl || "";
+
+      div.innerHTML = `
+        <h3 class="share-name">${share.name}</h3>
+        <p class="share-message">${share.message}</p>
+        ${share.imageUrl ? `<img class="share-image" src="${share.imageUrl}" alt="תמונה">` : ""}
+        <div class="share-actions">
+          ${share.published
+            ? `<button class="unpublish-btn">בטל פרסום</button>`
+            : `<button class="publish-btn">פרסם</button>`}
+          <button class="delete-btn" title="מחק שיתוף">🗑️</button>
+        </div>
+      `;
+
+      sharesContainer.appendChild(div);
+
+      // מאזינים לכפתורים
+      if (share.published) {
+        div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
+      } else {
+        div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
+      }
+      div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
     });
   }
 
-  // ===== סט לשיתופים שמוצגים =====
-  const displayedShares = new Set();
+  async function publishShare(adminDiv) {
+    const token = sessionStorage.getItem("adminToken");
+    const id = adminDiv.dataset.id;
+    try {
+      const res = await fetch(`${serverUrl}/admin/shares/publish/${id}`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) throw new Error("שגיאה בפרסום השיתוף");
 
-  // ===== פונקציה להוספת שיתוף ל-wall =====
+      addShareToWall({
+        name: adminDiv.dataset.name,
+        message: adminDiv.dataset.message,
+        imageUrl: adminDiv.dataset.imageUrl
+      });
+
+      adminDiv.remove();
+      showNotification("✅ השיתוף פורסם!");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
+  }
+
+  async function unpublishShare(adminDiv) {
+    const token = sessionStorage.getItem("adminToken");
+    const id = adminDiv.dataset.id;
+    try {
+      const res = await fetch(`${serverUrl}/admin/shares/unpublish/${id}`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) throw new Error("שגיאה בהחזרת השיתוף ללא מפורסם");
+
+      loadShares();
+      showNotification("⚠️ השיתוף חזר למצב לא מפורסם");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
+  }
+
+  async function deleteShare(adminDiv) {
+    if (!confirm("פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח?")) return;
+
+    const token = sessionStorage.getItem("adminToken");
+    const id = adminDiv.dataset.id;
+    try {
+      const res = await fetch(`${serverUrl}/admin/shares/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) throw new Error("שגיאה במחיקת השיתוף");
+
+      adminDiv.remove();
+      showNotification("🗑️ השיתוף נמחק בהצלחה!");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
+  }
+
   function addShareToWall(share) {
-    const id = share.id || share._id;
-    if (!wallContainer || displayedShares.has(id)) return;
+    const wallContainer = document.querySelector(".massages-wall-cards");
+    if (!wallContainer) return;
 
     const div = document.createElement("div");
     div.classList.add("massages-wall-card");
@@ -72,29 +172,30 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${share.message}</p>
         </div>
         <div class="massages-wall-card-img">
-          <img src="${share.imageUrl || 'flowerman-logo.PNG'}" alt="" />
+          <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="" />
         </div>
       </div>
     `;
     wallContainer.prepend(div);
-    displayedShares.add(id);
   }
 
-  // ===== Polling לשיתופים שפורסמו =====
-  async function fetchPublishedShares() {
-    try {
-      const res = await fetch(`${serverUrl}/shares/published`);
-      if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
-
-      const shares = await res.json();
-      shares.forEach(addShareToWall);
-    } catch (err) {
-      console.error(err);
-    }
+  function showNotification(text) {
+    const notif = document.createElement("div");
+    notif.textContent = text;
+    notif.style.position = "fixed";
+    notif.style.top = "20px";
+    notif.style.right = "20px";
+    notif.style.background = "#4caf50";
+    notif.style.color = "white";
+    notif.style.padding = "10px 20px";
+    notif.style.borderRadius = "5px";
+    notif.style.zIndex = "9999";
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 2000);
   }
 
-  fetchPublishedShares();
-  setInterval(fetchPublishedShares, 5000);
+  // ===== הפעלת בדיקת טוקן =====
+  checkToken();
 });
 
 
