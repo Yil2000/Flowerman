@@ -1,3 +1,4 @@
+//admin-client.js
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("share-form");
   const wallContainer = document.querySelector(".massages-wall-cards");
@@ -59,3 +60,4 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPublishedShares();
   setInterval(fetchPublishedShares, 5000);
 });
+
