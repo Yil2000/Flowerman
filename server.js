@@ -155,6 +155,52 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+// ===== User Share Submission =====
+app.post("/shares", upload.single("file"), async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    if (!name || !message) {
+      return res.status(400).json({ error: "Missing name or message" });
+    }
+
+    let imageUrl = null;
+
+    // אם הוגדרה העלאה ל-Cloudinary
+    if (req.file) {
+      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        const streamifier = (await import("streamifier")).default;
+        const streamUpload = () =>
+          new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream({ folder: "shares" }, (error, result) => {
+              if (result) resolve(result); else reject(error);
+            });
+            streamifier.createReadStream(req.file.buffer).pipe(stream);
+          });
+        const result = await streamUpload();
+        imageUrl = result.secure_url;
+      } else {
+        // אם אין Cloudinary – שמור מקומית
+        const fileName = Date.now() + "-" + req.file.originalname.replace(/\s+/g, "_");
+        const filePath = path.join(uploadsDir, fileName);
+        fs.writeFileSync(filePath, req.file.buffer);
+        imageUrl = `/uploads/${fileName}`;
+      }
+    }
+
+    // שמירה במסד הנתונים
+    const result = await db.query(
+      "INSERT INTO shares (name, message, imageUrl, published) VALUES ($1, $2, $3, FALSE) RETURNING *",
+      [name, message, imageUrl]
+    );
+
+    res.json({ success: true, share: result.rows[0] });
+  } catch (err) {
+    console.error("Error submitting share:", err);
+    res.status(500).json({ error: "Server error submitting share" });
+  }
+});
+
+
 // ===== Shares Table & Endpoints =====
 async function initSharesTable() {
   try {
@@ -266,6 +312,7 @@ app.get("/images/:tag", async (req, res) => {
 
 // ===== Start Server =====
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
 
 
