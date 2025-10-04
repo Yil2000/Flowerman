@@ -155,7 +155,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// ===== User Share Submission =====
+// ===== User Share Submission (Cloudinary only) =====
 app.post("/shares", upload.single("file"), async (req, res) => {
   try {
     const { name, message } = req.body;
@@ -165,25 +165,31 @@ app.post("/shares", upload.single("file"), async (req, res) => {
 
     let imageUrl = null;
 
-    // אם הוגדרה העלאה ל-Cloudinary
+    // חייבים Cloudinary
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(500).json({ error: "Cloudinary is not configured" });
+    }
+
     if (req.file) {
-      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-        const streamifier = (await import("streamifier")).default;
-        const streamUpload = () =>
-          new Promise((resolve, reject) => {
-            const stream = cloudinary.uploader.upload_stream({ folder: "shares" }, (error, result) => {
-              if (result) resolve(result); else reject(error);
-            });
-            streamifier.createReadStream(req.file.buffer).pipe(stream);
-          });
+      const streamifier = (await import("streamifier")).default;
+      const streamUpload = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "shares" },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+
+      try {
         const result = await streamUpload();
-        imageUrl = result.secure_url;
-      } else {
-        // אם אין Cloudinary – שמור מקומית
-        const fileName = Date.now() + "-" + req.file.originalname.replace(/\s+/g, "_");
-        const filePath = path.join(uploadsDir, fileName);
-        fs.writeFileSync(filePath, req.file.buffer);
-        imageUrl = `/uploads/${fileName}`;
+        imageUrl = result.secure_url; // URL ציבורי ב־Cloudinary
+      } catch (err) {
+        console.error("Cloudinary upload error:", err);
+        return res.status(500).json({ error: "Failed to upload image to Cloudinary" });
       }
     }
 
@@ -316,6 +322,7 @@ Promise.all([initAdmin(), initSharesTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   });
+
 
 
 
