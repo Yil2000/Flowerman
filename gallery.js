@@ -53,7 +53,6 @@ function renderImages(container, images) {
 
     setTimeout(() => img.style.opacity = 1, 50);
 
-    // hover effect
     box.addEventListener("mouseenter", () => {
       overlay.style.opacity = 1;
       img.style.transform = "scale(1.05)";
@@ -63,7 +62,6 @@ function renderImages(container, images) {
       img.style.transform = "scale(1)";
     });
 
-    // קליק לפתיחת lightbox
     img.addEventListener("click", () => openLightbox(img.src, img.alt));
   });
 }
@@ -90,8 +88,6 @@ function openLightbox(src, alt) {
     img.style.maxWidth = "90%";
     img.style.maxHeight = "90%";
     img.style.borderRadius = "8px";
-
-    // קליק על התמונה סוגר
     img.addEventListener("click", closeLightbox);
 
     lightbox.appendChild(img);
@@ -107,7 +103,6 @@ function openLightbox(src, alt) {
     closeBtn.addEventListener("click", closeLightbox);
 
     lightbox.appendChild(closeBtn);
-
     document.body.appendChild(lightbox);
   }
 
@@ -133,7 +128,6 @@ async function renderHomepageGallery() {
 // ====== גלריה עיקרית עם פילטרים ======
 async function renderMainGallery(tags = null) {
   let resources = [];
-
   if (!tags || tags.length === 0) {
     const allResults = await Promise.all(allTags.map(fetchImagesByTag));
     resources = allResults.flat();
@@ -141,11 +135,10 @@ async function renderMainGallery(tags = null) {
     const results = await Promise.all(tags.map(fetchImagesByTag));
     resources = results.flat();
   }
-
   renderImages(mainGallery, resources);
 }
 
-// מאזינים לכפתורים בגלריה הראשית
+// ====== מאזינים לכפתורים בגלריה הראשית ======
 buttons.forEach(button => {
   button.addEventListener("click", async () => {
     if (button.id === "all") {
@@ -166,12 +159,14 @@ buttons.forEach(button => {
   });
 });
 
+// ====== אם יש פרמטר tag ב-URL, הפעל את הכפתור המתאים ======
+const urlParams = new URLSearchParams(window.location.search);
+const initialTag = urlParams.get("tag");
+if (initialTag) {
+  const tagButton = document.getElementById(initialTag);
+  if (tagButton) tagButton.click();
+}
+
 // ====== הרצת ברירת מחדל ======
 renderHomepageGallery();
 renderMainGallery();
-
-
-
-
-
-
