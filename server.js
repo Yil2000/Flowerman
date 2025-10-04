@@ -219,14 +219,6 @@ async function initSharesTable() {
   }
 }
 
-Promise.all([initAdmin(), initSharesTable()])
-  .then(() => {
-    serverReady = true;
-    console.log("✅ Server is fully ready!");
-  })
-  .catch(err => console.error("❌ Error initializing server:", err));
-
-
 
 // ===== Public Shares =====
 app.get("/shares/published", async (req, res) => {
@@ -310,8 +302,22 @@ app.get("/images/:tag", async (req, res) => {
 });
 
 
-// ===== Start Server =====
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// ===== הפעלת השרת רק אחרי שהטבלאות מוכנות =====
+Promise.all([initAdmin(), initSharesTable()])
+  .then(() => {
+    serverReady = true;
+    console.log("✅ Server is fully ready!");
+  })
+  .catch(err => {
+    console.error("❌ Error initializing server:", err);
+    // גם אם קרתה שגיאה — עדיין נעלה את השרת
+    serverReady = true;
+  })
+  .finally(() => {
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  });
+
+
 
 
 
