@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Clean old JWT =====
   // רק בדף login.html
-  sessionstorage.removeItem("token");
+  Sessionstorage.removeItem("token");
 
   // ===== Admin Login Button =====
   const adminLoginBtn = document.querySelector(".nav-login-btn");
@@ -210,5 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
 });
+
 
 
