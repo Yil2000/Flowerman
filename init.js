@@ -26,8 +26,8 @@ async function init() {
     console.log("✅ Tables ensured");
 
     // ===== Create default admin =====
-    const defaultAdmin = process.env.ADMIN_USER || "admin";
-    const defaultPass = process.env.ADMIN_PASS || "123456789";
+    const defaultAdmin = process.env.ADMIN_USER ;
+    const defaultPass = process.env.ADMIN_PASS;
 
     const result = await db.query("SELECT * FROM admins WHERE username=$1", [defaultAdmin]);
     if (result.rows.length === 0) {
@@ -46,3 +46,4 @@ async function init() {
 }
 
 init();
+
