@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const shareForm = document.querySelector("#share-form");
   const messageBox = document.querySelector("#share-message");
 
-  function showMessage(msg, type = "info") {
+  function alert(msg, type = "info") {
     if (!messageBox) return;
     messageBox.innerText = msg;
     messageBox.className = `share-message ${type}`;
@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSharesOnWall(data);
     } catch (err) {
       console.error(err);
-      showMessage(err.message, "error");
+      alert(err.message, "error");
     }
   }
 
@@ -264,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const file = formData.get("file");
 
       if (!name || !message) {
-        showMessage("נא למלא שם והודעה", "error");
+        alert("נא למלא שם והודעה", "error");
         return;
       }
 
@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
-        showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
+        alert("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
 
         // הצגת השיתוף מיד בצד לקוח לפי הנתונים שהשרת החזיר
@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadPublishedShares(); // טען שיתופים מהשרת
       } catch (err) {
         console.error(err);
-        showMessage(err.message || "שגיאה בשרת", "error");
+        alert(err.message || "שגיאה בשרת", "error");
       }
     });
   }
@@ -297,3 +297,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
