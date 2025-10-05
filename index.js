@@ -155,53 +155,55 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".weekly-activity-content-sliding-imgs");
   setupSliding(".special-activity-content-sliding-img");
 
+  // ===== Contact Form =====
   const contactForm = document.querySelector(".join-us-form form");
-const contactMessage = document.createElement("div");
-contactMessage.className = "contact-message";
-contactForm.appendChild(contactMessage);
+  let contactMessage;
 
-if (contactForm) {
-  contactForm.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const formData = new FormData(contactForm);
-    const name = formData.get("contact_name")?.trim();
-    const phone = formData.get("phone")?.trim();
-    const region = formData.get("region")?.trim();
-    const message = formData.get("message")?.trim();
-
-    if (!name || !phone || !region || !message) {
-      showContactMessage("נא למלא את כל השדות", "error");
-      return;
-    }
-
-    try {
-      const res = await fetch("/contacts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, region, message })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "שגיאה בשליחת הפנייה");
-
-      showContactMessage("הפנייה נשלחה בהצלחה!", "success");
-      contactForm.reset();
-    } catch (err) {
-      console.error(err);
-      showContactMessage(err.message || "שגיאה בשרת", "error");
-    }
-  });
-}
-
-function showContactMessage(msg, type="info") {
-  contactMessage.innerText = msg;
-  contactMessage.className = `contact-message ${type}`;
-  setTimeout(() => {
-    contactMessage.innerText = "";
+  if (contactForm) {
+    contactMessage = document.createElement("div");
     contactMessage.className = "contact-message";
-  }, 5000);
-}
+    contactForm.appendChild(contactMessage);
 
+    contactForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const formData = new FormData(contactForm);
+      const name = formData.get("name")?.trim() || "";
+      const phone = formData.get("phone")?.trim() || "";
+      const region = formData.get("region")?.trim() || "";
+      const message = formData.get("message")?.trim() || "";
+
+      if (!name || !phone || !region || !message) {
+        showContactMessage("נא למלא את כל השדות", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch("/contacts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, phone, region, message })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "שגיאה בשליחת הפנייה");
+
+        showContactMessage("הפנייה נשלחה בהצלחה!", "success");
+        contactForm.reset();
+      } catch (err) {
+        console.error(err);
+        showContactMessage(err.message || "שגיאה בשרת", "error");
+      }
+    });
+  }
+
+  function showContactMessage(msg, type="info") {
+    if (!contactMessage) return;
+    contactMessage.innerText = msg;
+    contactMessage.className = `contact-message ${type}`;
+    setTimeout(() => {
+      contactMessage.innerText = "";
+      contactMessage.className = "contact-message";
+    }, 5000);
+  }
 
   // ===== Share Form =====
   const shareForm = document.querySelector("#share-form");
@@ -216,33 +218,30 @@ function showContactMessage(msg, type="info") {
       messageBox.className = "share-message";
     }, 5000);
   }
-function renderSharesOnWall(shares) {
-  const wallContainer = document.querySelector(".massages-wall-cards");
-  if (!wallContainer) return;
 
-  wallContainer.innerHTML = "";
+  function renderSharesOnWall(shares) {
+    const wallContainer = document.querySelector(".massages-wall-cards");
+    if (!wallContainer) return;
 
-  shares.forEach(share => {
-    // קובעים את מקור התמונה – אם אין תמונה, נשתמש בברירת מחדל
-    const imgSrc = share.imageUrl && share.imageUrl.trim() !== "" ? share.imageUrl : "flowerman-logo.PNG";
-
-    const div = document.createElement("div");
-    div.classList.add("massages-wall-card");
-    div.innerHTML = `
-      <div class="massages-wall-card-content">
-        <div class="massages-wall-card-content-text">
-          <h5>${share.name}</h5>
-          <p>${share.message}</p>
+    wallContainer.innerHTML = "";
+    shares.forEach(share => {
+      const imgSrc = share.imageUrl && share.imageUrl.trim() !== "" ? share.imageUrl : "flowerman-logo.PNG";
+      const div = document.createElement("div");
+      div.classList.add("massages-wall-card");
+      div.innerHTML = `
+        <div class="massages-wall-card-content">
+          <div class="massages-wall-card-content-text">
+            <h5>${share.name}</h5>
+            <p>${share.message}</p>
+          </div>
+          <div class="massages-wall-card-img">
+            <img src="${imgSrc}" alt="" />
+          </div>
         </div>
-        <div class="massages-wall-card-img">
-          <img src="${imgSrc}" alt="" />
-        </div>
-      </div>
-    `;
-    wallContainer.prepend(div);
-  });
-}
-
+      `;
+      wallContainer.prepend(div);
+    });
+  }
 
   async function loadPublishedShares() {
     try {
@@ -255,14 +254,6 @@ function renderSharesOnWall(shares) {
       showMessage(err.message, "error");
     }
   }
-
-  const newShare = {
-  name,
-  message,
-  imageUrl: file && file.size > 0 ? URL.createObjectURL(file) : null
-};
-renderSharesOnWall([newShare]);
-
 
   if (shareForm) {
     shareForm.addEventListener("submit", async e => {
@@ -287,20 +278,25 @@ renderSharesOnWall([newShare]);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
-        alert("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
+        showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
-        loadPublishedShares();
+
+        // הצגת השיתוף מיד בצד לקוח
+        const newShare = {
+          name,
+          message,
+          imageUrl: file && file.size > 0 ? URL.createObjectURL(file) : null
+        };
+        renderSharesOnWall([newShare]);
+
+        loadPublishedShares(); // טען שיתופים מהשרת
       } catch (err) {
         console.error(err);
-        alert(err.message || "שגיאה בשרת", "error");
+        showMessage(err.message || "שגיאה בשרת", "error");
       }
     });
   }
+
+  // ===== Load initial shares =====
+  loadPublishedShares();
 });
-
-
-
-
-
-
-
