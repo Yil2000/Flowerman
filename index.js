@@ -167,7 +167,7 @@ if (contactForm) {
     const formData = new FormData(contactForm);
     const name = formData.get("name")?.trim();
     const phone = formData.get("phone")?.trim();
-    const region = formData.get("rigion")?.trim();
+    const region = formData.get("region")?.trim();
     const message = formData.get("message")?.trim();
 
     if (!name || !phone || !region || !message) {
@@ -286,5 +286,6 @@ function showContactMessage(msg, type="info") {
     });
   }
 });
+
 
 
