@@ -281,13 +281,10 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
 
-        // הצגת השיתוף מיד בצד לקוח
-        const newShare = {
-          name,
-          message,
-          imageUrl: file && file.size > 0 ? URL.createObjectURL(file) : null
-        };
-        renderSharesOnWall([newShare]);
+        // הצגת השיתוף מיד בצד לקוח לפי הנתונים שהשרת החזיר
+        if (data && data.share) {
+          renderSharesOnWall([data.share]);
+        }
 
         loadPublishedShares(); // טען שיתופים מהשרת
       } catch (err) {
