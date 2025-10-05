@@ -3,44 +3,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorDiv = document.getElementById("unauthorized");
   const logoutBtn = document.getElementById("logout-btn");
   const sharesContainer = document.getElementById("comment-cards");
+  const contactsContainer = document.getElementById("contacts-container");
 
-  if (!sharesContainer) {
-    console.error("sharesContainer לא נמצא! בדוק את האלמנט HTML עם id='comment-cards'");
-  }
+  if (!sharesContainer) console.error("sharesContainer לא נמצא! בדוק את האלמנט HTML עם id='comment-cards'");
+  if (!contactsContainer) console.error("contactsContainer לא נמצא! בדוק את האלמנט HTML עם id='contacts-container'");
 
   // ===== בדיקת טוקן =====
   async function checkToken() {
     const token = sessionStorage.getItem("adminToken");
-    console.log("Token in session:", token);
-
-    if (!token) {
-      console.warn("No token found in sessionStorage");
-      return showError("אין טוקן");
-    }
+    if (!token) return showError("אין טוקן");
 
     try {
       const res = await fetch("/admin/verify-token", {
         method: "POST",
-        headers: {
-          "Authorization": "Bearer " + token,
-          "Content-Type": "application/json"
-        }
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" }
       });
-
-      if (!res.ok) {
-        console.warn("Fetch failed with status:", res.status);
-        return showError("שגיאה בשרת");
-      }
+      if (!res.ok) return showError("שגיאה בשרת");
 
       const data = await res.json();
-      console.log("Token verification result:", data);
-
       if (data.valid) {
         content.style.display = "flex";
         errorDiv.style.display = "none";
         loadShares();
+        loadContacts();
       } else {
-        console.warn("Token not valid");
         showError("טוקן לא תקין");
       }
     } catch (err) {
@@ -51,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== הצגת הודעת שגיאה =====
   function showError(reason) {
-    console.log("Showing unauthorized div. Reason:", reason);
+    console.warn("Unauthorized:", reason);
     content.style.display = "none";
     errorDiv.style.display = "block";
   }
@@ -65,124 +51,65 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== טעינת שיתופים =====
   async function loadShares() {
     const token = sessionStorage.getItem("adminToken");
+    if (!sharesContainer) return;
+
     try {
-      // מניעת cache
-      const res = await fetch("/admin/shares?" + Date.now(), {
-        headers: { "Authorization": "Bearer " + token }
-      });
+      const res = await fetch("/admin/shares?" + Date.now(), { headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
 
       const shares = await res.json();
-      console.log("Loaded shares:", shares);
+      sharesContainer.innerHTML = "";
 
-      if (shares && shares.length > 0) {
-        renderShares(shares);
-      } else {
-        console.warn("No shares to display");
+      if (!shares || shares.length === 0) {
         sharesContainer.innerHTML = "<p>לא נמצאו שיתופים</p>";
+        return;
       }
+
+      shares.forEach(renderShare);
     } catch (err) {
       console.error("Error loading shares:", err);
       sharesContainer.innerHTML = "<p>שגיאה בשליפת שיתופים</p>";
     }
   }
 
-  async function loadContacts() {
-  const token = sessionStorage.getItem("adminToken");
-  const container = document.getElementById("contacts-container");
-  if (!container) return;
+  // ===== יצירת דיב לשיתוף =====
+  function renderShare(share) {
+    const div = document.createElement("div");
+    div.classList.add("comment-card");
+    div.dataset.id = share.id;
+    div.dataset.name = share.name;
+    div.dataset.message = share.message;
+    div.dataset.imageUrl = share.imageUrl || "";
 
-  try {
-    const res = await fetch("/admin/contacts?" + Date.now(), {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
+    div.innerHTML = `
+      <h3 class="share-name">${share.name}</h3>
+      <p class="share-message">${share.message}</p>
+      ${share.imageUrl ? `<img class="share-image" src="${share.imageUrl}" alt="תמונה">` : ""}
+      <div class="share-actions">
+        ${share.published
+          ? `<button class="unpublish-btn">בטל פרסום</button>`
+          : `<button class="publish-btn">פרסם</button>`}
+        <button class="delete-btn" title="מחק שיתוף">🗑️</button>
+      </div>
+    `;
 
-    const contacts = await res.json();
+    sharesContainer.appendChild(div);
 
-    if (contacts.length === 0) {
-      container.innerHTML = "<p>לא נמצאו פניות</p>";
-      return;
-    }
+    if (share.published) div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
+    else div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
 
-    container.innerHTML = "";
-    contacts.forEach(contact => {
-      const div = document.createElement("div");
-      div.classList.add("contact-card");
-      div.dataset.id = contact.id;
-      div.innerHTML = `
-        <p><strong>שם:</strong> ${contact.name}</p>
-        <p><strong>טלפון:</strong> ${contact.phone}</p>
-        <p><strong>אזור:</strong> ${contact.region}</p>
-        <p><strong>הודעה:</strong> ${contact.message}</p>
-        <button class="delete-contact-btn">סמן כטופל ומחק</button>
-      `;
-      container.appendChild(div);
-
-      div.querySelector(".delete-contact-btn").addEventListener("click", () => deleteContact(div));
-    });
-  } catch (err) {
-    console.error(err);
-    container.innerHTML = "<p>שגיאה בטעינת הפניות</p>";
-  }
-}
-
-
-  // ===== יצירת דיבים לכל שיתוף =====
-  function renderShares(shares) {
-    sharesContainer.innerHTML = "";
-
-    shares.forEach(share => {
-      const id = share.id || share._id; // טיפול במפתחות שונים
-      const div = document.createElement("div");
-      div.classList.add("comment-card");
-      div.dataset.id = id;
-      div.dataset.name = share.name;
-      div.dataset.message = share.message;
-      div.dataset.imageUrl = share.imageUrl || "";
-
-      div.innerHTML = `
-        <h3 class="share-name">${share.name}</h3>
-        <p class="share-message">${share.message}</p>
-        ${share.imageUrl ? `<img class="share-image" src="${share.imageUrl}" alt="תמונה">` : ""}
-        <div class="share-actions">
-          ${share.published
-            ? `<button class="unpublish-btn">בטל פרסום</button>`
-            : `<button class="publish-btn">פרסם</button>`}
-          <button class="delete-btn" title="מחק שיתוף">🗑️</button>
-        </div>
-      `;
-
-      sharesContainer.appendChild(div);
-
-      // מאזינים לכפתורים
-      if (share.published) {
-        div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
-      } else {
-        div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
-      }
-      div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
-    });
+    div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
   }
 
   // ===== פרסום שיתוף =====
-  async function publishShare(adminDiv) {
+  async function publishShare(div) {
     const token = sessionStorage.getItem("adminToken");
-    const id = adminDiv.dataset.id;
     try {
-      const res = await fetch(`/admin/shares/publish/${id}`, {
-        method: "POST",
-        headers: { "Authorization": "Bearer " + token }
-      });
+      const res = await fetch(`/admin/shares/publish/${div.dataset.id}`, { method: "POST", headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה בפרסום השיתוף");
 
-      addShareToWall({
-        name: adminDiv.dataset.name,
-        message: adminDiv.dataset.message,
-        imageUrl: adminDiv.dataset.imageUrl
-      });
-
-      adminDiv.remove();
+      // הסר מה-admin בלבד
+      div.remove();
       showNotification("✅ השיתוף פורסם!");
     } catch (err) {
       console.error(err);
@@ -190,16 +117,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== החזרת שיתוף ל"לא מפורסם" =====
-  async function unpublishShare(adminDiv) {
+  // ===== ביטול פרסום =====
+  async function unpublishShare(div) {
     const token = sessionStorage.getItem("adminToken");
-    const id = adminDiv.dataset.id;
     try {
-      const res = await fetch(`/admin/shares/unpublish/${id}`, {
-        method: "POST",
-        headers: { "Authorization": "Bearer " + token }
-      });
-      if (!res.ok) throw new Error("שגיאה בהחזרת השיתוף ללא מפורסם");
+      const res = await fetch(`/admin/shares/unpublish/${div.dataset.id}`, { method: "POST", headers: { "Authorization": "Bearer " + token } });
+      if (!res.ok) throw new Error("שגיאה בביטול פרסום");
 
       loadShares();
       showNotification("⚠️ השיתוף חזר למצב לא מפורסם");
@@ -210,20 +133,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ===== מחיקת שיתוף =====
-  async function deleteShare(adminDiv) {
+  async function deleteShare(div) {
     const token = sessionStorage.getItem("adminToken");
-    const id = adminDiv.dataset.id;
-
-    if (!confirm("פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח בפעולה זו?")) return;
+    if (!confirm("פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח/ה?")) return;
 
     try {
-      const res = await fetch(`/admin/shares/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": "Bearer " + token }
-      });
+      const res = await fetch(`/admin/shares/${div.dataset.id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה במחיקת השיתוף");
 
-      adminDiv.remove();
+      div.remove();
       showNotification("🗑️ השיתוף נמחק בהצלחה!");
     } catch (err) {
       console.error(err);
@@ -231,53 +149,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  //מחיקת צור קשר
+  // ===== טעינת פניות =====
+  async function loadContacts() {
+    const token = sessionStorage.getItem("adminToken");
+    if (!contactsContainer) return;
+
+    try {
+      const res = await fetch("/admin/contacts?" + Date.now(), { headers: { "Authorization": "Bearer " + token } });
+      if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
+
+      const contacts = await res.json();
+      contactsContainer.innerHTML = "";
+
+      if (!contacts || contacts.length === 0) {
+        contactsContainer.innerHTML = "<p>אין טפסים זמינים להצגה</p>";
+        return;
+      }
+
+      contacts.forEach(contact => {
+        const div = document.createElement("div");
+        div.classList.add("contact-card");
+        div.dataset.id = contact.id;
+        div.innerHTML = `
+          <p><strong>שם:</strong> ${contact.name}</p>
+          <p><strong>טלפון:</strong> ${contact.phone}</p>
+          <p><strong>אזור:</strong> ${contact.region}</p>
+          <p><strong>הודעה:</strong> ${contact.message}</p>
+          <button class="delete-contact-btn">סמן כטופל ומחק</button>
+        `;
+        contactsContainer.appendChild(div);
+        div.querySelector(".delete-contact-btn").addEventListener("click", () => deleteContact(div));
+      });
+    } catch (err) {
+      console.error(err);
+      contactsContainer.innerHTML = "<p>שגיאה בטעינת הפניות</p>";
+    }
+  }
+
+  // ===== מחיקת פנייה =====
   async function deleteContact(div) {
-  const token = sessionStorage.getItem("adminToken");
-  const id = div.dataset.id;
+    const token = sessionStorage.getItem("adminToken");
+    if (!confirm("פעולה זו תמחק את הפנייה לצמיתות, האם את/ה בטוח/ה?")) return;
 
-  if (!confirm("פעולה זו תמחק את הפנייה לצמיתות, האם את/ה בטוח/ה?")) return;
+    try {
+      const res = await fetch(`/admin/contacts/${div.dataset.id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
+      if (!res.ok) throw new Error("שגיאה במחיקת הפנייה");
 
-  try {
-    const res = await fetch(`/admin/contacts/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
-    });
-    if (!res.ok) throw new Error("שגיאה במחיקת הפנייה");
-
-    div.remove();
-    showNotification("🗑️ הפנייה נמחקה בהצלחה!");
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-}
-  loadContacts();
-
-
-
-  // ===== הוספת שיתוף ל-massages-wall =====
-  function addShareToWall(share) {
-    const wallContainer = document.querySelector(".massages-wall-cards");
-    if (!wallContainer) return;
-
-    const div = document.createElement("div");
-    div.classList.add("massages-wall-card");
-    div.innerHTML = `
-      <div class="massages-wall-card-content">
-        <div class="massages-wall-card-content-text">
-          <h5>${share.name}</h5>
-          <p>${share.message}</p>
-        </div>
-        <div class="massages-wall-card-img">
-          <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="" />
-        </div>
-      </div>
-    `;
-    wallContainer.prepend(div);
+      div.remove();
+      showNotification("🗑️ הפנייה נמחקה בהצלחה!");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   }
 
-  // ===== פופאפ למנהל =====
+  // ===== הצגת Notification =====
   function showNotification(text) {
     const notif = document.createElement("div");
     notif.textContent = text;
@@ -293,8 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => notif.remove(), 2000);
   }
 
-  // ===== הפעלת בדיקת טוקן =====
+  // ===== הפעלת הכל =====
   checkToken();
 });
-
-
