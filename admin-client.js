@@ -1,6 +1,6 @@
 // admin-client.js
 document.addEventListener("DOMContentLoaded", () => {
-  const serverUrl = "https://flowerman.onrender.com"; 
+  const serverUrl = "https://flowerman.onrender.com";
   const content = document.getElementById("admin-content");
   const errorDiv = document.getElementById("unauthorized");
   const logoutBtn = document.getElementById("logout-btn");
@@ -24,9 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
       if (data.valid) {
-        content.style.display = "flex";
-        errorDiv.style.display = "none";
-        loadShares();
+        if (content) content.style.display = "flex";
+        if (errorDiv) errorDiv.style.display = "none";
+        if (sharesContainer) loadShares();
       } else showError("טוקן לא תקין");
     } catch (err) {
       console.error(err);
@@ -35,19 +35,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showError(reason) {
-    console.log("Unauthorized:", reason);
-    content.style.display = "none";
-    errorDiv.style.display = "block";
+    console.warn("Unauthorized:", reason);
+    if (content) content.style.display = "none";
+    if (errorDiv) errorDiv.style.display = "block";
   }
 
-  logoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("adminToken");
-    window.location.href = "/login.html";
-  });
+  // ===== התנתקות =====
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      sessionStorage.removeItem("adminToken");
+      window.location.href = "/login.html";
+    });
+  }
 
   // ===== טעינת שיתופים =====
   async function loadShares() {
     const token = sessionStorage.getItem("adminToken");
+    if (!sharesContainer) return; // בדיקה נוספת
+
     try {
       const res = await fetch(`${serverUrl}/admin/shares?` + Date.now(), {
         headers: { "Authorization": "Bearer " + token }
@@ -63,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderShares(shares) {
+    if (!sharesContainer) return;
     sharesContainer.innerHTML = "";
     shares.forEach(share => {
       const div = document.createElement("div");
@@ -86,12 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       sharesContainer.appendChild(div);
 
-      if (share.published) {
-        div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
-      } else {
-        div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
-      }
-      div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
+      const publishBtn = div.querySelector(".publish-btn");
+      const unpublishBtn = div.querySelector(".unpublish-btn");
+      const deleteBtn = div.querySelector(".delete-btn");
+
+      if (publishBtn) publishBtn.addEventListener("click", () => publishShare(div));
+      if (unpublishBtn) unpublishBtn.addEventListener("click", () => unpublishShare(div));
+      if (deleteBtn) deleteBtn.addEventListener("click", () => deleteShare(div));
     });
   }
 
@@ -192,6 +199,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => notif.remove(), 2000);
   }
 
-  // ===== הפעלת בדיקת טוקן =====
-  checkToken();
+  // ===== הפעלת בדיקת טוקן רק אם מדובר בעמוד אדמין =====
+  if (content || sharesContainer || logoutBtn) {
+    checkToken();
+  }
 });
