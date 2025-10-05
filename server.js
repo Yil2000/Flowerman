@@ -20,16 +20,6 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 
-// ===== Temporary loading page until server is ready =====
-let serverReady = false;
-
-app.get("*", (req, res, next) => {
-  if (!serverReady && !req.path.includes("loading.html")) {
-    return res.sendFile(path.join(__dirname, "loading.html"));
-  }
-  next();
-});
-
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
@@ -313,6 +303,19 @@ app.get("/images/:tag", async (req, res) => {
   }
 });
 
+// ===== Serve index.html for all non-API routes (SEO & SPA friendly) =====
+app.get("*", (req, res, next) => {
+  const userAgent = req.get("User-Agent") || "";
+
+  // אם השרת עדיין לא מוכן, תציג loading.html רק למשתמשים רגילים
+  if (!serverReady && !userAgent.includes("Googlebot")) {
+    return res.sendFile(path.join(__dirname, "loading.html"));
+  }
+
+  // לכל שאר הבקשות (כולל Googlebot), החזר index.html
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 
 // ===== הפעלת השרת רק אחרי שהטבלאות מוכנות =====
 Promise.all([initAdmin(), initSharesTable()])
@@ -328,6 +331,7 @@ Promise.all([initAdmin(), initSharesTable()])
     console.log("🚀 Starting Express server...");
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
 
