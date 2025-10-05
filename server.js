@@ -192,6 +192,34 @@ app.post("/shares", upload.single("file"), async (req, res) => {
   }
 });
 
+// ===== Images by Tag =====
+app.get("/images/:tag", async (req, res) => {
+  try {
+    const { tag } = req.params;
+
+    // מבצע חיפוש בתיקייה עם השם של ה-tag
+    const result = await cloudinary.search
+      .expression(`folder:${tag}`)
+      .sort_by("public_id", "desc")
+      .max_results(50)
+      .execute();
+
+    // אם אין תמונות
+    if (!result.resources || result.resources.length === 0) {
+      return res.json([]);
+    }
+
+    // מחזיר JSON נקי לגלריה
+    res.json(result.resources.map(img => ({
+      public_id: img.public_id,
+      secure_url: img.secure_url
+    })));
+  } catch (err) {
+    console.error("❌ שגיאה בשליפת תמונות:", err);
+    res.status(500).json({ error: "שגיאה בשליפת תמונות" });
+  }
+});
+
 app.get("/shares/published", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
@@ -277,3 +305,4 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
