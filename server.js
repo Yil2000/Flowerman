@@ -26,6 +26,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname)); // כל קבצים זמינים מה-root
 
+// ===== אימות אדמין עם JWT =====
+function authenticateAdmin(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Missing token" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.admin = decoded;
+    next();
+  } catch (err) {
+    console.error("Token verification failed:", err);
+    res.status(403).json({ error: "Invalid token" });
+  }
+}
+
+
 // ===== Uploads folder =====
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -377,6 +398,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
 
