@@ -87,6 +87,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadContacts() {
+  const token = sessionStorage.getItem("adminToken");
+  const container = document.getElementById("contacts-container");
+  if (!container) return;
+
+  try {
+    const res = await fetch("/admin/contacts?" + Date.now(), {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
+
+    const contacts = await res.json();
+
+    if (contacts.length === 0) {
+      container.innerHTML = "<p>לא נמצאו פניות</p>";
+      return;
+    }
+
+    container.innerHTML = "";
+    contacts.forEach(contact => {
+      const div = document.createElement("div");
+      div.classList.add("contact-card");
+      div.dataset.id = contact.id;
+      div.innerHTML = `
+        <p><strong>שם:</strong> ${contact.name}</p>
+        <p><strong>טלפון:</strong> ${contact.phone}</p>
+        <p><strong>אזור:</strong> ${contact.region}</p>
+        <p><strong>הודעה:</strong> ${contact.message}</p>
+        <button class="delete-contact-btn">סמן כטופל ומחק</button>
+      `;
+      container.appendChild(div);
+
+      div.querySelector(".delete-contact-btn").addEventListener("click", () => deleteContact(div));
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p>שגיאה בטעינת הפניות</p>";
+  }
+}
+
+
   // ===== יצירת דיבים לכל שיתוף =====
   function renderShares(shares) {
     sharesContainer.innerHTML = "";
@@ -190,6 +231,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  //מחיקת צור קשר
+  async function deleteContact(div) {
+  const token = sessionStorage.getItem("adminToken");
+  const id = div.dataset.id;
+
+  if (!confirm("פעולה זו תמחק את הפנייה לצמיתות, האם את/ה בטוח/ה?")) return;
+
+  try {
+    const res = await fetch(`/admin/contacts/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (!res.ok) throw new Error("שגיאה במחיקת הפנייה");
+
+    div.remove();
+    showNotification("🗑️ הפנייה נמחקה בהצלחה!");
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+}
+  loadContacts();
+
+
+
   // ===== הוספת שיתוף ל-massages-wall =====
   function addShareToWall(share) {
     const wallContainer = document.querySelector(".massages-wall-cards");
@@ -230,4 +296,5 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== הפעלת בדיקת טוקן =====
   checkToken();
 });
+
 
