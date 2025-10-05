@@ -211,11 +211,20 @@ app.get("/shares/published", async (req, res) => {
 app.get("/admin/shares", authenticateToken, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
-    res.json(result.rows);
+    // מיפוי המפתחות: תמיד מחזיר imageUrl עם U גדולה
+    const shares = result.rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      message: r.message,
+      imageUrl: r.imageurl || r.imageUrl || null,
+      published: r.published
+    }));
+    res.json(shares);
   } catch (err) {
     res.status(500).json({ error: "DB error" });
   }
 });
+
 
 app.post("/admin/shares/publish/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
@@ -284,3 +293,4 @@ Promise.all([initAdmin(), initSharesTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
