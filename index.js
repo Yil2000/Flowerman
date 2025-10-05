@@ -21,12 +21,18 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLang = localStorage.getItem("lang") || "";
 
   function applyTranslations() {
-    document.querySelectorAll("[data-translation]").forEach(el => {
-      const key = el.getAttribute("data-translation");
-      if (translations[currentLang]?.[key]) {
-        el.innerHTML = translations[currentLang][key].replace(/\n/g, "<br />");
-      }
-    });
+   document.querySelectorAll("[data-translation]").forEach(el => {
+  const key = el.getAttribute("data-translation");
+  const text = translations[currentLang]?.[key];
+  if (!text) return;
+
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+    el.placeholder = text;
+  } else {
+    el.innerHTML = text.replace(/\n/g, "<br />");
+  }
+});
+
   }
 
   function updateDirectionAndAlign() {
@@ -297,4 +303,5 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
