@@ -23,20 +23,20 @@ const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 // ===== Temporary loading page until server is ready =====
 let serverReady = false;
 
-app.get("*", (req, res, next) => {
-  if (!serverReady && !req.path.includes("loading.html")) {
-    return res.sendFile(path.join(__dirname, "loading.html"));
-  }
-  next();
-});
-
-
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+
+
+app.get("*", (req, res, next) => {
+  if (!serverReady && !req.path.includes("loading.html")) {
+    return res.sendFile(path.join(__dirname, "loading.html"));
+  }
+  next();
+});
 
 // ===== Uploads folder =====
 const uploadsDir = path.join(__dirname, "uploads");
@@ -136,7 +136,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       const streamifier = (await import("streamifier")).default;
       const streamUpload = () =>
         new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream({ folder: "shares" }, (error, result) => {
+          const stream = cloudinary.uploader.upload_stream, (error, result) => {
             if (result) resolve(result); else reject(error);
           });
           streamifier.createReadStream(req.file.buffer).pipe(stream);
@@ -322,6 +322,7 @@ Promise.all([initAdmin(), initSharesTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   });
+
 
 
 
