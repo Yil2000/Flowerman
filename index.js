@@ -256,7 +256,13 @@ function renderSharesOnWall(shares) {
     }
   }
 
-  loadPublishedShares();
+  const newShare = {
+  name,
+  message,
+  imageUrl: file && file.size > 0 ? URL.createObjectURL(file) : null
+};
+renderSharesOnWall([newShare]);
+
 
   if (shareForm) {
     shareForm.addEventListener("submit", async e => {
@@ -291,6 +297,7 @@ function renderSharesOnWall(shares) {
     });
   }
 });
+
 
 
 
