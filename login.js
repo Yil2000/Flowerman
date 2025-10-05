@@ -2,10 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("login-form");
   const errorMsg = document.getElementById("error-msg");
 
-  import dotenv from 'dotenv';
-  dotenv.config();
-
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -44,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
