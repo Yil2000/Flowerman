@@ -1,5 +1,6 @@
-// main.js
+// index.js
 document.addEventListener("DOMContentLoaded", () => {
+  const serverUrl = "https://flowerman.onrender.com";
 
   // ===== Clean old JWT =====
   localStorage.removeItem("token");
@@ -13,10 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ===== Language Dropdown =====
-  const langSelect = document.querySelector('.lang-select');
-  const selected = langSelect?.querySelector('.selected');
-  const optionsContainer = langSelect?.querySelector('.options');
-
+  const langSelect = document.querySelector(".lang-select");
+  const selected = langSelect?.querySelector(".selected");
+  const optionsContainer = langSelect?.querySelector(".options");
   let translations = {};
   let currentLang = localStorage.getItem("lang") || "";
 
@@ -51,12 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (selected && optionsContainer) {
-    selected.addEventListener('click', () => langSelect.classList.toggle('open'));
-    optionsContainer.querySelectorAll('li').forEach(option => {
-      option.addEventListener('click', () => setLanguage(option.dataset.value));
+    selected.addEventListener("click", () => langSelect.classList.toggle("open"));
+    optionsContainer.querySelectorAll("li").forEach(option => {
+      option.addEventListener("click", () => setLanguage(option.dataset.value));
     });
-    document.addEventListener('click', e => {
-      if (!langSelect.contains(e.target)) langSelect.classList.remove('open');
+    document.addEventListener("click", e => {
+      if (!langSelect.contains(e.target)) langSelect.classList.remove("open");
     });
   }
 
@@ -73,8 +73,8 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Error loading translations:", err));
 
-  // ===== Scrollable Cards Animation =====
-  // (שים כאן את הקוד הקיים שלך אם יש)
+  // ===== Scrollable Cards (optional animation placeholder) =====
+  // הוסף כאן אם יש לך אנימציה קיימת
 
   // ===== Gallery Buttons =====
   const buttons = document.querySelectorAll(".gallery-page-head-btns button");
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ===== Slider Setup =====
+  // ===== Sliders Setup =====
   function setupSliding(containerSelector, interval = 4000, fadeTime = 800) {
     const containers = document.querySelectorAll(containerSelector);
     if (!containers.length) return;
@@ -148,8 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
       function startSliding() { slideInterval = setInterval(showNext, interval); }
       function stopSliding() { clearInterval(slideInterval); }
 
-      const btns = container.querySelectorAll(".sliding-img-overlay a");
-      btns.forEach(btn => {
+      container.querySelectorAll(".sliding-img-overlay a").forEach(btn => {
         btn.addEventListener("mouseenter", stopSliding);
         btn.addEventListener("mouseleave", startSliding);
       });
@@ -162,11 +161,45 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
   // ===== Share Form Submission =====
-  const shareForm = document.querySelector("#shareForm");
-  const messageBox = document.querySelector("#shareMessage");
+  const shareForm = document.querySelector("#share-form");
+  const messageBox = document.querySelector("#share-message");
+
+  async function loadPublishedShares() {
+    try {
+      const res = await fetch("/shares/published?" + Date.now());
+      const data = await res.json();
+      renderSharesOnWall(data);
+    } catch (err) {
+      console.error("Error loading published shares:", err);
+    }
+  }
+
+  function renderSharesOnWall(shares) {
+    const wallContainer = document.querySelector(".massages-wall-cards");
+    if (!wallContainer) return;
+    wallContainer.innerHTML = "";
+    shares.forEach(share => {
+      const div = document.createElement("div");
+      div.classList.add("massages-wall-card");
+      div.innerHTML = `
+        <div class="massages-wall-card-content">
+          <div class="massages-wall-card-content-text">
+            <h5>${share.name}</h5>
+            <p>${share.message}</p>
+          </div>
+          <div class="massages-wall-card-card-img">
+            <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="" />
+          </div>
+        </div>
+      `;
+      wallContainer.prepend(div);
+    });
+  }
+
+  loadPublishedShares();
 
   if (shareForm) {
-    shareForm.addEventListener("submit", async (e) => {
+    shareForm.addEventListener("submit", async e => {
       e.preventDefault();
 
       const formData = new FormData(shareForm);
@@ -187,13 +220,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const res = await fetch("/shares", { method: "POST", body: uploadData });
         const data = await res.json();
-
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
         showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
       } catch (err) {
-        console.error("Share submission error:", err);
+        console.error(err);
         showMessage(err.message || "שגיאה בשרת", "error");
       }
     });
@@ -208,5 +240,4 @@ document.addEventListener("DOMContentLoaded", () => {
       messageBox.className = "share-message";
     }, 5000);
   }
-
 });
