@@ -303,15 +303,42 @@ app.post("/admin/shares/unpublish/:id", authenticateToken, async (req, res) => {
   }
 });
 
-app.delete("/admin/shares/:id", authenticateToken, async (req, res) => {
+app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
   const { id } = req.params;
+
   try {
-    await db.query("DELETE FROM shares WHERE id=$1", [id]);
+    // שלוף קודם את השיתוף כדי לדעת מה כתובת התמונה
+    const { rows } = await pool.query("SELECT * FROM shares WHERE id = $1", [id]);
+    if (rows.length === 0) return res.status(404).json({ error: "שיתוף לא נמצא" });
+
+    const share = rows[0];
+
+    // מחק את השיתוף מהדאטאבייס
+    await pool.query("DELETE FROM shares WHERE id = $1", [id]);
+
+    // אם יש תמונה — מחק גם אותה מקלאודינרי
+    if (share.imageurl) {
+      try {
+        // נחלץ את public_id מתוך ה־URL
+        const publicId = share.imageurl
+          .split("/")
+          .slice(-1)[0]
+          .split(".")[0];
+
+        await cloudinary.uploader.destroy(publicId);
+        console.log(`✅ תמונה ${publicId} נמחקה מקלאודינרי`);
+      } catch (cloudErr) {
+        console.error("שגיאה במחיקת תמונה מקלאודינרי:", cloudErr);
+      }
+    }
+
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "DB error" });
+    console.error("שגיאה במחיקת שיתוף:", err);
+    res.status(500).json({ error: "שגיאה במחיקה" });
   }
 });
+
 
 // ===== Gallery Endpoint (Cloudinary tags) =====
 app.get("/images/:tag", async (req, res) => {
@@ -350,6 +377,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
 
