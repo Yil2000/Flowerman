@@ -1,122 +1,80 @@
-
+// main.js
 document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Clean old JWT =====
-  // רק בדף login.html
   localStorage.removeItem("token");
 
   // ===== Admin Login Button =====
   const adminLoginBtn = document.querySelector(".nav-login-btn");
   if (adminLoginBtn) {
     adminLoginBtn.addEventListener("click", () => {
-      // מפנה לדף login.html
       window.location.href = "login.html";
     });
   }
 
-  // ===== Dropdown שפה =====
+  // ===== Language Dropdown =====
   const langSelect = document.querySelector('.lang-select');
-  const selected = langSelect ? langSelect.querySelector('.selected') : null;
-  const optionsContainer = langSelect ? langSelect.querySelector('.options') : null;
+  const selected = langSelect?.querySelector('.selected');
+  const optionsContainer = langSelect?.querySelector('.options');
 
-  if (selected && optionsContainer) {
-    selected.addEventListener('click', () => {
-      langSelect.classList.toggle('open');
-    });
-
-    optionsContainer.querySelectorAll('li').forEach(option => {
-      option.addEventListener('click', () => {
-        selected.innerHTML = option.innerHTML;
-        const lang = option.dataset.value;
-        langSelect.classList.remove('open');
-        setLanguage(lang); // כאן מתבצע שינוי מיידי
-      });
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!langSelect.contains(e.target)) {
-        langSelect.classList.remove('open');
-      }
-    });
-  }
-
-  // ===== Translations =====
   let translations = {};
   let currentLang = localStorage.getItem("lang") || "";
 
   function applyTranslations() {
     document.querySelectorAll("[data-translation]").forEach(el => {
       const key = el.getAttribute("data-translation");
-      if (translations[currentLang] && translations[currentLang][key]) {
+      if (translations[currentLang]?.[key]) {
         el.innerHTML = translations[currentLang][key].replace(/\n/g, "<br />");
       }
     });
   }
 
   function updateDirectionAndAlign() {
-    if (currentLang === "eng") {
-      document.body.setAttribute("dir", "ltr");
-      document.querySelectorAll("*").forEach(el => {
-        const style = window.getComputedStyle(el);
-        if (style.textAlign === "right") {
-          el.style.textAlign = "left";
-        }
-      });
-    } else {
-      document.body.setAttribute("dir", "rtl");
-      document.querySelectorAll("*").forEach(el => {
-        const style = window.getComputedStyle(el);
-        if (style.textAlign === "left") {
-          el.style.textAlign = "right";
-        }
-      });
-    }
+    document.body.setAttribute("dir", currentLang === "eng" ? "ltr" : "rtl");
+    document.querySelectorAll("*").forEach(el => {
+      const style = window.getComputedStyle(el);
+      if (currentLang === "eng" && style.textAlign === "right") el.style.textAlign = "left";
+      if (currentLang !== "eng" && style.textAlign === "left") el.style.textAlign = "right";
+    });
   }
 
   function setLanguage(lang) {
     if (!translations[lang]) return;
     currentLang = lang;
     localStorage.setItem("lang", lang);
-
     if (langSelect && selected) {
-      const activeOption = langSelect.querySelector(`.options li[data-value="${currentLang}"]`);
-      if (activeOption) {
-        selected.innerHTML = activeOption.innerHTML;
-      }
+      const activeOption = langSelect.querySelector(`.options li[data-value="${lang}"]`);
+      if (activeOption) selected.innerHTML = activeOption.innerHTML;
     }
-
     applyTranslations();
-    updateDirectionAndAlign(); // מפעיל מיידית את השינוי
+    updateDirectionAndAlign();
+  }
+
+  if (selected && optionsContainer) {
+    selected.addEventListener('click', () => langSelect.classList.toggle('open'));
+    optionsContainer.querySelectorAll('li').forEach(option => {
+      option.addEventListener('click', () => setLanguage(option.dataset.value));
+    });
+    document.addEventListener('click', e => {
+      if (!langSelect.contains(e.target)) langSelect.classList.remove('open');
+    });
   }
 
   fetch("translate.json")
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
       translations = data;
-
       if (!currentLang) {
         const browserLang = navigator.language || "he";
         currentLang = browserLang.startsWith("en") ? "eng" : "he";
         localStorage.setItem("lang", currentLang);
       }
-
-      if (langSelect && selected) {
-        const activeOption = langSelect.querySelector(`.options li[data-value="${currentLang}"]`);
-        if (activeOption) {
-          selected.innerHTML = activeOption.innerHTML;
-        }
-      }
-
-      applyTranslations();
-      updateDirectionAndAlign();
+      setLanguage(currentLang);
     })
     .catch(err => console.error("Error loading translations:", err));
 
-
   // ===== Scrollable Cards Animation =====
-  /*
-    כאן נשאר הקוד הקיים שלך ל-scrollable cards
-  */
+  // (שים כאן את הקוד הקיים שלך אם יש)
 
   // ===== Gallery Buttons =====
   const buttons = document.querySelectorAll(".gallery-page-head-btns button");
@@ -183,21 +141,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const prev = slides[currentIndex];
         currentIndex = (currentIndex + 1) % slides.length;
         const next = slides[currentIndex];
-
         prev.style.opacity = 0;
         next.style.opacity = 1;
       }
 
-      function startSliding() {
-        slideInterval = setInterval(showNext, interval);
-      }
+      function startSliding() { slideInterval = setInterval(showNext, interval); }
+      function stopSliding() { clearInterval(slideInterval); }
 
-      function stopSliding() {
-        clearInterval(slideInterval);
-      }
-
-      const buttons = container.querySelectorAll(".sliding-img-overlay a");
-      buttons.forEach(btn => {
+      const btns = container.querySelectorAll(".sliding-img-overlay a");
+      btns.forEach(btn => {
         btn.addEventListener("mouseenter", stopSliding);
         btn.addEventListener("mouseleave", startSliding);
       });
@@ -206,8 +158,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // הפעלה על שני הסליידרים
   setupSliding(".weekly-activity-content-sliding-imgs");
   setupSliding(".special-activity-content-sliding-img");
+
+  // ===== Share Form Submission =====
+  const shareForm = document.querySelector("#shareForm");
+  const messageBox = document.querySelector("#shareMessage");
+
+  if (shareForm) {
+    shareForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(shareForm);
+      const name = formData.get("name")?.trim();
+      const message = formData.get("message")?.trim();
+      const file = formData.get("file");
+
+      if (!name || !message) {
+        showMessage("נא למלא שם והודעה", "error");
+        return;
+      }
+
+      try {
+        const uploadData = new FormData();
+        uploadData.append("name", name);
+        uploadData.append("message", message);
+        if (file && file.size > 0) uploadData.append("file", file);
+
+        const res = await fetch("/shares", { method: "POST", body: uploadData });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
+
+        showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
+        shareForm.reset();
+      } catch (err) {
+        console.error("Share submission error:", err);
+        showMessage(err.message || "שגיאה בשרת", "error");
+      }
+    });
+  }
+
+  function showMessage(msg, type = "info") {
+    if (!messageBox) return;
+    messageBox.innerText = msg;
+    messageBox.className = `share-message ${type}`;
+    setTimeout(() => {
+      messageBox.innerText = "";
+      messageBox.className = "share-message";
+    }, 5000);
+  }
 
 });
