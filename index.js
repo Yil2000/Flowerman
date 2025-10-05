@@ -230,7 +230,7 @@ function showContactMessage(msg, type="info") {
             <h5>${share.name}</h5>
             <p>${share.message}</p>
           </div>
-          <div class="massages-wall-card-card-img">
+          <div class="massages-wall-card-img">
             <img src="${share.imageUrl || 'flowerman-logo.PNG'}" alt="" />
           </div>
         </div>
@@ -286,6 +286,7 @@ function showContactMessage(msg, type="info") {
     });
   }
 });
+
 
 
 
