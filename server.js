@@ -23,6 +23,13 @@ const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 // ===== Temporary loading page until server is ready =====
 let serverReady = false;
 
+app.get("*", (req, res, next) => {
+  if (!serverReady && !req.path.includes("loading.html")) {
+    return res.sendFile(path.join(__dirname, "loading.html"));
+  }
+  next();
+});
+
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
@@ -30,13 +37,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
-
-app.get("*", (req, res, next) => {
-  if (!serverReady && !req.path.includes("loading.html")) {
-    return res.sendFile(path.join(__dirname, "loading.html"));
-  }
-  next();
-});
 
 // ===== Uploads folder =====
 const uploadsDir = path.join(__dirname, "uploads");
@@ -328,6 +328,7 @@ Promise.all([initAdmin(), initSharesTable()])
     console.log("🚀 Starting Express server...");
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
 
