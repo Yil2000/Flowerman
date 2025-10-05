@@ -20,6 +20,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
 
+let serverReady = false;
+
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
@@ -331,6 +333,7 @@ Promise.all([initAdmin(), initSharesTable()])
     console.log("🚀 Starting Express server...");
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
 
