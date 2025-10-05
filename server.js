@@ -17,194 +17,154 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const SECRET_KEY = process.env.SECRET_KEY || "replace_with_your_secret";
+const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY || "default_secret";
 let serverReady = false;
 
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname)); // כל קבצים זמינים מה-root
+app.use(express.static(__dirname));
 
-// ===== אימות אדמין עם JWT =====
-function authenticateAdmin(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Missing token" });
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.admin = decoded;
-    next();
-  } catch (err) {
-    console.error("Token verification failed:", err);
-    res.status(403).json({ error: "Invalid token" });
-  }
-}
-
-
-// ===== Uploads folder =====
+// ===== Uploads Folder =====
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-// ===== Database setup =====
+// ===== Database =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
-pool.connect()
-  .then(() => console.log("✅ Connected to Postgres"))
-  .catch((err) => console.error("❌ DB connection error:", err));
 const db = { query: (text, params) => pool.query(text, params) };
 
-// ===== Initialize admin table =====
-async function initAdmin() {
+pool.connect()
+  .then(() => console.log("✅ Connected to PostgreSQL"))
+  .catch((err) => console.error("❌ DB Connection Error:", err));
+
+// ===== JWT Authentication =====
+function authenticateAdmin(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    return res.status(401).json({ error: "Missing token" });
+
+  const token = authHeader.split(" ")[1];
   try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS admins (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL
-      )
-    `);
-    const username = process.env.ADMIN_USER;
-    const password = process.env.ADMIN_PASS;
-    const res = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-    if (res.rows.length === 0) {
-      const hash = await bcrypt.hash(password, 10);
-      await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
-      console.log("✅ Admin user created from ENV");
-    } else console.log("ℹ️ Admin user already exists");
-  } catch (err) {
-    console.error("❌ Error initializing admin:", err);
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.admin = decoded;
+    next();
+  } catch {
+    res.status(403).json({ error: "Invalid token" });
   }
 }
 
-// ===== Initialize shares table =====
-async function initSharesTable() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS shares (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        message TEXT NOT NULL,
-        imageUrl TEXT,
-        published BOOLEAN DEFAULT FALSE
-      )
-    `);
-    console.log("✅ Shares table ready");
-  } catch (err) {
-    console.error("❌ Error initializing shares table:", err);
-  }
-}
-
-async function initContactsTable() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS contacts (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        region TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    console.log("✅ Contacts table ready");
-  } catch (err) {
-    console.error("❌ Error initializing contacts table:", err);
-  }
-}
-
-
-// ===== Cloudinary config =====
+// ===== Cloudinary =====
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
   api_key: process.env.CLOUDINARY_API_KEY || "",
-  api_secret: process.env.CLOUDINARY_API_SECRET || ""
+  api_secret: process.env.CLOUDINARY_API_SECRET || "",
 });
 
-// ===== Multer setup =====
+// ===== Multer =====
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ===== JWT middleware =====
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "No token provided" });
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ error: "Invalid token" });
-    req.user = user;
-    next();
-  });
+// ===== Initialize Tables =====
+async function initAdmin() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS admins (
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
+    )
+  `);
+  const username = process.env.ADMIN_USER;
+  const password = process.env.ADMIN_PASS;
+  const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
+  if (result.rows.length === 0) {
+    const hash = await bcrypt.hash(password, 10);
+    await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
+    console.log("✅ Admin created from ENV");
+  }
 }
 
-// ===== Admin login =====
+async function initSharesTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS shares (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      imageUrl TEXT,
+      published BOOLEAN DEFAULT FALSE
+    )
+  `);
+  console.log("✅ Shares table ready");
+}
+
+async function initContactsTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      region TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  console.log("✅ Contacts table ready");
+}
+
+// ===== Admin Login =====
 app.post("/admin/login", async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: "Missing username or password" });
-
   try {
     const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-    const row = result.rows[0];
-    if (!row) return res.status(401).json({ error: "User not found" });
-    const match = await bcrypt.compare(password, row.password);
+    const admin = result.rows[0];
+    if (!admin) return res.status(401).json({ error: "User not found" });
+
+    const match = await bcrypt.compare(password, admin.password);
     if (!match) return res.status(401).json({ error: "Wrong password" });
-    const token = jwt.sign({ username: row.username }, SECRET_KEY, { expiresIn: "30m" });
+
+    const token = jwt.sign({ username: admin.username }, SECRET_KEY, { expiresIn: "30m" });
     res.json({ token });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ error: "DB error" });
+    console.error(err);
+    res.status(500).json({ error: "Login failed" });
   }
 });
 
-app.post("/admin/verify-token", authenticateToken, (req, res) => {
+app.post("/admin/verify-token", authenticateAdmin, (req, res) => {
   res.json({ valid: true });
 });
 
-// ===== Upload endpoint =====
+// ===== Upload =====
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    if (!req.file) return res.status(400).json({ error: "No file" });
 
-    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-      const streamifier = (await import("streamifier")).default;
-      const streamUpload = () =>
-        new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: "shares" },
-            (error, result) => result ? resolve(result) : reject(error)
-          );
-          streamifier.createReadStream(req.file.buffer).pipe(stream);
-        });
-      const result = await streamUpload();
-      return res.json({ url: result.secure_url });
-    }
+    const streamifier = (await import("streamifier")).default;
+    const streamUpload = () =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "shares" },
+          (error, result) => (error ? reject(error) : resolve(result))
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
 
-    const fileName = Date.now() + "-" + req.file.originalname.replace(/\s+/g, "_");
-    const filePath = path.join(uploadsDir, fileName);
-    fs.writeFileSync(filePath, req.file.buffer);
-    res.json({ url: `/uploads/${fileName}` });
+    const result = await streamUpload();
+    res.json({ url: result.secure_url });
   } catch (err) {
-    console.error("Upload error:", err);
+    console.error(err);
     res.status(500).json({ error: "Upload failed" });
   }
 });
 
-// ===== Share submission (Cloudinary only) =====
+// ===== Shares =====
 app.post("/shares", upload.single("file"), async (req, res) => {
   try {
     const { name, message } = req.body;
-    if (!name || !message) return res.status(400).json({ error: "Missing name or message" });
-
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      return res.status(500).json({ error: "Cloudinary is not configured" });
-    }
+    if (!name || !message) return res.status(400).json({ error: "Missing fields" });
 
     let imageUrl = null;
     if (req.file) {
@@ -213,193 +173,107 @@ app.post("/shares", upload.single("file"), async (req, res) => {
         new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
             { folder: "shares" },
-            (error, result) => result ? resolve(result) : reject(error)
+            (error, result) => (error ? reject(error) : resolve(result))
           );
           streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
-      try {
-        const result = await streamUpload();
-        imageUrl = result.secure_url;
-      } catch (err) {
-        console.error("Cloudinary upload error:", err);
-        return res.status(500).json({ error: "Failed to upload image to Cloudinary" });
-      }
+      const uploadResult = await streamUpload();
+      imageUrl = uploadResult.secure_url;
     }
 
     const result = await db.query(
-      "INSERT INTO shares (name, message, imageUrl, published) VALUES ($1, $2, $3, FALSE) RETURNING *",
+      "INSERT INTO shares (name, message, imageUrl) VALUES ($1, $2, $3) RETURNING *",
       [name, message, imageUrl]
     );
-
     res.json({ success: true, share: result.rows[0] });
   } catch (err) {
-    console.error("Error submitting share:", err);
-    res.status(500).json({ error: "Server error submitting share" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to save share" });
   }
 });
 
-// ===== Public & Admin Shares endpoints =====
 app.get("/shares/published", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
+    if (result.rows.length === 0)
+      return res.json({ message: "לא נמצאו טפסים" });
     res.json(result.rows);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "DB error" });
   }
 });
 
-app.get("/admin/shares", authenticateToken, async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
-    // מיפוי המפתחות: תמיד מחזיר imageUrl עם U גדולה
-    const shares = result.rows.map(r => ({
-      id: r.id,
-      name: r.name,
-      message: r.message,
-      imageUrl: r.imageurl || r.imageUrl || null,
-      published: r.published
-    }));
-    res.json(shares);
-  } catch (err) {
-    res.status(500).json({ error: "DB error" });
-  }
+// ===== Admin Shares =====
+app.get("/admin/shares", authenticateAdmin, async (req, res) => {
+  const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
+  res.json(result.rows);
 });
 
-app.post("/contacts", async (req, res) => {
-  try {
-    const { name, phone, region, message } = req.body;
-    if (!name || !phone || !region || !message) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const result = await db.query(
-      "INSERT INTO contacts (name, phone, region, message) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, phone, region, message]
-    );
-
-    res.json({ success: true, contact: result.rows[0] });
-  } catch (err) {
-    console.error("Error submitting contact:", err);
-    res.status(500).json({ error: "Server error submitting contact" });
-  }
+app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
+  await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
 });
 
-app.get("/admin/contacts", authenticateToken, async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-app.delete("/admin/contacts/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.query("DELETE FROM contacts WHERE id=$1", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-
-app.post("/admin/shares/publish/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-app.post("/admin/shares/unpublish/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "DB error" });
-  }
+app.post("/admin/shares/unpublish/:id", authenticateAdmin, async (req, res) => {
+  await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
 });
 
 app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
-  const { id } = req.params;
-
   try {
-    // שלוף קודם את השיתוף כדי לדעת מה כתובת התמונה
-    const { rows } = await pool.query("SELECT * FROM shares WHERE id = $1", [id]);
-    if (rows.length === 0) return res.status(404).json({ error: "שיתוף לא נמצא" });
+    const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: "לא נמצא" });
 
     const share = rows[0];
+    await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
 
-    // מחק את השיתוף מהדאטאבייס
-    await pool.query("DELETE FROM shares WHERE id = $1", [id]);
-
-    // אם יש תמונה — מחק גם אותה מקלאודינרי
     if (share.imageurl) {
-      try {
-        // נחלץ את public_id מתוך ה־URL
-        const publicId = share.imageurl
-          .split("/")
-          .slice(-1)[0]
-          .split(".")[0];
-
-        await cloudinary.uploader.destroy(publicId);
-        console.log(`✅ תמונה ${publicId} נמחקה מקלאודינרי`);
-      } catch (cloudErr) {
-        console.error("שגיאה במחיקת תמונה מקלאודינרי:", cloudErr);
-      }
+      const publicId = share.imageurl.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(publicId);
     }
-
     res.json({ success: true });
   } catch (err) {
-    console.error("שגיאה במחיקת שיתוף:", err);
-    res.status(500).json({ error: "שגיאה במחיקה" });
+    console.error(err);
+    res.status(500).json({ error: "Delete failed" });
   }
 });
 
+// ===== Contacts =====
+app.post("/contacts", async (req, res) => {
+  const { name, phone, region, message } = req.body;
+  if (!name || !phone || !region || !message)
+    return res.status(400).json({ error: "Missing fields" });
 
-// ===== Gallery Endpoint (Cloudinary tags) =====
-app.get("/images/:tag", async (req, res) => {
-  const { tag } = req.params;
-  try {
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      return res.status(500).json({ error: "Cloudinary not configured" });
-    }
-    const resources = await cloudinary.api.resources_by_tag(tag, { max_results: 100 });
-    const images = resources.resources.map(r => ({ public_id: r.public_id, secure_url: r.secure_url }));
-    res.json(images);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch images from Cloudinary" });
-  }
+  const result = await db.query(
+    "INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4) RETURNING *",
+    [name, phone, region, message]
+  );
+  res.json({ success: true, contact: result.rows[0] });
 });
 
-// ===== Serve index.html for SPA + SEO =====
+app.get("/admin/contacts", authenticateAdmin, async (req, res) => {
+  const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
+  res.json(result.rows);
+});
+
+app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
+  await db.query("DELETE FROM contacts WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
+});
+
+// ===== Serve HTML =====
 app.get("*", (req, res) => {
-  const userAgent = req.get("User-Agent") || "";
-  if (!serverReady && !userAgent.includes("Googlebot")) {
-    return res.sendFile(path.join(__dirname, "loading.html"));
-  }
+  if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ===== Start server after tables initialized =====
+// ===== Start Server =====
 Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
   .then(() => {
     serverReady = true;
-    console.log("✅ Server is fully ready!");
+    app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   })
   .catch(err => {
-    console.error("❌ Error initializing server:", err);
-    serverReady = true;
-  })
-  .finally(() => {
-    app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
+    console.error("❌ Init error:", err);
+    app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
-
-
-
-
-
