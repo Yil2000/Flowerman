@@ -194,31 +194,26 @@ app.post("/shares", upload.single("file"), async (req, res) => {
 
 // ===== Images by Tag =====
 app.get("/images/:tag", async (req, res) => {
+  const { tag } = req.params;
   try {
-    const { tag } = req.params;
-
-    // מבצע חיפוש בתיקייה עם השם של ה-tag
-    const result = await cloudinary.search
-      .expression(`folder:${tag}`)
-      .sort_by("public_id", "desc")
-      .max_results(50)
-      .execute();
-
-    // אם אין תמונות
-    if (!result.resources || result.resources.length === 0) {
-      return res.json([]);
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(500).json({ error: "Cloudinary not configured" });
     }
 
-    // מחזיר JSON נקי לגלריה
-    res.json(result.resources.map(img => ({
-      public_id: img.public_id,
-      secure_url: img.secure_url
-    })));
+    // חפש לפי tag ולא folder
+    const resources = await cloudinary.api.resources_by_tag(tag, { max_results: 100 });
+    const images = resources.resources.map(r => ({
+      public_id: r.public_id,
+      secure_url: r.secure_url
+    }));
+    
+    res.json(images);
   } catch (err) {
-    console.error("❌ שגיאה בשליפת תמונות:", err);
-    res.status(500).json({ error: "שגיאה בשליפת תמונות" });
+    console.error("Failed to fetch images by tag:", err);
+    res.status(500).json({ error: "Failed to fetch images from Cloudinary" });
   }
 });
+
 
 app.get("/shares/published", async (req, res) => {
   try {
@@ -305,4 +300,5 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
