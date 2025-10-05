@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <p>${share.message}</p>
           </div>
           <div class="massages-wall-card-card-img">
-            <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="" />
+            <img src="${share.imageUrl || 'flowerman-logo.PNG'}" alt="" />
           </div>
         </div>
       `;
@@ -228,13 +228,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
-        showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
+        alert("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
         loadPublishedShares();
       } catch (err) {
         console.error(err);
-        showMessage(err.message || "שגיאה בשרת", "error");
+        alert(err.message || "שגיאה בשרת", "error");
       }
     });
   }
 });
+
