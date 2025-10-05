@@ -81,6 +81,25 @@ async function initSharesTable() {
   }
 }
 
+async function initContactsTable() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS contacts (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        region TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("✅ Contacts table ready");
+  } catch (err) {
+    console.error("❌ Error initializing contacts table:", err);
+  }
+}
+
+
 // ===== Cloudinary config =====
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
@@ -293,4 +312,5 @@ Promise.all([initAdmin(), initSharesTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
