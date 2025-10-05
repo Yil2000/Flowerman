@@ -318,16 +318,17 @@ app.get("/images/:tag", async (req, res) => {
 Promise.all([initAdmin(), initSharesTable()])
   .then(() => {
     serverReady = true;
-    console.log("✅ Server is fully ready!");
+    console.log("✅ Server is fully ready! serverReady =", serverReady);
   })
   .catch(err => {
     console.error("❌ Error initializing server:", err);
-    // גם אם קרתה שגיאה — עדיין נעלה את השרת
-    serverReady = true;
+    serverReady = true; // עדיין מעלה את השרת גם אם יש שגיאה
   })
   .finally(() => {
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    console.log("🚀 Starting Express server...");
+    app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
 
