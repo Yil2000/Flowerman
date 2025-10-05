@@ -73,9 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Error loading translations:", err));
 
-  // ===== Scrollable Cards (optional animation placeholder) =====
-  // הוסף כאן אם יש לך אנימציה קיימת
-
   // ===== Gallery Buttons =====
   const buttons = document.querySelectorAll(".gallery-page-head-btns button");
   const images = document.querySelectorAll(".gallery-page-main-content img");
@@ -138,11 +135,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       function showNext() {
-        const prev = slides[currentIndex];
+        slides[currentIndex].style.opacity = 0;
         currentIndex = (currentIndex + 1) % slides.length;
-        const next = slides[currentIndex];
-        prev.style.opacity = 0;
-        next.style.opacity = 1;
+        slides[currentIndex].style.opacity = 1;
       }
 
       function startSliding() { slideInterval = setInterval(showNext, interval); }
@@ -160,18 +155,18 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".weekly-activity-content-sliding-imgs");
   setupSliding(".special-activity-content-sliding-img");
 
-  // ===== Share Form Submission =====
+  // ===== Share Form =====
   const shareForm = document.querySelector("#share-form");
   const messageBox = document.querySelector("#share-message");
 
-  async function loadPublishedShares() {
-    try {
-      const res = await fetch("/shares/published?" + Date.now());
-      const data = await res.json();
-      renderSharesOnWall(data);
-    } catch (err) {
-      console.error("Error loading published shares:", err);
-    }
+  function showMessage(msg, type = "info") {
+    if (!messageBox) return;
+    messageBox.innerText = msg;
+    messageBox.className = `share-message ${type}`;
+    setTimeout(() => {
+      messageBox.innerText = "";
+      messageBox.className = "share-message";
+    }, 5000);
   }
 
   function renderSharesOnWall(shares) {
@@ -196,12 +191,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  async function loadPublishedShares() {
+    try {
+      const res = await fetch(`${serverUrl}/shares/published?${Date.now()}`);
+      if (!res.ok) throw new Error("שגיאה בשליפת השיתופים");
+      const data = await res.json();
+      renderSharesOnWall(data);
+    } catch (err) {
+      console.error(err);
+      showMessage(err.message, "error");
+    }
+  }
+
   loadPublishedShares();
 
   if (shareForm) {
     shareForm.addEventListener("submit", async e => {
       e.preventDefault();
-
       const formData = new FormData(shareForm);
       const name = formData.get("name")?.trim();
       const message = formData.get("message")?.trim();
@@ -218,26 +224,17 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadData.append("message", message);
         if (file && file.size > 0) uploadData.append("file", file);
 
-        const res = await fetch("/shares", { method: "POST", body: uploadData });
+        const res = await fetch(`${serverUrl}/shares`, { method: "POST", body: uploadData });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
         showMessage("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
+        loadPublishedShares();
       } catch (err) {
         console.error(err);
         showMessage(err.message || "שגיאה בשרת", "error");
       }
     });
-  }
-
-  function showMessage(msg, type = "info") {
-    if (!messageBox) return;
-    messageBox.innerText = msg;
-    messageBox.className = `share-message ${type}`;
-    setTimeout(() => {
-      messageBox.innerText = "";
-      messageBox.className = "share-message";
-    }, 5000);
   }
 });
