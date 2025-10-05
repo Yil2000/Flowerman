@@ -244,6 +244,44 @@ app.get("/admin/shares", authenticateToken, async (req, res) => {
   }
 });
 
+app.post("/contacts", async (req, res) => {
+  try {
+    const { name, phone, region, message } = req.body;
+    if (!name || !phone || !region || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const result = await db.query(
+      "INSERT INTO contacts (name, phone, region, message) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, phone, region, message]
+    );
+
+    res.json({ success: true, contact: result.rows[0] });
+  } catch (err) {
+    console.error("Error submitting contact:", err);
+    res.status(500).json({ error: "Server error submitting contact" });
+  }
+});
+
+app.get("/admin/contacts", authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+app.delete("/admin/contacts/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query("DELETE FROM contacts WHERE id=$1", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
 
 app.post("/admin/shares/publish/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
@@ -300,7 +338,7 @@ app.get("*", (req, res) => {
 });
 
 // ===== Start server after tables initialized =====
-Promise.all([initAdmin(), initSharesTable()])
+Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
   .then(() => {
     serverReady = true;
     console.log("✅ Server is fully ready!");
@@ -312,5 +350,6 @@ Promise.all([initAdmin(), initSharesTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🌸 Listening on port ${PORT}`));
   });
+
 
 
