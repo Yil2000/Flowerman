@@ -16,11 +16,12 @@
       "nav_login":"התחברות מנהל",
       "nav_home": "דף הבית",
       "nav_about": "על אריאל",
-      "nav_support": "תמכו בנו",
       "nav_project":"על הפרוייקט",
+      "nav_support": "תמכו בנו",
       "nav_gallery":"גלריה",
+      "nav_activity":"הפעילות שלנו",
+      "nav_massages": "השיתופים שלכם",
       "nav_join": "צרו קשר",
-      "nav_massages": "שיתופים",
 
       "hero_h1": "פלאוורמן",
       "hero_h2": "לזכרו של סמל אריאל סוסנוב הי\"ד",
@@ -28,7 +29,8 @@
       "hero_join_btn": "הצטרפו אלינו",
       "hero_donate_btn": "תרמו עכשיו" ,
 
-      "about_head_h2":"הסיפור של אריאל",
+      "about_head_h2":"סמל אריאל סוסנוב הי\"ד",
+      "about_head_h3":"הסיפור של אריאל",
       "about_text_p1": "אריאל סוסנוב הי\"ד 2020-2024 היה לוחם בהנדסה קרבית, גדוד 605, ונלחם במסגרת חטיבה 188 - עוצבת \"ברק\" - הן בעזה והן בגבול הצפון, במהלך מלחמת חרבות ברזל.",
       "about_text_p2": "מעבר להיותו לוחם אמיץ, אריאל היה אדם מלא כריזמה, שמחת חיים, צחוק וחיוך שלא ירד מהפנים. הייתה לו יכולת נדירה לסחוף אחריו אנשים - ולגעת עמוק בלב.",
       "about_text_p3": "אריאל חלם להיות איש חינוך - להצמיח נוער מאוכלוסיות מוחלשות, כמו בני נוער בסיכון ונוער עם צרכים מיוחדים. הוא האמין בכוח של כל ילד לפרוח, והקדיש את חייו הקצרים לעשייה למען אחרים. בין השאר, התנדב בארבע תנועות נוער במקביל:",
@@ -43,7 +45,6 @@
       "project_h3": "זר קטן שמספר סיפור גדול",
       "project_content_p1": "לאריאל היה הרגל להביא לבת זוגתו זר פרחים מדי שבוע לכבוד שבת. גם כשהיה עמוק בלחימה בעזה או בלבנון, הוא דאג לשלוח לה את הזר – דרך משלוח או דרך אחיה הקטן. כך תמיד הצליח לשמח אותה.",
       "project_content_p2": " מתוך הרצון להמשיך את הלב הטוב של אריאל ולהפיץ את הדרך שלו לכל חייל וחיילת בישראל, הקמנו את פרויקט פלאוורמן.",
-      "project_content_h4": "איך הכל התחיל?",
       "project_content_p3": " יום לאחר השבעה, כמה חברים התחילו לחלק זרי פרחים בתחנה המרכזית. מאז התרחבנו משמעותית. \n היום, אנחנו מחלקים זרי פרחים לחיילים מדי שבוע במספר נקודות ברחבי הארץ, באמצעות מערך מתנדבים מדהים בפריסה ארצית. בדוכנים, המתנדבים שוזרים את הפרחים בעצמם, ומצרפים לזר פתק אישי – אותו החיילים יכולים למלא ולהעניק לאדם שיקר להם.",
       "project_content_p4": " כך, המעגל של הטוב והאהבה מתרחב – ולא נשאר רק אצלנו.",
       "project_join_btn": "הצטרפו כמתנדבים",
@@ -80,6 +81,64 @@
       "special_activity_bhd1_tag":"בה\"ד 1",
       "special_activity_julis_tag":"מחנה ג'וליס",
 
+      "massages_wall_h3":"קיר השיתופים",
+      "massages_wall_h4":"שיתופים מכם שמחממים את הלב",
+      "massages_wall_form_h5":"שתפו אותנו בחוויה שלכם מפלאוורמן",
+      "massages_form_name_label":"שם",
+      "massages_form_name_input":"השם שלך, אנונימי/ת",
+      "massages_form_text_label":"השיתוף שלכם",
+      "massages_form_text_iput":"שתפו את החוויה שהייתה לכם איתנו (עד 450 תווים)",
+      "massages_form_file_label":"העלו תמונה של הזר שלכם",
+      "massages_form_send_btn":"שתפו אותנו ",
+
+      "contact_h3":"צרו קשר",
+      "contact_h4":"פנו אלינו וקחו חלק בפרוייקט פלאוורמן",
+      "contact_options_h5":"דרכים בהם תוכלו לסייע",
+      "contact_options_1_b":"עמדות חלוקה",
+      "contact_options_1_p":"בואו להיות חלק מצוות פלאוורמן בחלוקת פרחים בכל יום שישי בנקודות החלוקה השונות",
+      "contact_options_2_b":"תרומת פרחים",
+      "contact_options_2_p":"נשמח לשיתופי פעולה עם חנויות פרחים או משתלות",
+      "contact_options_3_b":"צילום ותיעוד",
+      "contact_options_3_p":"בעלי ידע במקצועות המדיה? בואו להיות חלק מהצוות ולסייע ביצירת תוכן",
+      "contact_options_4_b":"פרסום והפצה",
+      "contact_options_4_p":"אם אתם מכירים חברות פרסום או שיש לכם קהל רחב זה המקום שלכם להיות שותפים",
+      "contact_options_5_b":"כל דבר שעולה על ליבכם",
+      "contact_options_5_p":"יש לכם כישרון או יכולת שיכולה לסייע לנו? נשמע להכיר",
+      "strait_contact_h5":"צרו איתנו קשר ישירות",
+      "strait_contact_p1":"לשאלות נוספות או תיאום נקודת חלוקה, אתם מוזמנים ליצור קשר",
+      "strait_contact_p2":"050-2322244",
+      "strait_contact_p3":"hakoltov.amuta@gmail.com",
+      "contact_form_h3":"טופס פניות",
+      "contact_form_name_label":"שם מלא",
+      "contact_form_name_input":"השם המלא שלך",
+      "contact_form_phone_input":"טלפון נייד",
+      "contact_form_region_lable":"אזור מגורים",
+      "contact_form_region_input_defult":"בחרו אזור",
+      "contact_form_region_input_north":"צפון",
+      "contact_form_region_input_south":"דרום",
+      "contact_form_region_input_center":"מרכז",
+      "contact_form_region_input_jerusalem":"ירושלים",
+      "contact_form_textarea_label":"כיצד תרצו לסייע ולהיות חלק",
+      "contact_form_textarea_input":"ספרו לנו מעט על עצמכם וכיצד אתם חושבים שתוכלו לסייע",
+      "contact_form_btn":"שליחת טופס",
+
+      "footer_about_h6":"פרוייקט פלאוורמו",
+      "footer_about_p1":"זר קטן שמספר סיפור גדול",
+      "footer_about_p2":"זר קטן שמספר סיפור גדול",
+
+      "footer_nav_home_a":"דף הבית",
+      "footer_nav_about_a":"על אריאל",
+      "footer_nav_project_a":"על הפרוייקט",
+      "footer_nav_support_a":"תמכו בנו",
+      "footer_nav_gallery_a":"גלרייה",
+      "footer_nav_activity_a":"הפעילות שלנו",
+      "footer_nav_sharing_a":"השיתופים שלכם",
+      "footer_nav_contact_a":"צרו קשר",
+
+      "footer_nav_follow_h6":"עקבו אחרינו",
+
+      "footer_nav_accessibillity":"הצהרת נגישות",
+      "footer_credit":"© 2025 ינאי אילוז. כל הזכויות שמורות",
 
 
 
@@ -94,12 +153,17 @@
       "html_gallery_shatz_btn":"בי\"ח שערי צדק"
   },
 
+
+
+
+
   "eng": {
       "nav_home": "Home page",
       "nav_about": "About Ariel",
+       "nav_project":"Flowerman",
       "nav_support": "Support",
-      "nav_project":"Flowerman",
       "nav_gallery":"Gallery",
+      "nav_activity":"Flowerman in Action",
       "nav_join": "Contact",
       "nav_massages": "Messages Wall",
 
@@ -110,8 +174,7 @@
       "hero_donate_btn": "Donate Now",
 
       "about_head_h2": "Ariel Sosnov, of blessed memory",
-      "about_head_h3":"2004-2024",
-      "about_content_h3": "Ariel's story",
+      "about_text_h3": "Ariel's story",
       "about_text_p1": " Ariel was born and raised in Jerusalem; Israel. He served as an IDF combat engineer in Battalion ‘605’ and fought in the ‘Iron Swords’ war  with the 188th ‘Barak ‘Brigade.",
       "about_text_p2": "Ariel was a charismatic young man, full of laughter and a radiant smile. He had a rare ability to inspire and connect with people, touching hearts wherever he went. With a huge heart and deep dedication to helping others, he loved his people and the State of Israel with all his being. A true leader, who always stood by his word.",
       "about_text_p3": "Ariel dreamed of becoming an educator, focusing on youth from disadvantaged backgrounds and helping them grow and thrive. Despite his short life, he gave everything to this mission and left a lasting impact on society and on young people in Israel.",
@@ -124,15 +187,11 @@
 
        "project_h2": "Flowerman Project",
       "project_h3": "A small bouquet that tells a big story",
-      "project_content_h4": "אודות פלאוורמן",
       "project_content_p1": "Ariel had a tradition of bringing his partner a bouquet of flowers every week for Shabbat. Even when he was deep in combat in Gaza or Lebanon, he made sure she received the bouquet—whether by delivery or through her younger brother. It was his way of always bringing her joy.",
       "project_content_p2": "Out of the desire to carry on Ariel’s kind heart and share his spirit with every soldier in Israel, we founded the Flowerman Project.",
       "project_content_p3": "The day after the shiva, a few friends began distributing bouquets at the central bus station. Since then, we have grown significantly.",
-  "project_content_p4": "Today, we distribute bouquets to soldiers every week at several locations across the country, with the help of an incredible nationwide network of volunteers. At the stands, the volunteers arrange the flowers themselves and attach a personal note—one that the soldiers can fill out and pass along to someone dear to them. \n This way, the circle of kindness and love continues to grow—far beyond us.",
-
-
+      "project_content_p4": "Today, we distribute bouquets to soldiers every week at several locations across the country, with the help of an incredible nationwide network of volunteers. At the stands, the volunteers arrange the flowers themselves and attach a personal note—one that the soldiers can fill out and pass along to someone dear to them. \n This way, the circle of kindness and love continues to grow—far beyond us.",
       "project_join_btn": "Join as volunteers",
-      "project_support_btn": "אודות פלאוורמן",
       "project_card_1_b": "+8500",
       "project_card_1_p": "Bouquets Distributed",
       "project_card_2_b": "+8",
@@ -142,7 +201,7 @@
 
       "support_head_h4": "Support the Flowerman Project",
       "support_head_p": "This project thrives thanks to your donations. Every contribution allows us to continue our work and give another soldier a bouquet of flowers – a simple gesture with great meaning.",
-      "support_content_h4": "The cost of a bouquet is 15 NIS. \n The cost of a weekly stand- 700NIS.",
+      "support_content_h4": "The cost of a bouquet is 15 NIS. \n The cost of a weekly stand is 700NIS.",
       "support_content_p": " Each bouquet is a smile, and you can be the reason for the next one. \n Help us grow and reach every soldier.",
       "support_btn": "Donate Now",
 
@@ -168,7 +227,66 @@
       "special_activity_bhd1_tag":"Bahad 1",
       "special_activity_julis_tag":"Julis Base",
 
+      
+      
+      "massages_wall_h3":"Messages Wall",
+      "massages_wall_h4":"Heartwarming stories you’ve shared",
+      "massages_wall_form_h5":"Share your Flowerman experience with us",
+      "massages_form_name_label":"Name",
+      "massages_form_name_input":"Your name, Anonymous",
+      "massages_form_text_label":"Your story",
+      "massages_form_text_iput":"Share your experience with us (up to 450 characters) ",
+      "massages_form_file_label":"Upload a picture of your bouquet",
+      "massages_form_send_btn":"Submit your story ",
 
+      "contact_h3":"Join Us",
+      "contact_h4":"Join our team and contribute in different ways",
+      "contact_options_h5":"Ways You Can Help",
+      "contact_options_1_b":"Flower Stands",
+      "contact_options_1_p":"Join the flower distribution every Friday in our different locations ",
+      "contact_options_2_b":"Flower Donations",
+      "contact_options_2_p":" We’d love to partner with flower shops or nurseries willing to donate",
+      "contact_options_3_b":"Photography & Media",
+      "contact_options_3_p":"Skilled in media or content creation? Come be a part our team and help us tell our story.",
+      "contact_options_4_b":"Promotion & Outreach",
+      "contact_options_4_p":"Are you a part of an advertising company, or have a large following? This is your place to make an impact",
+      "contact_options_5_b":"Your Unique Contribution",
+      "contact_options_5_p":"Have a talent or skill that could help us? We’d love to hear from you",
+      "strait_contact_h5":"Contact us directly",
+      "strait_contact_p1":"For further questions or arrangement of a distribution point, reach out to us",
+      "strait_contact_p2":"050-2322244",
+      "strait_contact_p3":"hakoltov.amuta@gmail.com",
+      "contact_form_h3":"Contact form",
+      "contact_form_name_label":"Full name",
+      "contact_form_name_input":"Your full name",
+      "contact_form_phone_input":"Your phone number",
+      "contact_form_region_lable":"Region of residence ",
+      "contact_form_region_input_defult":"Choose an area",
+      "contact_form_region_input_north":"North",
+      "contact_form_region_input_south":"South",
+      "contact_form_region_input_center":"Center",
+      "contact_form_region_input_jerusalem":"Jerusalem",
+      "contact_form_textarea_label":"How would you like to help and contribute ",
+      "contact_form_textarea_input":"Tell us a little about yourself and how you think you can help",
+      "contact_form_btn":"Submit Form",
+
+      "footer_about_h6":"the Flowerman Project",
+      "footer_about_p1":"A small bouquet that tells a big story",
+      "footer_about_p2":"A small bouquet that tells a bug story",
+
+      "footer_nav_home_a":"Home Page",
+      "footer_nav_about_a":"About Ariel",
+      "footer_nav_project_a":"About the project",
+      "footer_nav_support_a":"Support us",
+      "footer_nav_gallery_a":"Gallery",
+      "footer_nav_activity_a":"Flowerman in Action",
+      "footer_nav_sharing_a":"Your stories",
+      "footer_nav_contact_a":"Contact us",
+
+      "footer_nav_follow_h6":"Follow us",
+
+      "footer_nav_accessibillity":" הצהרת נגישות",
+      "footer_credit":"© 2025 ינאי אילוז. כל הזכויות שמורות",
 
 
       "html_gallery_h1":"Gallery",
@@ -179,20 +297,11 @@
       "html_gallery_julis_btn":"Julis Base",
       "html_gallery_kisufim_btn":"Kissufim Outpost",
       "html_gallery_bhd1_btn":"Bhad 1",
-      "html_gallery_shatz_btn":"Shaare Zedek Medical Center",
+      "html_gallery_shatz_btn":"Shaare Zedek Medical Center"
 
 
-
-      "join_title": "הצטרפו אלינו",
-      "join_text": "בואו להיות חלק מהמשפחה של פלאוורמן, ולעזור לנו לשמח את חיילי צה\"ל בפרחים.",
-
-      "support_title": "תמכו בפלאוורמן",
-      "support_text": "באמצעות התרומות שלכם, נוכל להמשיך את הפעילות ולחלק אלפי פרחים לחיילים.",
-
-      "footer_rights": "© כל הזכויות שמורות לפלאוורמן"
   }
 }
-
 
 
 
