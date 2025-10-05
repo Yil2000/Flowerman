@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== התנתקות =====
   logoutBtn.addEventListener("click", () => {
     sessionStorage.removeItem("adminToken");
-    window.location.href = "/login.html";
+    window.location.href = "/index.html";
   });
 
   // ===== טעינת שיתופים =====
@@ -230,3 +230,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== הפעלת בדיקת טוקן =====
   checkToken();
 });
+
