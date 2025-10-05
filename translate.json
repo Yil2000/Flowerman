@@ -104,7 +104,7 @@
       "nav_massages": "Messages Wall",
 
       "hero_h1": "Flowreman",
-      "hero_h2": "In memory of Ariel Sosnov Z\”L",
+      "hero_h2": "In memory of Ariel Sosnov Z\"L",
       "hero_p": " A small bouquet that tells a big story",
       "hero_join_btn": "Join Us",
       "hero_donate_btn": "Donate Now",
@@ -141,8 +141,7 @@
       "project_card_3_p": "Active Volunteers",
 
       "support_head_h4": "Support the Flowerman Project",
-      "support_head_p": "This project thrives thanks to your donations.
- Every contribution allows us to continue our work and give another soldier a bouquet of flowers – a simple gesture with great meaning.",
+      "support_head_p": "This project thrives thanks to your donations. Every contribution allows us to continue our work and give another soldier a bouquet of flowers – a simple gesture with great meaning.",
       "support_content_h4": "The cost of a bouquet is 15 NIS. \n The cost of a weekly stand- 700NIS.",
       "support_content_p": " Each bouquet is a smile, and you can be the reason for the next one. \n Help us grow and reach every soldier.",
       "support_btn": "Donate Now",
@@ -180,7 +179,7 @@
       "html_gallery_savidor_btn":"Tel Aviv ‘Savidor Central’ Train Station",
       "html_gallery_julis_btn":"Julis Base",
       "html_gallery_kisufim_btn":"Kissufim Outpost",
-      "html_gallery_bhd1_btn":”Bahad 1",
+      "html_gallery_bhd1_btn":"Bhad 1",
       "html_gallery_shatz_btn":"Shaare Zedek Medical Center"
 
 
@@ -194,4 +193,5 @@
       "footer_rights": "© כל הזכויות שמורות לפלאוורמן"
   }
 }
+
 
