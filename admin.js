@@ -43,10 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ===== התנתקות =====
-  logoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("adminToken");
-    window.location.href = "/index.html";
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      sessionStorage.removeItem("adminToken");
+      window.location.href = "/index.html";
+    });
+  }
 
   // ===== טעינת שיתופים =====
   async function loadShares() {
@@ -61,7 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
       sharesContainer.innerHTML = "";
 
       if (!shares || shares.length === 0) {
-        sharesContainer.innerHTML = "<p>לא נמצאו שיתופים</p>";
+        const emptyMsg = document.createElement("p");
+        emptyMsg.textContent = "לא נמצאו שיתופים";
+        emptyMsg.className = "empty-message";
+        sharesContainer.appendChild(emptyMsg);
         return;
       }
 
@@ -72,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== יצירת דיב לשיתוף =====
   function renderShare(share) {
     const div = document.createElement("div");
     div.classList.add("comment-card");
@@ -101,23 +105,21 @@ document.addEventListener("DOMContentLoaded", () => {
     div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
   }
 
-  // ===== פרסום שיתוף =====
   async function publishShare(div) {
     const token = sessionStorage.getItem("adminToken");
     try {
       const res = await fetch(`/admin/shares/publish/${div.dataset.id}`, { method: "POST", headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה בפרסום השיתוף");
 
-      // הסר מה-admin בלבד
       div.remove();
       showNotification("✅ השיתוף פורסם!");
+      checkEmptyContainer(sharesContainer, "לא נמצאו שיתופים");
     } catch (err) {
       console.error(err);
       alert("אירעה שגיאה בפרסום השיתוף");
     }
   }
 
-  // ===== ביטול פרסום =====
   async function unpublishShare(div) {
     const token = sessionStorage.getItem("adminToken");
     try {
@@ -132,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== מחיקת שיתוף =====
   async function deleteShare(div) {
     const token = sessionStorage.getItem("adminToken");
     if (!confirm("פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח/ה?")) return;
@@ -143,6 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       div.remove();
       showNotification("🗑️ השיתוף נמחק בהצלחה!");
+      checkEmptyContainer(sharesContainer, "לא נמצאו שיתופים");
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -162,7 +164,10 @@ document.addEventListener("DOMContentLoaded", () => {
       contactsContainer.innerHTML = "";
 
       if (!contacts || contacts.length === 0) {
-        contactsContainer.innerHTML = "<p>אין טפסים זמינים להצגה</p>";
+        const emptyMsg = document.createElement("p");
+        emptyMsg.textContent = "אין טפסים זמינים להצגה";
+        emptyMsg.className = "empty-message";
+        contactsContainer.appendChild(emptyMsg);
         return;
       }
 
@@ -186,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== מחיקת פנייה =====
   async function deleteContact(div) {
     const token = sessionStorage.getItem("adminToken");
     if (!confirm("פעולה זו תמחק את הפנייה לצמיתות, האם את/ה בטוח/ה?")) return;
@@ -197,6 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       div.remove();
       showNotification("🗑️ הפנייה נמחקה בהצלחה!");
+      checkEmptyContainer(contactsContainer, "אין טפסים זמינים להצגה");
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -217,6 +222,16 @@ document.addEventListener("DOMContentLoaded", () => {
     notif.style.zIndex = "9999";
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 2000);
+  }
+
+  // ===== בדיקה אם הקונטיינר ריק =====
+  function checkEmptyContainer(container, message) {
+    if (container && container.children.length === 0) {
+      const emptyMsg = document.createElement("p");
+      emptyMsg.textContent = message;
+      emptyMsg.className = "empty-message";
+      container.appendChild(emptyMsg);
+    }
   }
 
   // ===== הפעלת הכל =====
