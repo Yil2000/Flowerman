@@ -122,7 +122,7 @@
       "contact_form_textarea_input":"ספרו לנו מעט על עצמכם וכיצד אתם חושבים שתוכלו לסייע",
       "contact_form_btn":"שליחת טופס",
 
-      "footer_about_h6":"פרוייקט פלאוורמו",
+      "footer_about_h6":"פרוייקט פלאוורמון",
       "footer_about_p1":"לזכרו של סמל אריאל סוסנוב הי\"ד",
       "footer_about_p2":"זר קטן שמספר סיפור גדול",
 
@@ -175,14 +175,14 @@
 
       "about_head_h2": "Ariel Sosnov, of blessed memory",
       "about_text_h3": "Ariel's story",
-      "about_text_p1": " Ariel was born and raised in Jerusalem; Israel. He served as an IDF combat engineer in Battalion ‘605’ and fought in the ‘Iron Swords’ war  with the 188th ‘Barak ‘Brigade.",
-      "about_text_p2": "Ariel was a charismatic young man, full of laughter and a radiant smile. He had a rare ability to inspire and connect with people, touching hearts wherever he went. With a huge heart and deep dedication to helping others, he loved his people and the State of Israel with all his being. A true leader, who always stood by his word.",
-      "about_text_p3": "Ariel dreamed of becoming an educator, focusing on youth from disadvantaged backgrounds and helping them grow and thrive. Despite his short life, he gave everything to this mission and left a lasting impact on society and on young people in Israel.",
-      "about_text_p4": "He volunteered in four youth movements: ‘Krembo Wings’, ‘Bnei Akiva’, ‘Achrayi’, and the Jerusalem Youth Council. He also completed a pre-army service year with Krembo Wings before enlisting in the IDF.",
-      "about_text_p5": "Two weeks after his passing, Ariel was scheduled to begin an officers’ course, continuing his mission of leading the next generation in the IDF.",
-      "about_text_p6": "Ariel fell in combat during the Iron Swords operation in Avivim on the Lebanon border on November 6, 2024 (5th of Cheshvan, 5785), at the age of 20. He left behind his parents, five siblings, and his partner.",
-      "about_text_p7": "Ariel’s will: \n\"Do good \nTake care of  your environment \nProtect this wonderful country\"",
-      "about_text_p8":"",
+      "about_text_p1": "Ariel Sosnov Z\"L, was a combat soldier in the IDF Engineering Corps, Battalion 605, serving under the 188th “Barak” Brigade. He fought both in Gaza and along Israel’s northern border during the Iron Swords War.",
+      "about_text_p2": "Beyond being a brave soldier, Ariel was a person full of charisma, joy for life, and a smile that never left his face. He had a rare gift for drawing people in and touching hearts deeply.",
+      "about_text_p3": "Ariel dreamed of becoming an educator—to nurture youth from underprivileged backgrounds, including at-risk youth and children with special needs.",
+      "about_text_p4": "Among his many commitments, he volunteered with four youth movements at the same time: Krembo Wings, Bnei Akiva, Acharai, and the Jerusalem Youth Council.",
+      "about_text_p5": "Before his army service, he chose to dedicate a year volunteering with Krembo Wings, explaining simply that he wanted “to leave a little more impact on the world.",
+      "about_text_p6": "On November 6th, 2024 (6 Cheshvan 5785), Ariel was killed in battle near the community of Avivim, on the northern border with Lebanon. He was only 20 years old.",
+      "about_text_p7": "He left behind his parents, five siblings, a beloved partner, and a legacy of goodness and giving that continues to inspire.",
+      "about_text_p8":"Ariel’s will: \n \"Do good \n Take care of  your environment\n Protect this wonderful country\n Pick up trash from the ground\n Do not litter the streets are\n Do not fall under the influence of society\n Do good to people, it is the most important thing there is\n Return things in a better way than you received them\n Take care of yourselves and your health\"",
 
 
        "project_h2": "Flowerman Project",
@@ -271,7 +271,7 @@
       "contact_form_btn":"Submit Form",
 
       "footer_about_h6":"the Flowerman Project",
-      "footer_about_p1":"A small bouquet that tells a big story",
+      "footer_about_p1":"In memory of Ariel Sosnov Z\"L",
       "footer_about_p2":"A small bouquet that tells a bug story",
 
       "footer_nav_home_a":"Home Page",
@@ -302,6 +302,7 @@
 
   }
 }
+
 
 
 
