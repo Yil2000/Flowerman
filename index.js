@@ -165,7 +165,7 @@ if (contactForm) {
     e.preventDefault();
 
     const formData = new FormData(contactForm);
-    const name = formData.get("name")?.trim();
+    const name = formData.get("contact_name")?.trim();
     const phone = formData.get("phone")?.trim();
     const region = formData.get("region")?.trim();
     const message = formData.get("message")?.trim();
@@ -297,6 +297,7 @@ renderSharesOnWall([newShare]);
     });
   }
 });
+
 
 
 
