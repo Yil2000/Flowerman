@@ -256,7 +256,7 @@
     }
 
     .navbar-content {
-        padding: 3em 0;
+        padding: 2em 0;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -1976,6 +1976,7 @@ a {
 
     
 }
+
 
 
 
