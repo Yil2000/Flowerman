@@ -133,16 +133,22 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-      const streamifier = (await import("streamifier")).default;
-      const streamUpload = () =>
-        new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream (error, result) => {
-            if (result) resolve(result); else reject(error);
-          });
-          streamifier.createReadStream(req.file.buffer).pipe(stream);
-        });
-      const result = await streamUpload();
-      return res.json({ url: result.secure_url });
+     const streamifier = (await import("streamifier")).default;
+const streamUpload = () =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "shares" },            // <- הגדרות כאן
+      (error, result) => {             // <- callback כאן
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+    streamifier.createReadStream(req.file.buffer).pipe(stream);
+  });
+
+const result = await streamUpload();
+return res.json({ url: result.secure_url });
+
     }
 
     const fileName = Date.now() + "-" + req.file.originalname.replace(/\s+/g, "_");
@@ -322,6 +328,7 @@ Promise.all([initAdmin(), initSharesTable()])
   .finally(() => {
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   });
+
 
 
 
