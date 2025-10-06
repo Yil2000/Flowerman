@@ -165,18 +165,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function addShareToWall(share) {
-    const wallContainer = document.querySelector(".massages-wall-cards");
+    const wallContainer = document.querySelector(".messages-wall-cards");
     if (!wallContainer) return;
 
     const div = document.createElement("div");
-    div.classList.add("massages-wall-card");
+    div.classList.add("messages-wall-card");
     div.innerHTML = `
-      <div class="massages-wall-card-content">
-        <div class="massages-wall-card-content-text">
+      <div class="messages-wall-card-content">
+        <div class="messages-wall-card-content-text">
           <h5>${share.name}</h5>
           <p>${share.message}</p>
         </div>
-        <div class="massages-wall-card-img">
+        <div class="messages-wall-card-img">
           <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="" />
         </div>
       </div>
@@ -204,3 +204,4 @@ document.addEventListener("DOMContentLoaded", () => {
     checkToken();
   }
 });
+
