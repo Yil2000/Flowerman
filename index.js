@@ -204,16 +204,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   }
 
-  function showContactMessage(msg, type="info") {
-    if (!contactMessage) return;
-    contactMessage.innerText = msg;
-    contactMessage.className = `contact-message ${type}`;
-    setTimeout(() => {
-      contactMessage.innerText = "";
-      contactMessage.className = "contact-message";
-    }, 5000);
-  }
-
   // ===== Share Form =====
   const shareForm = document.querySelector("#share-form");
   const messageBox = document.querySelector("#share-message");
@@ -306,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
