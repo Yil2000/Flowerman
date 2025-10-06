@@ -25,6 +25,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
+// ===== Prevent caching for admin pages =====
+app.use("/admin.html", (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  next();
+});
+
 
 // ===== Uploads Folder =====
 const uploadsDir = path.join(__dirname, "uploads");
@@ -339,5 +345,6 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
