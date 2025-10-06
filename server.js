@@ -57,6 +57,10 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
+app.get("/admin.html", authenticateAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
 // ===== Cloudinary =====
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
@@ -350,6 +354,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
 
