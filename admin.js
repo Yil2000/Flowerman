@@ -202,61 +202,41 @@ uploadFiles.addEventListener("change", () => {
   }
 
   // ===== טעינת פניות =====
+ const contactsContainer = document.getElementById("contacts-container");
+  const token = sessionStorage.getItem("adminToken");
+  if (!contactsContainer || !token) return;
+
   async function loadContacts() {
-    const token = sessionStorage.getItem("adminToken");
-    if (!contactsContainer) return;
+    const res = await fetch("/admin/contacts", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const contacts = await res.json();
+    contactsContainer.innerHTML = "";
+    contacts.forEach(contact => {
+      const div = document.createElement("div");
+      div.className = "contact-card";
+      div.dataset.id = contact.id;
+      div.innerHTML = `
+        <p><strong>שם:</strong> ${contact.name}</p>
+        <p><strong>טלפון:</strong> ${contact.phone}</p>
+        <p><strong>אזור:</strong> ${contact.region}</p>
+        <p><strong>הודעה:</strong> ${contact.message}</p>
+        <button class="delete-contact-btn">סמן כטופל ומחק</button>
+      `;
+      contactsContainer.appendChild(div);
 
-    try {
-      const res = await fetch("/admin/contacts?" + Date.now(), { headers: { "Authorization": "Bearer " + token } });
-      if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
-
-      const contacts = await res.json();
-      contactsContainer.innerHTML = "";
-
-      if (!contacts || contacts.length === 0) {
-        const emptyMsg = document.createElement("p");
-        emptyMsg.textContent = "אין טפסים זמינים להצגה";
-        emptyMsg.className = "empty-message";
-        contactsContainer.appendChild(emptyMsg);
-        return;
-      }
-
-      contacts.forEach(contact => {
-        const div = document.createElement("div");
-        div.classList.add("contact-card");
-        div.dataset.id = contact.id;
-        div.innerHTML = `
-          <p><strong>שם:</strong> ${contact.name}</p>
-          <p><strong>טלפון:</strong> ${contact.phone}</p>
-          <p><strong>אזור:</strong> ${contact.region}</p>
-          <p><strong>הודעה:</strong> ${contact.message}</p>
-          <button class="delete-contact-btn">סמן כטופל ומחק</button>
-        `;
-        contactsContainer.appendChild(div);
-        div.querySelector(".delete-contact-btn").addEventListener("click", () => deleteContact(div));
+      div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
+        if (!confirm("להסיר את הפנייה?")) return;
+        await fetch(`/admin/contacts/${contact.id}`, {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + token }
+        });
+        div.remove();
       });
-    } catch (err) {
-      console.error(err);
-      contactsContainer.innerHTML = "<p>שגיאה בטעינת הפניות</p>";
-    }
+    });
   }
 
-  async function deleteContact(div) {
-    const token = sessionStorage.getItem("adminToken");
-    if (!confirm("פעולה זו תמחק את הפנייה לצמיתות, האם את/ה בטוח/ה?")) return;
-
-    try {
-      const res = await fetch(`/admin/contacts/${div.dataset.id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
-      if (!res.ok) throw new Error("שגיאה במחיקת הפנייה");
-
-      div.remove();
-      showNotification("🗑️ הפנייה נמחקה בהצלחה!");
-      checkEmptyContainer(contactsContainer, "אין טפסים זמינים להצגה");
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
-  }
+  loadContacts();
 
   // ===== הצגת Notification =====
   function showNotification(text) {
@@ -287,4 +267,5 @@ uploadFiles.addEventListener("change", () => {
   // ===== הפעלת הכל =====
   checkToken();
 });
+
 
