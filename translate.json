@@ -20,7 +20,7 @@
       "nav_support": "תמכו בנו",
       "nav_gallery":"גלריה",
       "nav_activity":"הפעילות שלנו",
-      "nav_massages": "השיתופים שלכם",
+      "nav_messages": "השיתופים שלכם",
       "nav_join": "צרו קשר",
 
       "hero_h1": "פלאוורמן",
@@ -81,15 +81,15 @@
       "special_activity_bhd1_tag":"בה\"ד 1",
       "special_activity_julis_tag":"מחנה ג'וליס",
 
-      "massages_wall_h3":"קיר השיתופים",
-      "massages_wall_h4":"שיתופים מכם שמחממים את הלב",
-      "massages_wall_form_h5":"שתפו אותנו בחוויה שלכם מפלאוורמן",
-      "massages_form_name_label":"שם",
-      "massages_form_name_input":"השם שלך, אנונימי/ת",
-      "massages_form_text_label":"השיתוף שלכם",
-      "massages_form_text_iput":"שתפו את החוויה שהייתה לכם איתנו (עד 450 תווים)",
-      "massages_form_file_label":"העלו תמונה של הזר שלכם",
-      "massages_form_send_btn":"שתפו אותנו ",
+      "messages_wall_h3":"קיר השיתופים",
+      "messages_wall_h4":"שיתופים מכם שמחממים את הלב",
+      "messages_wall_form_h5":"שתפו אותנו בחוויה שלכם מפלאוורמן",
+      "messages_form_name_label":"שם",
+      "messages_form_name_input":"השם שלך, אנונימי/ת",
+      "messages_form_text_label":"השיתוף שלכם",
+      "messages_form_text_iput":"שתפו את החוויה שהייתה לכם איתנו (עד 450 תווים)",
+      "messages_form_file_label":"העלו תמונה של הזר שלכם",
+      "messages_form_send_btn":"שתפו אותנו ",
 
       "contact_h3":"צרו קשר",
       "contact_h4":"פנו אלינו וקחו חלק בפרוייקט פלאוורמן",
@@ -165,7 +165,7 @@
       "nav_gallery":"Gallery",
       "nav_activity":"Flowerman in Action",
       "nav_join": "Contact",
-      "nav_massages": "Messages Wall",
+      "nav_messages": "Messages Wall",
 
       "hero_h1": "Flowreman",
       "hero_h2": "In memory of Ariel Sosnov Z\"L",
@@ -228,15 +228,15 @@
 
       
       
-      "massages_wall_h3":"Messages Wall",
-      "massages_wall_h4":"Heartwarming stories you’ve shared",
-      "massages_wall_form_h5":"Share your Flowerman experience with us",
-      "massages_form_name_label":"Name",
-      "massages_form_name_input":"Your name, Anonymous",
-      "massages_form_text_label":"Your story",
-      "massages_form_text_iput":"Share your experience with us (up to 450 characters) ",
-      "massages_form_file_label":"Upload a picture of your bouquet",
-      "massages_form_send_btn":"Submit your story ",
+      "messages_wall_h3":"Messages Wall",
+      "messages_wall_h4":"Heartwarming stories you’ve shared",
+      "messages_wall_form_h5":"Share your Flowerman experience with us",
+      "messages_form_name_label":"Name",
+      "messages_form_name_input":"Your name, Anonymous",
+      "messages_form_text_label":"Your story",
+      "messages_form_text_iput":"Share your experience with us (up to 450 characters) ",
+      "messages_form_file_label":"Upload a picture of your bouquet",
+      "messages_form_send_btn":"Submit your story ",
 
       "contact_h3":"Join Us",
       "contact_h4":"Join our team and contribute in different ways",
@@ -301,6 +301,7 @@
 
   }
 }
+
 
 
 
