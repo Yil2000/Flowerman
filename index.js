@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
-        alert("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
+        window.alert("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
         shareForm.reset();
 
         // הצגת השיתוף מיד בצד לקוח לפי הנתונים שהשרת החזיר
@@ -303,5 +303,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
