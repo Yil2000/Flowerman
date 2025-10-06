@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sessionStorage.setItem("adminToken", data.token);
 
       // הפניה ישירה לעמוד האדמין
-      window.location.href = "/admin.html";
+      window.location.href = "/admin.html?ts=" + new Date().getTime();
 
     } catch (err) {
       console.error("Login error:", err);
@@ -39,3 +39,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
