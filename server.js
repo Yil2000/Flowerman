@@ -268,8 +268,8 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
     const share = rows[0];
     await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
 
-    if (share.imageurl) {
-      const publicId = share.imageurl.split("/").pop().split(".")[0];
+    if (share.imageUrl) {
+      const publicId = share.imageUrl.split("/").pop().split(".")[0];
       await cloudinary.uploader.destroy(publicId);
     }
     res.json({ success: true });
@@ -318,6 +318,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
 
