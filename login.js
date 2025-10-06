@@ -27,23 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // שמירת הטוקן ב-sessionStorage
+      // שמירת הטוקן
       sessionStorage.setItem("adminToken", data.token);
 
-      // טעינת הדף המוגן עם fetch
-      const htmlRes = await fetch("/admin.html", {
-        headers: { "Authorization": "Bearer " + data.token }
-      });
-
-      if (!htmlRes.ok) {
-        errorMsg.textContent = "אין גישה לעמוד Admin";
-        return;
-      }
-
-      const html = await htmlRes.text();
-      document.open();
-      document.write(html);
-      document.close();
+      // הפניה ישירה לעמוד האדמין
+      window.location.href = "/admin.html";
 
     } catch (err) {
       console.error("Login error:", err);
