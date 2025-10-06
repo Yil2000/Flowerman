@@ -57,8 +57,11 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
-// הגנה על כל /admin
-app.use("/admin", authenticateAdmin);;
+app.use("/admin", (req, res, next) => {
+  // נוותר על אימות רק לנתיב /admin/login
+  if (req.path === "/login") return next();
+  return authenticateAdmin(req, res, next);
+});
 
 // ===== Cloudinary =====
 cloudinary.config({
@@ -336,4 +339,5 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
