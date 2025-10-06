@@ -202,7 +202,6 @@ uploadFiles.addEventListener("change", () => {
   }
 
   // ===== טעינת פניות =====
- const contactsContainer = document.getElementById("contacts-container");
   const token = sessionStorage.getItem("adminToken");
   if (!contactsContainer || !token) return;
 
@@ -267,5 +266,6 @@ uploadFiles.addEventListener("change", () => {
   // ===== הפעלת הכל =====
   checkToken();
 });
+
 
 
