@@ -1220,7 +1220,7 @@
 
 
 
-.massages-wall {
+.messages-wall {
     width: 100%;
     display: flex;
     align-items: center;
@@ -1228,7 +1228,7 @@
     min-height: 800px;
 }
 
-.massages-wall-content {
+.messages-wall-content {
     width: 100%;
     display: flex;
     align-items: center;
@@ -1239,24 +1239,24 @@
     gap: 4em;
 }
 
-.massages-wall-head {
+.messages-wall-head {
     text-align: center;
 }
 
-.massages-wall-head h3 {
+.messages-wall-head h3 {
     font-size: var(--fs-h3);
     color: var(--h-color);
     font-family: var(--h-font);
 }
 
-.massages-wall-head h4 {
+.messages-wall-head h4 {
     font-size: var(--fs-h6);
     font-weight: 500;
     color: var(--p-color);
     font-family: var(--p-font);
 }
 
-.massages-wall-cards {
+.messages-wall-cards {
     overflow-y: hidden;
     width: 100%;
     height: fit-content;
@@ -1280,7 +1280,7 @@
 }
 
 
-.massages-wall-card{
+.messages-wall-card{
     font-family: var(--h-font);
     flex-shrink: 0;
     border-radius: 10px;
@@ -1290,37 +1290,37 @@
 
 }
 
-.massages-wall-card-content{
+.messages-wall-card-content{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
 }
 
-.massages-wall-card-content-text{
+.messages-wall-card-content-text{
     padding: 1em;
     min-height: 2em;
     width: 100%;
 }
 
-.massages-wall-card-img img{
+.messages-wall-card-img img{
     width: 100%;
     max-height: 20em;
     object-fit: cover;
     margin-top: auto;
 }
 
-.massages-wall-card-content h5 {
+.messages-wall-card-content h5 {
     font-size: var(--fs-h6);
     color: var(--h-color);
 }
 
-.massages-wall-card-content h6 {
+.messages-wall-card-content h6 {
     font-size: var(--fs-p);
     color: var(--h-color);
 }
 
-.massages-wall-card-content p {
+.messages-wall-card-content p {
     font-family: var(--p-font);
     font-size: var(--fs-small);
     padding-top: 2em;
@@ -1330,7 +1330,7 @@
 }
 
 
-.massages-wall-form {
+.messages-wall-form {
     max-width: 90%;
     min-width: 50%;
     height: fit-content;
@@ -1343,13 +1343,13 @@
     border-radius: 10px;
 }
 
-.massages-wall-form h5 {
+.messages-wall-form h5 {
     font-family: var(--h-font);
     color: var(--h-color);
     font-size: var(--fs-h6);
 }
 
-.massages-wall-form-content {
+.messages-wall-form-content {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1362,11 +1362,11 @@
     color: var(--p-color);
 }
 
-.massages-wall-form-content div label {
+.messages-wall-form-content div label {
     padding: 1em 0;
 }
 
-.massages-wall-form-content div input {
+.messages-wall-form-content div input {
     border: 0.5px solid rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 1.25em 1em;
@@ -1374,7 +1374,7 @@
     transition: border 0.3s ease;
 }
 
-.massages-wall-form-content div input::placeholder {
+.messages-wall-form-content div input::placeholder {
     color: #44444494;
     font-family: var(--p-font);
     font-size: var(--fs-p);
@@ -1382,12 +1382,12 @@
 }
 
 
-.massages-wall-form-content div input:focus {
+.messages-wall-form-content div input:focus {
     border: 0.5px solid rgba(185, 13, 113, 0.562);
     outline: none;
 }
 
-.massages-wall-form-top {
+.messages-wall-form-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1396,21 +1396,21 @@
 }
 
 
-.massages-wall-form-top div {
+.messages-wall-form-top div {
     display: flex;
     justify-content: center;
     flex-direction: column;
     flex-grow: 1;
 }
 
-.massages-wall-form-bottom {
+.messages-wall-form-bottom {
     display: flex;
     justify-content: center;
     flex-direction: column;
     width: 100%;
 }
 
-.massages-wall-form-bottom textarea {
+.messages-wall-form-bottom textarea {
     border: 0.5px solid rgba(0, 0, 0, 0.2);
     color: #44444494;
     font-family: var(--p-font);
@@ -1423,12 +1423,12 @@
     transition: border 0.3s ease;
 }
 
-.massages-wall-form-bottom textarea:focus {
+.messages-wall-form-bottom textarea:focus {
     border: 0.5px solid rgba(185, 13, 113, 0.562);
     outline: none;
 }
 
-.massages-wall-form-button button {
+.messages-wall-form-button button {
     cursor: pointer;
     margin-top: 1em;
     display: flex;
@@ -1446,11 +1446,11 @@
     transition: 0.3s;
 }
 
-.massages-wall-form-button button:hover {
+.messages-wall-form-button button:hover {
     background-color: #7e22ce;
 }
 
-.massages-wall-form-upload{
+.messages-wall-form-upload{
     margin-top: 1em;
     position: relative;
 }
@@ -1976,6 +1976,7 @@ a {
 
     
 }
+
 
 
 
