@@ -160,6 +160,38 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+// ===== Upload Multiple Images with Tag Admin Side =====
+app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
+  try {
+    const tag = req.body.tag; // הערך מה-select
+    if (!tag) return res.status(400).json({ error: "Missing tag" });
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: "No files selected" });
+
+    const streamifier = (await import("streamifier")).default;
+
+    const uploadFile = (file) =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: tag, tags: [tag] },
+          (error, result) => (error ? reject(error) : resolve(result))
+        );
+        streamifier.createReadStream(file.buffer).pipe(stream);
+      });
+
+    const uploadResults = [];
+    for (const file of req.files) {
+      const result = await uploadFile(file);
+      uploadResults.push({ originalName: file.originalname, url: result.secure_url });
+    }
+
+    res.json({ success: true, files: uploadResults });
+  } catch (err) {
+    console.error("Upload with tag error:", err);
+    res.status(500).json({ error: "Upload failed" });
+  }
+});
+
+
 // ===== Shares =====
 app.post("/shares", upload.single("file"), async (req, res) => {
   try {
@@ -318,6 +350,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
 
