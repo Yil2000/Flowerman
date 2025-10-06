@@ -104,7 +104,7 @@ async function initSharesTable() {
     CREATE TABLE IF NOT EXISTS shares (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
-      message TEXT NOT NULL,
+      massage TEXT NOT NULL,
       imageUrl TEXT,
       published BOOLEAN DEFAULT FALSE
     )
@@ -119,7 +119,7 @@ async function initContactsTable() {
       name TEXT NOT NULL,
       phone TEXT NOT NULL,
       region TEXT NOT NULL,
-      message TEXT NOT NULL,
+      massage TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
     )
   `);
@@ -205,8 +205,8 @@ app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
 // ===== Shares =====
 app.post("/shares", upload.single("file"), async (req, res) => {
   try {
-    const { name, message } = req.body;
-    if (!name || !message) return res.status(400).json({ error: "Missing fields" });
+    const { name, massage } = req.body;
+    if (!name || !massage) return res.status(400).json({ error: "Missing fields" });
 
     let imageUrl = null;
     if (req.file) {
@@ -224,8 +224,8 @@ app.post("/shares", upload.single("file"), async (req, res) => {
     }
 
     const result = await db.query(
-      "INSERT INTO shares (name, message, imageUrl) VALUES ($1, $2, $3) RETURNING *",
-      [name, message, imageUrl]
+      "INSERT INTO shares (name, massage, imageUrl) VALUES ($1, $2, $3) RETURNING *",
+      [name, massage, imageUrl]
     );
     res.json({ success: true, share: result.rows[0] });
   } catch (err) {
@@ -265,7 +265,7 @@ app.get("/images/:name", async (req, res) => {
 app.get("/shares/published", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
-    if (result.rows.length === 0) return res.json({ message: "לא נמצאו טפסים" });
+    if (result.rows.length === 0) return res.json({ massage: "לא נמצאו טפסים" });
     res.json(result.rows);
   } catch {
     res.status(500).json({ error: "DB error" });
@@ -309,12 +309,12 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
 
 // ===== Contacts =====
 app.post("/contacts", async (req, res) => {
-  const { name, phone, region, message } = req.body;
-  if (!name || !phone || !region || !message) return res.status(400).json({ error: "Missing fields" });
+  const { name, phone, region, massage } = req.body;
+  if (!name || !phone || !region || !massage) return res.status(400).json({ error: "Missing fields" });
 
   const result = await db.query(
-    "INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4) RETURNING *",
-    [name, phone, region, message]
+    "INSERT INTO contacts (name, phone, region, massage) VALUES ($1,$2,$3,$4) RETURNING *",
+    [name, phone, region, massage]
   );
   res.json({ success: true, contact: result.rows[0] });
 });
@@ -345,6 +345,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
 
