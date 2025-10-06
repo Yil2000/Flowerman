@@ -192,9 +192,9 @@ app.post("/shares", upload.single("file"), async (req, res) => {
   }
 });
 
-// ===== Images by Folder =====
-app.get("/images/:folder", async (req, res) => {
-  const { folder } = req.params;
+// ===== Images by Tag or Folder =====
+app.get("/images/:name", async (req, res) => {
+  const { name } = req.params;
   try {
     if (
       !process.env.CLOUDINARY_CLOUD_NAME ||
@@ -204,12 +204,19 @@ app.get("/images/:folder", async (req, res) => {
       return res.status(500).json({ error: "Cloudinary not configured" });
     }
 
-    // חיפוש לפי שם תיקייה (ולא tag)
-    const resources = await cloudinary.api.resources({
-      type: "upload",
-      prefix: `${folder}/`, // מחפש לפי תיקייה
-      max_results: 100
-    });
+    let resources;
+
+    // אם השם הוא 'shares' → חפש לפי תיקייה
+    if (name === "shares") {
+      resources = await cloudinary.api.resources({
+        type: "upload",
+        prefix: `${name}/`,
+        max_results: 100
+      });
+    } else {
+      // אחרת חפש לפי תג
+      resources = await cloudinary.api.resources_by_tag(name, { max_results: 100 });
+    }
 
     const images = resources.resources.map(r => ({
       public_id: r.public_id,
@@ -218,10 +225,11 @@ app.get("/images/:folder", async (req, res) => {
 
     res.json(images);
   } catch (err) {
-    console.error("❌ Failed to fetch images by folder:", err);
+    console.error("❌ Failed to fetch images:", err);
     res.status(500).json({ error: "Failed to fetch images from Cloudinary" });
   }
 });
+
 
 
 
@@ -310,6 +318,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
 
