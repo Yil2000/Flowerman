@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
   // ===== Contact Form =====
-  const contactForm = document.querySelector(".join-us-form");
+  const contactForm = document.querySelector(".contact-form");
   const contactMessage = document.querySelector(".contact-message");
 
   if (!contactForm) return;
@@ -296,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
