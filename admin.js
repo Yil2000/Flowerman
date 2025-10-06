@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       sessionStorage.removeItem("adminToken");
-      window.location.href = "/index.html";
+      window.location.replace("/index.html");
     });
   }
 
@@ -257,3 +257,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== הפעלת הכל =====
   checkToken();
 });
+
