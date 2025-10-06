@@ -57,6 +57,7 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
+// ===== Serve Admin HTML =====
 app.get("/admin.html", authenticateAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
@@ -141,7 +142,7 @@ app.post("/admin/verify-token", authenticateAdmin, (req, res) => {
   res.json({ valid: true });
 });
 
-// ===== Upload =====
+// ===== Upload Single =====
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file" });
@@ -164,15 +165,14 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// ===== Upload Multiple Images with Tag Admin Side =====
+// ===== Upload Multiple with Tag =====
 app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
   try {
-    const tag = req.body.tag; // הערך מה-select
+    const tag = req.body.tag;
     if (!tag) return res.status(400).json({ error: "Missing tag" });
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: "No files selected" });
 
     const streamifier = (await import("streamifier")).default;
-
     const uploadFile = (file) =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -194,7 +194,6 @@ app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
     res.status(500).json({ error: "Upload failed" });
   }
 });
-
 
 // ===== Shares =====
 app.post("/shares", upload.single("file"), async (req, res) => {
@@ -241,24 +240,13 @@ app.get("/images/:name", async (req, res) => {
     }
 
     let resources;
-
-    // אם השם הוא 'shares' → חפש לפי תיקייה
     if (name === "shares") {
-      resources = await cloudinary.api.resources({
-        type: "upload",
-        prefix: `${name}/`,
-        max_results: 100
-      });
+      resources = await cloudinary.api.resources({ type: "upload", prefix: `${name}/`, max_results: 100 });
     } else {
-      // אחרת חפש לפי תג
       resources = await cloudinary.api.resources_by_tag(name, { max_results: 100 });
     }
 
-    const images = resources.resources.map(r => ({
-      public_id: r.public_id,
-      secure_url: r.secure_url
-    }));
-
+    const images = resources.resources.map(r => ({ public_id: r.public_id, secure_url: r.secure_url }));
     res.json(images);
   } catch (err) {
     console.error("❌ Failed to fetch images:", err);
@@ -266,14 +254,11 @@ app.get("/images/:name", async (req, res) => {
   }
 });
 
-
-
-
+// ===== Published Shares =====
 app.get("/shares/published", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
-    if (result.rows.length === 0)
-      return res.json({ message: "לא נמצאו טפסים" });
+    if (result.rows.length === 0) return res.json({ message: "לא נמצאו טפסים" });
     res.json(result.rows);
   } catch {
     res.status(500).json({ error: "DB error" });
@@ -318,8 +303,7 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
 // ===== Contacts =====
 app.post("/contacts", async (req, res) => {
   const { name, phone, region, message } = req.body;
-  if (!name || !phone || !region || !message)
-    return res.status(400).json({ error: "Missing fields" });
+  if (!name || !phone || !region || !message) return res.status(400).json({ error: "Missing fields" });
 
   const result = await db.query(
     "INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4) RETURNING *",
@@ -338,7 +322,7 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// ===== Serve HTML =====
+// ===== Catch-All Route (index.html) =====
 app.get("*", (req, res) => {
   if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
   res.sendFile(path.join(__dirname, "index.html"));
@@ -354,10 +338,3 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
-
-
-
-
-
-
-
