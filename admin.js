@@ -4,9 +4,59 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout-btn");
   const sharesContainer = document.getElementById("comment-cards");
   const contactsContainer = document.getElementById("contacts-container");
+  const uploadFiles = document.getElementById("upload-files");
+const uploadBtn = document.getElementById("upload-btn");
+const uploadTag = document.getElementById("upload-tag");
+const uploadStatus = document.getElementById("upload-status");
+const clearFileBtn = document.getElementById("clear-file");
 
-  if (!sharesContainer) console.error("sharesContainer לא נמצא! בדוק את האלמנט HTML עם id='comment-cards'");
-  if (!contactsContainer) console.error("contactsContainer לא נמצא! בדוק את האלמנט HTML עם id='contacts-container'");
+  uploadBtn.addEventListener("click", async () => {
+  const files = uploadFiles.files;
+  const tag = uploadTag.value;
+
+  if (!files.length) return alert("בחר קבצים להעלאה");
+
+  const formData = new FormData();
+  for (const file of files) formData.append("files", file);
+  formData.append("tag", tag);
+
+  const token = sessionStorage.getItem("adminToken");
+
+  try {
+    uploadStatus.textContent = "⏳ מעלה קבצים...";
+    const res = await fetch("/upload-with-tag", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + token },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      uploadStatus.textContent = `✅ הועלו ${data.files.length} קבצים בהצלחה!`;
+      uploadFiles.value = ""; // ניקוי הקבצים
+      clearFileBtn.style.display = "none";
+    } else {
+      uploadStatus.textContent = "❌ שגיאה בהעלאה";
+      console.error(data);
+    }
+  } catch (err) {
+    uploadStatus.textContent = "❌ שגיאה בהעלאה";
+    console.error(err);
+  }
+});
+
+// אפשרות לנקות את הקבצים
+clearFileBtn.addEventListener("click", () => {
+  uploadFiles.value = "";
+  uploadStatus.textContent = "";
+  clearFileBtn.style.display = "none";
+});
+
+// הצגת כפתור clear אם נבחרו קבצים
+uploadFiles.addEventListener("change", () => {
+  if (uploadFiles.files.length) clearFileBtn.style.display = "inline";
+});
+
 
   // ===== בדיקת טוקן =====
   async function checkToken() {
@@ -237,3 +287,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== הפעלת הכל =====
   checkToken();
 });
+
