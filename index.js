@@ -229,21 +229,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderSharesOnWall(shares) {
-    const wallContainer = document.querySelector(".massages-wall-cards");
+    const wallContainer = document.querySelector(".messages-wall-cards");
     if (!wallContainer) return;
 
     wallContainer.innerHTML = "";
     shares.forEach(share => {
       const imgSrc = share.imageUrl && share.imageUrl.trim() !== "" ? share.imageUrl : "flowerman-logo.PNG";
       const div = document.createElement("div");
-      div.classList.add("massages-wall-card");
+      div.classList.add("messages-wall-card");
       div.innerHTML = `
-        <div class="massages-wall-card-content">
-          <div class="massages-wall-card-content-text">
+        <div class="messages-wall-card-content">
+          <div class="messages-wall-card-content-text">
             <h5>${share.name}</h5>
             <p>${share.message}</p>
           </div>
-          <div class="massages-wall-card-img">
+          <div class="messages-wall-card-img">
             <img src="${imgSrc}" alt="" />
           </div>
         </div>
@@ -306,6 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
