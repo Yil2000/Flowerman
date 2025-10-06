@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     
-
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
 
@@ -31,8 +30,20 @@ document.addEventListener("DOMContentLoaded", () => {
       // שמירת הטוקן ב-sessionStorage
       sessionStorage.setItem("adminToken", data.token);
 
-      // הפניה לעמוד המוגן
-      window.location.href = "/admin.html";
+      // טעינת הדף המוגן עם fetch
+      const htmlRes = await fetch("/admin.html", {
+        headers: { "Authorization": "Bearer " + data.token }
+      });
+
+      if (!htmlRes.ok) {
+        errorMsg.textContent = "אין גישה לעמוד Admin";
+        return;
+      }
+
+      const html = await htmlRes.text();
+      document.open();
+      document.write(html);
+      document.close();
 
     } catch (err) {
       console.error("Login error:", err);
@@ -40,7 +51,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
-
-
-
