@@ -5,58 +5,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const sharesContainer = document.getElementById("comment-cards");
   const contactsContainer = document.getElementById("contacts-container");
   const uploadFiles = document.getElementById("upload-files");
-const uploadBtn = document.getElementById("upload-btn");
-const uploadTag = document.getElementById("upload-tag");
-const uploadStatus = document.getElementById("upload-status");
-const clearFileBtn = document.getElementById("clear-file");
+  const uploadBtn = document.getElementById("upload-btn");
+  const uploadTag = document.getElementById("upload-tag");
+  const uploadStatus = document.getElementById("upload-status");
+  const clearFileBtn = document.getElementById("clear-file");
 
+  // ===== העלאות =====
   uploadBtn.addEventListener("click", async () => {
-  const files = uploadFiles.files;
-  const tag = uploadTag.value;
+    const files = uploadFiles.files;
+    const tag = uploadTag.value;
+    if (!files.length) return alert("בחר קבצים להעלאה");
 
-  if (!files.length) return alert("בחר קבצים להעלאה");
+    const formData = new FormData();
+    for (const file of files) formData.append("files", file);
+    formData.append("tag", tag);
 
-  const formData = new FormData();
-  for (const file of files) formData.append("files", file);
-  formData.append("tag", tag);
+    const token = sessionStorage.getItem("adminToken");
+    try {
+      uploadStatus.textContent = "⏳ מעלה קבצים...";
+      const res = await fetch("/upload-with-tag", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token },
+        body: formData
+      });
+      const data = await res.json();
 
-  const token = sessionStorage.getItem("adminToken");
-
-  try {
-    uploadStatus.textContent = "⏳ מעלה קבצים...";
-    const res = await fetch("/upload-with-tag", {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + token },
-      body: formData
-    });
-    const data = await res.json();
-
-    if (data.success) {
-      uploadStatus.textContent = `✅ הועלו ${data.files.length} קבצים בהצלחה!`;
-      uploadFiles.value = ""; // ניקוי הקבצים
-      clearFileBtn.style.display = "none";
-    } else {
+      if (data.success) {
+        uploadStatus.textContent = `✅ הועלו ${data.files.length} קבצים בהצלחה!`;
+        uploadFiles.value = "";
+        clearFileBtn.style.display = "none";
+      } else {
+        uploadStatus.textContent = "❌ שגיאה בהעלאה";
+        console.error(data);
+      }
+    } catch (err) {
       uploadStatus.textContent = "❌ שגיאה בהעלאה";
-      console.error(data);
+      console.error(err);
     }
-  } catch (err) {
-    uploadStatus.textContent = "❌ שגיאה בהעלאה";
-    console.error(err);
-  }
-});
+  });
 
-// אפשרות לנקות את הקבצים
-clearFileBtn.addEventListener("click", () => {
-  uploadFiles.value = "";
-  uploadStatus.textContent = "";
-  clearFileBtn.style.display = "none";
-});
+  clearFileBtn.addEventListener("click", () => {
+    uploadFiles.value = "";
+    uploadStatus.textContent = "";
+    clearFileBtn.style.display = "none";
+  });
 
-// הצגת כפתור clear אם נבחרו קבצים
-uploadFiles.addEventListener("change", () => {
-  if (uploadFiles.files.length) clearFileBtn.style.display = "inline";
-});
-
+  uploadFiles.addEventListener("change", () => {
+    if (uploadFiles.files.length) clearFileBtn.style.display = "inline";
+  });
 
   // ===== בדיקת טוקן =====
   async function checkToken() {
@@ -74,8 +70,8 @@ uploadFiles.addEventListener("change", () => {
       if (data.valid) {
         content.style.display = "flex";
         errorDiv.style.display = "none";
-        loadShares();
-        loadContacts();
+        loadShares(token);
+        loadContacts(token);
       } else {
         showError("טוקן לא תקין");
       }
@@ -85,7 +81,6 @@ uploadFiles.addEventListener("change", () => {
     }
   }
 
-  // ===== הצגת הודעת שגיאה =====
   function showError(reason) {
     console.warn("Unauthorized:", reason);
     content.style.display = "none";
@@ -100,13 +95,13 @@ uploadFiles.addEventListener("change", () => {
     });
   }
 
-  // ===== טעינת שיתופים =====
-  async function loadShares() {
-    const token = sessionStorage.getItem("adminToken");
+  // ===== שיתופים =====
+  async function loadShares(token) {
     if (!sharesContainer) return;
-
     try {
-      const res = await fetch("/admin/shares?" + Date.now(), { headers: { "Authorization": "Bearer " + token } });
+      const res = await fetch("/admin/shares?" + Date.now(), {
+        headers: { "Authorization": "Bearer " + token }
+      });
       if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
 
       const shares = await res.json();
@@ -149,8 +144,10 @@ uploadFiles.addEventListener("change", () => {
 
     sharesContainer.appendChild(div);
 
-    if (share.published) div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
-    else div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
+    if (share.published)
+      div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
+    else
+      div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
 
     div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
   }
@@ -160,7 +157,6 @@ uploadFiles.addEventListener("change", () => {
     try {
       const res = await fetch(`/admin/shares/publish/${div.dataset.id}`, { method: "POST", headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה בפרסום השיתוף");
-
       div.remove();
       showNotification("✅ השיתוף פורסם!");
       checkEmptyContainer(sharesContainer, "לא נמצאו שיתופים");
@@ -175,8 +171,7 @@ uploadFiles.addEventListener("change", () => {
     try {
       const res = await fetch(`/admin/shares/unpublish/${div.dataset.id}`, { method: "POST", headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה בביטול פרסום");
-
-      loadShares();
+      loadShares(token);
       showNotification("⚠️ השיתוף חזר למצב לא מפורסם");
     } catch (err) {
       console.error(err);
@@ -187,11 +182,9 @@ uploadFiles.addEventListener("change", () => {
   async function deleteShare(div) {
     const token = sessionStorage.getItem("adminToken");
     if (!confirm("פעולה זו תמחק את השיתוף לצמיתות, האם את/ה בטוח/ה?")) return;
-
     try {
       const res = await fetch(`/admin/shares/${div.dataset.id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
       if (!res.ok) throw new Error("שגיאה במחיקת השיתוף");
-
       div.remove();
       showNotification("🗑️ השיתוף נמחק בהצלחה!");
       checkEmptyContainer(sharesContainer, "לא נמצאו שיתופים");
@@ -201,43 +194,42 @@ uploadFiles.addEventListener("change", () => {
     }
   }
 
-  // ===== טעינת פניות =====
-  const token = sessionStorage.getItem("adminToken");
-  if (!contactsContainer || !token) return;
+  // ===== פניות =====
+  async function loadContacts(token) {
+    if (!contactsContainer) return;
+    try {
+      const res = await fetch("/admin/contacts", { headers: { "Authorization": "Bearer " + token } });
+      const contacts = await res.json();
+      contactsContainer.innerHTML = "";
 
-  async function loadContacts() {
-    const res = await fetch("/admin/contacts", {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    const contacts = await res.json();
-    contactsContainer.innerHTML = "";
-    contacts.forEach(contact => {
-      const div = document.createElement("div");
-      div.className = "contact-card";
-      div.dataset.id = contact.id;
-      div.innerHTML = `
-        <p><strong>שם:</strong> ${contact.name}</p>
-        <p><strong>טלפון:</strong> ${contact.phone}</p>
-        <p><strong>אזור:</strong> ${contact.region}</p>
-        <p><strong>הודעה:</strong> ${contact.message}</p>
-        <button class="delete-contact-btn">סמן כטופל ומחק</button>
-      `;
-      contactsContainer.appendChild(div);
+      contacts.forEach(contact => {
+        const div = document.createElement("div");
+        div.className = "contact-card";
+        div.dataset.id = contact.id;
+        div.innerHTML = `
+          <p><strong>שם:</strong> ${contact.name}</p>
+          <p><strong>טלפון:</strong> ${contact.phone}</p>
+          <p><strong>אזור:</strong> ${contact.region}</p>
+          <p><strong>הודעה:</strong> ${contact.message}</p>
+          <button class="delete-contact-btn">סמן כטופל ומחק</button>
+        `;
+        contactsContainer.appendChild(div);
 
-      div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
-        if (!confirm("להסיר את הפנייה?")) return;
-        await fetch(`/admin/contacts/${contact.id}`, {
-          method: "DELETE",
-          headers: { "Authorization": "Bearer " + token }
+        div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
+          if (!confirm("להסיר את הפנייה?")) return;
+          await fetch(`/admin/contacts/${contact.id}`, {
+            method: "DELETE",
+            headers: { "Authorization": "Bearer " + token }
+          });
+          div.remove();
         });
-        div.remove();
       });
-    });
+    } catch (err) {
+      console.error("Error loading contacts:", err);
+    }
   }
 
-  loadContacts();
-
-  // ===== הצגת Notification =====
+  // ===== Notifications =====
   function showNotification(text) {
     const notif = document.createElement("div");
     notif.textContent = text;
@@ -253,7 +245,6 @@ uploadFiles.addEventListener("change", () => {
     setTimeout(() => notif.remove(), 2000);
   }
 
-  // ===== בדיקה אם הקונטיינר ריק =====
   function checkEmptyContainer(container, message) {
     if (container && container.children.length === 0) {
       const emptyMsg = document.createElement("p");
@@ -266,6 +257,3 @@ uploadFiles.addEventListener("change", () => {
   // ===== הפעלת הכל =====
   checkToken();
 });
-
-
-
