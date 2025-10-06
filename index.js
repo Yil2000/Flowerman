@@ -162,43 +162,46 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
   // ===== Contact Form =====
-  const contactForm = document.querySelector(".join-us-form form");
-  let contactMessage;
+  const contactForm = document.querySelector(".join-us-form");
+  const contactMessage = document.querySelector(".contact-message");
 
-  if (contactForm) {
-    contactMessage = document.createElement("div");
-    contactMessage.className = "contact-message";
-    contactForm.appendChild(contactMessage);
+  if (!contactForm) return;
 
-    contactForm.addEventListener("submit", async e => {
-      e.preventDefault();
-      const formData = new FormData(contactForm);
-      const name = formData.get("name")?.trim() || "";
-      const phone = formData.get("phone")?.trim() || "";
-      const region = formData.get("region")?.trim() || "";
-      const message = formData.get("message")?.trim() || "";
+  contactForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const formData = new FormData(contactForm);
+    const data = Object.fromEntries(formData.entries());
 
-      if (!name || !phone || !region || !message) {
-        showContactMessage("נא למלא את כל השדות", "error");
-        return;
-      }
+    if (!data.name || !data.phone || !data.region || !data.message) {
+      showContactMessage("נא למלא את כל השדות", "error");
+      return;
+    }
 
-      try {
-        const res = await fetch("/contacts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, phone, region, message })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "שגיאה בשליחת הפנייה");
+    try {
+      const res = await fetch("/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-        showContactMessage("הפנייה נשלחה בהצלחה!", "success");
-        contactForm.reset();
-      } catch (err) {
-        console.error(err);
-        showContactMessage(err.message || "שגיאה בשרת", "error");
-      }
-    });
+      if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
+
+      showContactMessage("הפנייה נשלחה בהצלחה!", "success");
+      contactForm.reset();
+    } catch (err) {
+      console.error(err);
+      showContactMessage(err.message, "error");
+    }
+  });
+
+  function showContactMessage(msg, type="info") {
+    if (!contactMessage) return;
+    contactMessage.innerText = msg;
+    contactMessage.className = `contact-message ${type}`;
+    setTimeout(() => {
+      contactMessage.innerText = "";
+      contactMessage.className = "contact-message";
+    }, 5000);
   }
 
   function showContactMessage(msg, type="info") {
@@ -303,6 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
