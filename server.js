@@ -1,4 +1,4 @@
-// server.js
+// server.js (Improved & Fixed)
 import express from "express";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
@@ -17,7 +17,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY || "default_secret";
+
+// 🔹 Require JWT_SECRET
+if (!process.env.JWT_SECRET) {
+  console.error("❌ JWT_SECRET not set in ENV");
+  process.exit(1);
+}
+const SECRET_KEY = process.env.JWT_SECRET;
+
 let serverReady = false;
 
 // ===== Middleware =====
@@ -25,12 +32,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
-// ===== Prevent caching for admin pages =====
 app.use("/admin.html", (req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   next();
 });
-
 
 // ===== Uploads Folder =====
 const uploadsDir = path.join(__dirname, "uploads");
@@ -58,18 +63,18 @@ function authenticateAdmin(req, res, next) {
     const decoded = jwt.verify(token, SECRET_KEY);
     req.admin = decoded;
     next();
-  } catch {
+  } catch (err) {
+    console.error("JWT error:", err.stack);
     res.status(403).json({ error: "Invalid token" });
   }
 }
 
 app.use("/admin", (req, res, next) => {
-  // נוותר על אימות רק לנתיב /admin/login
   if (req.path === "/login") return next();
   return authenticateAdmin(req, res, next);
 });
 
-// ===== Cloudinary =====
+// ===== Cloudinary Config =====
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
   api_key: process.env.CLOUDINARY_API_KEY || "",
@@ -78,7 +83,10 @@ cloudinary.config({
 
 // ===== Multer =====
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+});
 
 // ===== Initialize Tables =====
 async function initAdmin() {
@@ -91,6 +99,10 @@ async function initAdmin() {
   `);
   const username = process.env.ADMIN_USER;
   const password = process.env.ADMIN_PASS;
+  if (!username || !password) {
+    console.warn("⚠️ ADMIN_USER or ADMIN_PASS not set, skipping admin creation");
+    return;
+  }
   const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
   if (result.rows.length === 0) {
     const hash = await bcrypt.hash(password, 10);
@@ -106,6 +118,7 @@ async function initSharesTable() {
       name TEXT NOT NULL,
       message TEXT NOT NULL,
       imageUrl TEXT,
+      public_id TEXT,
       published BOOLEAN DEFAULT FALSE
     )
   `);
@@ -140,7 +153,7 @@ app.post("/admin/login", async (req, res) => {
     const token = jwt.sign({ username: admin.username }, SECRET_KEY, { expiresIn: "30m" });
     res.json({ token });
   } catch (err) {
-    console.error(err);
+    console.error(err.stack);
     res.status(500).json({ error: "Login failed" });
   }
 });
@@ -165,9 +178,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       });
 
     const result = await streamUpload();
-    res.json({ url: result.secure_url });
+    res.json({ url: result.secure_url, public_id: result.public_id });
   } catch (err) {
-    console.error(err);
+    console.error(err.stack);
     res.status(500).json({ error: "Upload failed" });
   }
 });
@@ -192,12 +205,12 @@ app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
     const uploadResults = [];
     for (const file of req.files) {
       const result = await uploadFile(file);
-      uploadResults.push({ originalName: file.originalname, url: result.secure_url });
+      uploadResults.push({ originalName: file.originalname, url: result.secure_url, public_id: result.public_id });
     }
 
     res.json({ success: true, files: uploadResults });
   } catch (err) {
-    console.error("Upload with tag error:", err);
+    console.error("Upload with tag error:", err.stack);
     res.status(500).json({ error: "Upload failed" });
   }
 });
@@ -209,6 +222,7 @@ app.post("/shares", upload.single("file"), async (req, res) => {
     if (!name || !message) return res.status(400).json({ error: "Missing fields" });
 
     let imageUrl = null;
+    let public_id = null;
     if (req.file) {
       const streamifier = (await import("streamifier")).default;
       const streamUpload = () =>
@@ -221,29 +235,32 @@ app.post("/shares", upload.single("file"), async (req, res) => {
         });
       const uploadResult = await streamUpload();
       imageUrl = uploadResult.secure_url;
+      public_id = uploadResult.public_id;
     }
 
     const result = await db.query(
-      "INSERT INTO shares (name, message, imageUrl) VALUES ($1, $2, $3) RETURNING *",
-      [name, message, imageUrl]
+      "INSERT INTO shares (name, message, imageUrl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, message, imageUrl, public_id]
     );
     res.json({ success: true, share: result.rows[0] });
   } catch (err) {
-    console.error(err);
+    console.error(err.stack);
     res.status(500).json({ error: "Failed to save share" });
   }
 });
 
-// ===== Images by Tag or Folder (Improved) =====
+// ===== Images by Tag or Folder with Cache & Pagination =====
+const imageCache = {}; // { tagOrFolderName: { images: [...], expires: timestamp } }
+const CACHE_DURATION = 30 * 60 * 1000; // 1 שעה
+
 app.get("/images/:name", async (req, res) => {
   const { name } = req.params;
 
+  const cached = imageCache[name];
+  if (cached && cached.expires > Date.now()) return res.json(cached.images);
+
   try {
-    if (
-      !process.env.CLOUDINARY_CLOUD_NAME ||
-      !process.env.CLOUDINARY_API_KEY ||
-      !process.env.CLOUDINARY_API_SECRET
-    ) {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       return res.status(500).json({ error: "Cloudinary not configured" });
     }
 
@@ -255,22 +272,27 @@ app.get("/images/:name", async (req, res) => {
       if (name !== "shares") options.tags = [name];
       if (cursor) options.next_cursor = cursor;
 
-      const result = name === "shares"
-        ? await cloudinary.api.resources(options)
-        : await cloudinary.api.resources_by_tag(name, options);
+      let result;
+      try {
+        result = name === "shares"
+          ? await cloudinary.api.resources(options)
+          : await cloudinary.api.resources_by_tag(name, options);
+      } catch (err) {
+        if (err.http_code === 420) return res.status(429).json({ error: "Rate limit exceeded. Try again later." });
+        throw err;
+      }
 
       allImages.push(...result.resources.map(r => ({ public_id: r.public_id, secure_url: r.secure_url })));
       cursor = result.next_cursor;
     } while (cursor);
 
+    imageCache[name] = { images: allImages, expires: Date.now() + CACHE_DURATION };
     res.json(allImages);
   } catch (err) {
-    console.error("❌ Failed to fetch images:", err);
+    console.error("❌ Failed to fetch images:", err.stack);
     res.status(500).json({ error: "Server error while fetching images" });
   }
 });
-
-
 
 // ===== Published Shares =====
 app.get("/shares/published", async (req, res) => {
@@ -278,7 +300,8 @@ app.get("/shares/published", async (req, res) => {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
     if (result.rows.length === 0) return res.json({ message: "לא נמצאו טפסים" });
     res.json(result.rows);
-  } catch {
+  } catch (err) {
+    console.error(err.stack);
     res.status(500).json({ error: "DB error" });
   }
 });
@@ -307,13 +330,16 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
     const share = rows[0];
     await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
 
-    if (share.imageUrl) {
-      const publicId = share.imageUrl.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(publicId);
+    if (share.public_id) {
+      try {
+        await cloudinary.uploader.destroy(share.public_id);
+      } catch (err) {
+        console.error("❌ Failed to delete from Cloudinary:", err.stack);
+      }
     }
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error(err.stack);
     res.status(500).json({ error: "Delete failed" });
   }
 });
@@ -340,9 +366,10 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// ===== Catch-All Route (index.html) =====
+// ===== Catch-All =====
 app.get("*", (req, res) => {
   if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
+  if (req.path.startsWith("/api")) return res.status(404).json({ error: "Endpoint not found" });
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
@@ -353,12 +380,6 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   })
   .catch(err => {
-    console.error("❌ Init error:", err);
+    console.error("❌ Init error:", err.stack);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
-
-
-
-
-
-
