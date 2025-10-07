@@ -172,16 +172,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData.entries());
 
-    if (!data.name || !data.phone || !data.region || !data.message) {
-      showContactMessage("נא למלא את כל השדות", "error");
-      return;
-    }
+     if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
+    showContactMessage("נא למלא את כל השדות", "error");
+    return;
+      }
+
 
     try {
       const res = await fetch("/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+        name: data.contact_name,
+        phone: data.phone,
+        region: data.region,
+        message: data.message
       });
 
       if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
@@ -296,6 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
