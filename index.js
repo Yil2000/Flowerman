@@ -183,11 +183,11 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-        name: data.contact_name,
+        name: data.name,
         phone: data.phone,
         region: data.region,
         message: data.message
-      });
+      })
 
       if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
 
@@ -301,6 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
