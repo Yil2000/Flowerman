@@ -234,9 +234,10 @@ app.post("/shares", upload.single("file"), async (req, res) => {
   }
 });
 
-// ===== Images by Tag or Folder =====
+// ===== Images by Tag or Folder (Improved) =====
 app.get("/images/:name", async (req, res) => {
   const { name } = req.params;
+
   try {
     if (
       !process.env.CLOUDINARY_CLOUD_NAME ||
@@ -246,20 +247,30 @@ app.get("/images/:name", async (req, res) => {
       return res.status(500).json({ error: "Cloudinary not configured" });
     }
 
-    let resources;
-    if (name === "shares") {
-      resources = await cloudinary.api.resources({ type: "upload", prefix: `${name}/`, max_results: 100 });
-    } else {
-      resources = await cloudinary.api.resources_by_tag(name, { max_results: 100 });
-    }
+    let allImages = [];
+    let cursor = undefined;
 
-    const images = resources.resources.map(r => ({ public_id: r.public_id, secure_url: r.secure_url }));
-    res.json(images);
+    do {
+      const options = { type: "upload", prefix: name === "shares" ? "shares/" : undefined, max_results: 100 };
+      if (name !== "shares") options.tags = [name];
+      if (cursor) options.next_cursor = cursor;
+
+      const result = name === "shares"
+        ? await cloudinary.api.resources(options)
+        : await cloudinary.api.resources_by_tag(name, options);
+
+      allImages.push(...result.resources.map(r => ({ public_id: r.public_id, secure_url: r.secure_url })));
+      cursor = result.next_cursor;
+    } while (cursor);
+
+    res.json(allImages);
   } catch (err) {
     console.error("❌ Failed to fetch images:", err);
-    res.status(500).json({ error: "Failed to fetch images from Cloudinary" });
+    res.status(500).json({ error: "Server error while fetching images" });
   }
 });
+
+
 
 // ===== Published Shares =====
 app.get("/shares/published", async (req, res) => {
@@ -345,6 +356,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
 
 
 
