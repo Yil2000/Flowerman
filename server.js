@@ -18,12 +18,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// 🔹 Require JWT_SECRET
-if (!process.env.JWT_SECRET) {
-  console.error("❌ JWT_SECRET not set in ENV");
+// 🔹 Require SECRET_KEY
+if (!process.env.SECRET_KEY) {
+  console.error("❌ SECRET_KEY not set in ENV");
   process.exit(1);
 }
-const SECRET_KEY = process.env.JWT_SECRET;
+const SECRET_KEY = process.env.SECRET_KEY;
 
 let serverReady = false;
 
@@ -383,3 +383,4 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
   });
+
