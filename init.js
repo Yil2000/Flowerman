@@ -30,13 +30,16 @@ async function init() {
     const defaultPass = process.env.ADMIN_PASS;
 
     const result = await db.query("SELECT * FROM admins WHERE username=$1", [defaultAdmin]);
-    if (result.rows.length === 0) {
-      const hash = await bcrypt.hash(defaultPass, 10);
-      await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [defaultAdmin, hash]);
-      console.log("✅ Default admin created!");
-    } else {
-      console.log("ℹ️ Admin already exists");
-    }
+   if (result.rows.length === 0) {
+  const hash = await bcrypt.hash(defaultPass, 10);
+  await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [defaultAdmin, hash]);
+  console.log("✅ Default admin created!");
+} else {
+  const hash = await bcrypt.hash(defaultPass, 10);
+  await db.query("UPDATE admins SET password=$1 WHERE username=$2", [hash, defaultAdmin]);
+  console.log("🔄 Admin password updated!");
+}
+
 
     process.exit(0);
   } catch (err) {
@@ -46,4 +49,5 @@ async function init() {
 }
 
 init();
+
 
