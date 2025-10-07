@@ -8,6 +8,7 @@ if (!window.hasRunAdminClient) {
     const logoutBtn = document.getElementById("logout-btn");
     const content = document.getElementById("admin-content");
     const errorDiv = document.getElementById("unauthorized");
+    const wallContainer = document.querySelector(".messages-wall-cards"); // קיר ההודעות של המשתמשים
 
     async function checkToken() {
       const token = sessionStorage.getItem("adminToken");
@@ -101,6 +102,7 @@ if (!window.hasRunAdminClient) {
       });
     }
 
+    // ===== פרסום שיתוף עם עדכון מידי למשתמשים =====
     async function publishShare(div) {
       const token = sessionStorage.getItem("adminToken");
       const id = div.dataset.id;
@@ -110,6 +112,14 @@ if (!window.hasRunAdminClient) {
           headers: { "Authorization": "Bearer " + token }
         });
         if (!res.ok) throw new Error("שגיאה בפרסום השיתוף");
+
+        // ✅ עדכון מידי בקיר המשתמשים
+        addShareToWall({
+          name: div.dataset.name,
+          message: div.dataset.message,
+          imageUrl: div.dataset.imageUrl
+        });
+
         div.remove();
         showNotification("✅ השיתוף פורסם!");
       } catch (err) {
@@ -151,6 +161,26 @@ if (!window.hasRunAdminClient) {
         console.error(err);
         alert(err.message);
       }
+    }
+
+    // ===== פונקציה להוספת שיתוף ל-wall של המשתמשים =====
+    function addShareToWall(share) {
+      if (!wallContainer) return;
+
+      const div = document.createElement("div");
+      div.classList.add("messages-wall-card");
+      div.innerHTML = `
+        <div class="messages-wall-card-content">
+          <div class="messages-wall-card-content-text">
+            <h5>${share.name}</h5>
+            <p>${share.message}</p>
+          </div>
+          <div class="messages-wall-card-img">
+            <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="תמונה">
+          </div>
+        </div>
+      `;
+      wallContainer.prepend(div);
     }
 
     function showNotification(text) {
