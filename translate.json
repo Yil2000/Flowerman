@@ -148,7 +148,7 @@
       "html_gallery_jerusalem_btn":"מרכזית ירושלים",
       "html_gallery_savidor_btn":"סבידור מרכז",
       "html_gallery_julis_btn":"מחנה ג'וליס",
-      "html_gallery_kisufim_btn":"בסיס כיסופים",
+      "html_gallery_kisufim_btn":"מוצב כיסופים",
       "html_gallery_bhd1_btn":"בה\"ד 1",
       "html_gallery_shatz_btn":"בי\"ח שערי צדק"
   },
@@ -301,6 +301,7 @@
 
   }
 }
+
 
 
 
