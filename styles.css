@@ -1322,7 +1322,7 @@
 
 .messages-wall-card-content p {
     font-family: var(--p-font);
-    font-size: var(--fs-small);
+    font-size: var(--fs-p);
     padding-top: 2em;
     color: var(--p-color);
     max-width: 100%;
@@ -1976,6 +1976,7 @@ a {
 
     
 }
+
 
 
 
