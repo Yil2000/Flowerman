@@ -1,14 +1,17 @@
-// ✅ Client-side Admin Helper (Front-end)
+// ✅ admin-client.js (בדיקות רק בדפי אדמין)
 if (!window.hasRunAdminClient) {
   window.hasRunAdminClient = true;
 
   document.addEventListener("DOMContentLoaded", () => {
-    const serverUrl = "https://flowerman.onrender.com";
+    const content = document.getElementById("admin-content");
     const sharesContainer = document.getElementById("comment-cards");
     const logoutBtn = document.getElementById("logout-btn");
-    const content = document.getElementById("admin-content");
     const errorDiv = document.getElementById("unauthorized");
-    const wallContainer = document.querySelector(".messages-wall-cards"); // קיר ההודעות של המשתמשים
+    const wallContainer = document.querySelector(".messages-wall-cards");
+    const serverUrl = "https://flowerman.onrender.com";
+
+    // ✅ אם אין אלמנטים של אדמין – לא מריצים כלום
+    if (!content && !sharesContainer && !logoutBtn) return;
 
     async function checkToken() {
       const token = sessionStorage.getItem("adminToken");
@@ -27,7 +30,7 @@ if (!window.hasRunAdminClient) {
 
         const data = await res.json();
         if (data.valid) {
-          if (content) content.style.display = "flex";
+          content.style.display = "flex";
           if (errorDiv) errorDiv.style.display = "none";
           if (sharesContainer) loadShares();
         } else showError("טוקן לא תקין");
@@ -50,6 +53,7 @@ if (!window.hasRunAdminClient) {
       });
     }
 
+    // ===== טעינת שיתופים =====
     async function loadShares() {
       const token = sessionStorage.getItem("adminToken");
       if (!sharesContainer) return;
@@ -163,10 +167,8 @@ if (!window.hasRunAdminClient) {
       }
     }
 
-    // ===== פונקציה להוספת שיתוף ל-wall של המשתמשים =====
     function addShareToWall(share) {
       if (!wallContainer) return;
-
       const div = document.createElement("div");
       div.classList.add("messages-wall-card");
       div.innerHTML = `
@@ -198,6 +200,7 @@ if (!window.hasRunAdminClient) {
       setTimeout(() => notif.remove(), 2000);
     }
 
+    // ===== הפעלת הכל =====
     checkToken();
   });
 }
