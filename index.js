@@ -179,16 +179,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     try {
-      const res = await fetch("/contacts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        name: data.contact_name,
-        phone: data.phone,
-        region: data.region,
-        message: data.message
-      })
-     });
+  const res = await fetch("/contacts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: data.contact_name,
+      phone: data.phone,
+      region: data.region,
+      message: data.message
+    })
+  });
 
       if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
 
@@ -302,6 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
