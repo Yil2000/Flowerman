@@ -166,18 +166,19 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
  // ===== Contact Form =====
-const contactForm = document.querySelector(".contact-form");
-const contactMessage = document.querySelector(".contact-message");
+document.addEventListener("DOMContentLoaded", () => {
+  const contactForm = document.querySelector(".contact-form");
+  const contactMessage = document.querySelector(".contact-message");
 
-if (contactForm) {
+  if (!contactForm) return;
+
   contactForm.addEventListener("submit", async e => {
-    e.preventDefault(); // מונע את הניווט
-    e.stopPropagation(); // מונע bubbling
+    e.preventDefault();
+    e.stopPropagation(); // חשוב!
 
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData.entries());
 
-    // בדיקת שדות חובה
     if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
       showContactMessage("נא למלא את כל השדות", "error");
       return;
@@ -195,29 +196,27 @@ if (contactForm) {
         })
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "שגיאה בשליחת הפנייה");
-      }
+      if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
 
       showContactMessage("הפנייה נשלחה בהצלחה!", "success");
       contactForm.reset();
     } catch (err) {
-      console.error("Contact form error:", err);
-      showContactMessage(err.message || "שגיאה בשרת", "error");
+      console.error(err);
+      showContactMessage(err.message, "error");
     }
   });
-}
 
-function showContactMessage(msg, type = "info") {
-  if (!contactMessage) return;
-  contactMessage.innerText = msg;
-  contactMessage.className = `contact-message ${type}`;
-  setTimeout(() => {
-    contactMessage.innerText = "";
-    contactMessage.className = "contact-message";
-  }, 5000);
-}
+  function showContactMessage(msg, type="info") {
+    if (!contactMessage) return;
+    contactMessage.innerText = msg;
+    contactMessage.className = `contact-message ${type}`;
+    setTimeout(() => {
+      contactMessage.innerText = "";
+      contactMessage.className = "contact-message";
+    }, 5000);
+  }
+});
+
 
 
   // ===== Share Form =====
@@ -312,6 +311,7 @@ function showContactMessage(msg, type = "info") {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
