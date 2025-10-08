@@ -165,55 +165,60 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".weekly-activity-content-sliding-imgs");
   setupSliding(".special-activity-content-sliding-img");
 
-  // ===== Contact Form =====
-  const contactForm = document.querySelector(".contact-form");
-  const contactMessage = document.querySelector(".contact-message");
+ // ===== Contact Form =====
+const contactForm = document.querySelector(".contact-form");
+const contactMessage = document.querySelector(".contact-message");
 
-  if (!contactForm) return;
-
+if (contactForm) {
   contactForm.addEventListener("submit", async e => {
-    e.preventDefault();
-     e.stopPropagation();
+    e.preventDefault(); // מונע את הניווט
+    e.stopPropagation(); // מונע bubbling
+
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData.entries());
 
-     if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
-    showContactMessage("נא למלא את כל השדות", "error");
-    return;
-      }
-
+    // בדיקת שדות חובה
+    if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
+      showContactMessage("נא למלא את כל השדות", "error");
+      return;
+    }
 
     try {
-  const res = await fetch("/contacts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: data.contact_name,
-      phone: data.phone,
-      region: data.region,
-      message: data.message
-    })
-  });
+      const res = await fetch("/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.contact_name,
+          phone: data.phone,
+          region: data.region,
+          message: data.message
+        })
+      });
 
-      if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "שגיאה בשליחת הפנייה");
+      }
 
       showContactMessage("הפנייה נשלחה בהצלחה!", "success");
       contactForm.reset();
     } catch (err) {
-      console.error(err);
-      showContactMessage(err.message, "error");
+      console.error("Contact form error:", err);
+      showContactMessage(err.message || "שגיאה בשרת", "error");
     }
   });
+}
 
-  function showContactMessage(msg, type="info") {
-    if (!contactMessage) return;
-    contactMessage.innerText = msg;
-    contactMessage.className = `contact-message ${type}`;
-    setTimeout(() => {
-      contactMessage.innerText = "";
-      contactMessage.className = "contact-message";
-    }, 5000);
-  }
+function showContactMessage(msg, type = "info") {
+  if (!contactMessage) return;
+  contactMessage.innerText = msg;
+  contactMessage.className = `contact-message ${type}`;
+  setTimeout(() => {
+    contactMessage.innerText = "";
+    contactMessage.className = "contact-message";
+  }, 5000);
+}
+
 
   // ===== Share Form =====
   const shareForm = document.querySelector("#share-form");
@@ -307,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
