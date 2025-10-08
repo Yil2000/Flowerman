@@ -173,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   contactForm.addEventListener("submit", async e => {
     e.preventDefault();
+     e.stopPropagation();
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData.entries());
 
@@ -306,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
