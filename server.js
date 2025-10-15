@@ -328,6 +328,7 @@ app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
     const share = rows[0];
 
     // עדכון השיתוף כולל פרסום ושמירה של imageUrl ו-public_id
+    const imageUrl = share.imageurl || share.imageUrl || null;
     await db.query(
       "UPDATE shares SET published = TRUE, imageUrl = $1, public_id = $2 WHERE id = $3",
       [share.imageUrl, share.public_id, req.params.id]
@@ -434,6 +435,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
