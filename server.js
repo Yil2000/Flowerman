@@ -47,6 +47,22 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 const db = { query: (text, params) => pool.query(text, params) };
+// ✅ Ensure public_id column exists (run once)
+async function ensurePublicIdColumn() {
+  try {
+    await db.query(`
+      ALTER TABLE shares
+      ADD COLUMN IF NOT EXISTS public_id TEXT;
+    `);
+    console.log("✅ public_id column is ready");
+  } catch (err) {
+    console.error("❌ Failed to add public_id column:", err.stack);
+  }
+}
+
+// קריאה חד־פעמית
+ensurePublicIdColumn();
+
 
 pool.connect()
   .then(() => console.log("✅ Connected to PostgreSQL"))
@@ -394,5 +410,6 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
