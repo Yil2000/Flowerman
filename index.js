@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     wallContainer.innerHTML = "";
     shares.forEach(share => {
-      const imgSrc = share.imageUrl && share.imageUrl.trim() !== "" ? share.imageUrl : "flowerman-logo.PNG";
+      const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
       const div = document.createElement("div");
       div.classList.add("messages-wall-card");
       div.innerHTML = `
@@ -311,6 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
