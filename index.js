@@ -311,19 +311,11 @@ document.addEventListener("DOMContentLoaded", () => {
  // ===== קרוסלת שיתופים =====
 const carousel = document.querySelector(".messages-wall-cards");
 if (carousel) {
-  const speed = 0.5; // מהירות גלילה אוטומטית
+  const speed = 1; // מהירות גלילה אוטומטית
   let autoScroll = true;
   let isDragging = false;
   let startX;
   let scrollLeftStart;
-
-  // עיצוב בסיסי כדי לשמור על הפריסה
-  carousel.style.display = "flex";
-  carousel.style.overflowX = "auto";
-  carousel.style.scrollBehavior = "smooth";
-  carousel.style.gap = "1rem"; // רווח בין הקוביות
-  carousel.style.scrollSnapType = "x mandatory";
-  carousel.style.scrollbarWidth = "none";
 
   // גלילה אינסופית רכה
   function autoScrollLoop() {
@@ -385,6 +377,7 @@ if (carousel) {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
