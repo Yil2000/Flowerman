@@ -117,7 +117,7 @@ async function initSharesTable() {
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       message TEXT NOT NULL,
-      imageurl TEXT,
+      imageUrl TEXT,
       public_id TEXT,
       published BOOLEAN DEFAULT FALSE
     )
@@ -221,7 +221,7 @@ app.post("/shares", upload.single("file"), async (req, res) => {
     const { name, message } = req.body;
     if (!name || !message) return res.status(400).json({ error: "Missing fields" });
 
-    let imageurl = null;
+    let imageUrl = null;
     let public_id = null;
     if (req.file) {
       const streamifier = (await import("streamifier")).default;
@@ -234,13 +234,13 @@ app.post("/shares", upload.single("file"), async (req, res) => {
           streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
       const uploadResult = await streamUpload();
-      imageurl = uploadResult.secure_url;
+      imageUrl = uploadResult.secure_url;
       public_id = uploadResult.public_id;
     }
 
     const result = await db.query(
-      "INSERT INTO shares (name, message, imageurl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, message, imageurl, public_id]
+      "INSERT INTO shares (name, message, imageUrl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, message, imageUrl, public_id]
     );
     res.json({ success: true, share: result.rows[0] });
   } catch (err) {
@@ -307,91 +307,42 @@ app.get("/shares/published", async (req, res) => {
 });
 
 // ===== Admin Shares =====
-// שליפת כל השיתופים (כפי שהיה)
 app.get("/admin/shares", authenticateAdmin, async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "Failed to fetch shares" });
-  }
+  const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
+  res.json(result.rows);
 });
 
-// פרסום שיתוף כולל תמונה אם יש
 app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
-  try {
-    // בדיקה אם השיתוף קיים
-    const { rows } = await db.query("SELECT * FROM shares WHERE id = $1", [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: "Share not found" });
-
-    const share = rows[0];
-
-    // עדכון השיתוף כולל פרסום ושמירה של imageurl ו-public_id
-    const imageurl = share.imageurl || share.imageurl || null;
-    await db.query(
-      "UPDATE shares SET published = TRUE, imageurl = $1, public_id = $2 WHERE id = $3",
-      [share.imageurl, share.public_id, req.params.id]
-    );
-
-    res.json({ success: true, share: { ...share, published: true } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+  await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
 });
 
-// ביטול פרסום
 app.post("/admin/shares/unpublish/:id", authenticateAdmin, async (req, res) => {
-  try {
-    await db.query("UPDATE shares SET published = FALSE WHERE id=$1", [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+  await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
 });
 
-// מחיקה של שיתוף כולל תמונה ב-Cloudinary
 app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
   try {
     const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: "Share not found" });
+    if (rows.length === 0) return res.status(404).json({ error: "לא נמצא" });
 
     const share = rows[0];
     await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
 
-    // מחיקת התמונה מ-Cloudinary אם קיימת
     if (share.public_id) {
       try {
         await cloudinary.uploader.destroy(share.public_id);
       } catch (err) {
-        console.error("Failed to delete image from Cloudinary:", err.stack);
+        console.error("❌ Failed to delete from Cloudinary:", err.stack);
       }
     }
-
     res.json({ success: true });
   } catch (err) {
     console.error(err.stack);
     res.status(500).json({ error: "Delete failed" });
   }
 });
-
-
-// שליפת שיתופים מפורסמים ללקוח
-app.get("/shares/published", async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
-    if (result.rows.length === 0) return res.json({ message: "לא נמצאו שיתופים" });
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "DB error fetching published shares" });
-  }
-});
-
-
-
 
 // ===== Contacts =====
 app.post("/contacts", async (req, res) => {
@@ -435,11 +386,3 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
-
-
-
-
-
-
-
-
