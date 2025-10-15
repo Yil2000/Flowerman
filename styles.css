@@ -1262,6 +1262,13 @@
     height: fit-content;
     display: flex;
     gap: 2em;
+    overflow-x: scroll; /* חובה להשאיר גלילה עובדת */
+    scrollbar-width: none; /* 🔹 מסתיר בפיירפוקס */
+    -ms-overflow-style: none; /* 🔹 מסתיר באקספלורר / אדג' ישנים */
+}
+
+.messages-wall-cards::-webkit-scrollbar {
+  display: none; 
 }
 
 .messages-wall-card{
@@ -1960,6 +1967,7 @@ a {
 
     
 }
+
 
 
 
