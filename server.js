@@ -219,11 +219,15 @@ app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
 app.post("/shares", upload.single("file"), async (req, res) => {
   try {
     const { name, message } = req.body;
-    if (!name || !message) return res.status(400).json({ error: "Missing fields" });
+    if (!name || !message) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
 
-    let imageurl = null;
+    let imageUrl = null;
     let public_id = null;
-    if (req.file) {
+
+    // ✅ רק אם נשלחה תמונה — נעלה ל־Cloudinary
+    if (req.file && req.file.buffer) {
       const streamifier = (await import("streamifier")).default;
       const streamUpload = () =>
         new Promise((resolve, reject) => {
@@ -233,21 +237,25 @@ app.post("/shares", upload.single("file"), async (req, res) => {
           );
           streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
+
       const uploadResult = await streamUpload();
-      imageurl = uploadResult.secure_url;
+      imageUrl = uploadResult.secure_url;
       public_id = uploadResult.public_id;
     }
 
+    // ✅ שמירה במסד הנתונים
     const result = await db.query(
-      "INSERT INTO shares (name, message, imageurl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, message, imageurl, public_id]
+      "INSERT INTO shares (name, message, imageUrl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, message, imageUrl, public_id]
     );
+
     res.json({ success: true, share: result.rows[0] });
   } catch (err) {
-    console.error(err.stack);
+    console.error("❌ Error saving share:", err.stack);
     res.status(500).json({ error: "Failed to save share" });
   }
 });
+
 
 // ===== Images by Tag or Folder with Cache & Pagination =====
 const imageCache = {}; // { tagOrFolderName: { images: [...], expires: timestamp } }
@@ -386,4 +394,5 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
