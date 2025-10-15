@@ -354,12 +354,6 @@ if (carousel) {
     loopScroll();
   };
 
-  // עכבר
-  carousel.addEventListener("mousedown", (e) => startDrag(e.pageX));
-  carousel.addEventListener("mousemove", (e) => moveDrag(e.pageX));
-  carousel.addEventListener("mouseup", stopDrag);
-  carousel.addEventListener("mouseleave", stopDrag);
-
   // מגע בטלפון
   carousel.addEventListener("touchstart", (e) => startDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchmove", (e) => moveDrag(e.touches[0].pageX), { passive: true });
@@ -372,6 +366,7 @@ if (carousel) {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
