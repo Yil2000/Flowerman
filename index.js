@@ -308,83 +308,84 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  //קרוסלת שיתופים//
-  const carousel = document.querySelector(".messages-wall-cards");
-  if (!carousel) return;
-
-  const speed = 1; // מהירות גלילה אוטומטית
-  let scrollAmount = 0;
+ // ===== קרוסלת שיתופים =====
+const carousel = document.querySelector(".messages-wall-cards");
+if (carousel) {
+  const speed = 0.5; // מהירות גלילה אוטומטית
   let autoScroll = true;
-
-  // ===== אוטומטית אינסופית =====
-  function loopScroll() {
-    if (!autoScroll) return;
-    scrollAmount += speed;
-    if (scrollAmount >= carousel.scrollWidth / 2) scrollAmount = 0; // חוזר להתחלה
-    carousel.scrollLeft = scrollAmount;
-    requestAnimationFrame(loopScroll);
-  }
-
-  loopScroll();
-
-  // ===== כפתורי גלילה למובייל =====
-  // אפשר גם באמצעות mouse drag / touch drag
   let isDragging = false;
   let startX;
   let scrollLeftStart;
 
-  carousel.addEventListener("mousedown", (e) => {
+  // עיצוב בסיסי כדי לשמור על הפריסה
+  carousel.style.display = "flex";
+  carousel.style.overflowX = "auto";
+  carousel.style.scrollBehavior = "smooth";
+  carousel.style.gap = "1rem"; // רווח בין הקוביות
+  carousel.style.scrollSnapType = "x mandatory";
+  carousel.style.scrollbarWidth = "none";
+
+  // גלילה אינסופית רכה
+  function autoScrollLoop() {
+    if (autoScroll && carousel.scrollWidth > carousel.clientWidth) {
+      carousel.scrollLeft += speed;
+      if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth) {
+        carousel.scrollLeft = 0; // חזרה להתחלה
+      }
+    }
+    requestAnimationFrame(autoScrollLoop);
+  }
+  autoScrollLoop();
+
+  // גרירה בעכבר
+  carousel.addEventListener("mousedown", e => {
     isDragging = true;
     startX = e.pageX - carousel.offsetLeft;
     scrollLeftStart = carousel.scrollLeft;
     autoScroll = false;
+  }, { passive: true });
+
+  window.addEventListener("mouseup", () => {
+    if (isDragging) {
+      isDragging = false;
+      autoScroll = true;
+    }
   });
 
-  carousel.addEventListener("mouseleave", () => {
-    isDragging = false;
-    autoScroll = true;
-    loopScroll();
-  });
-
-  carousel.addEventListener("mouseup", () => {
-    isDragging = false;
-    autoScroll = true;
-    loopScroll();
-  });
-
-  carousel.addEventListener("mousemove", (e) => {
+  carousel.addEventListener("mousemove", e => {
     if (!isDragging) return;
-    e.preventDefault();
     const x = e.pageX - carousel.offsetLeft;
-    const walk = (x - startX) * 2; // רגישות גרירה
+    const walk = (x - startX) * 1.5;
     carousel.scrollLeft = scrollLeftStart - walk;
-  });
+  }, { passive: true });
 
-  // ===== תמיכה במגע נייד =====
-  carousel.addEventListener("touchstart", (e) => {
+  // גרירה במגע (נייד)
+  carousel.addEventListener("touchstart", e => {
     isDragging = true;
     startX = e.touches[0].pageX - carousel.offsetLeft;
     scrollLeftStart = carousel.scrollLeft;
     autoScroll = false;
-  });
+  }, { passive: true });
 
   carousel.addEventListener("touchend", () => {
     isDragging = false;
     autoScroll = true;
-    loopScroll();
-  });
+  }, { passive: true });
 
-  carousel.addEventListener("touchmove", (e) => {
+  carousel.addEventListener("touchmove", e => {
     if (!isDragging) return;
     const x = e.touches[0].pageX - carousel.offsetLeft;
-    const walk = (x - startX) * 2;
+    const walk = (x - startX) * 1.5;
     carousel.scrollLeft = scrollLeftStart - walk;
-  });
+  }, { passive: true });
+}
+
 
 
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
