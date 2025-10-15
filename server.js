@@ -117,7 +117,7 @@ async function initSharesTable() {
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       message TEXT NOT NULL,
-      imageUrl TEXT,
+      imageurl TEXT,
       public_id TEXT,
       published BOOLEAN DEFAULT FALSE
     )
@@ -221,7 +221,7 @@ app.post("/shares", upload.single("file"), async (req, res) => {
     const { name, message } = req.body;
     if (!name || !message) return res.status(400).json({ error: "Missing fields" });
 
-    let imageUrl = null;
+    let imageurl = null;
     let public_id = null;
     if (req.file) {
       const streamifier = (await import("streamifier")).default;
@@ -234,13 +234,13 @@ app.post("/shares", upload.single("file"), async (req, res) => {
           streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
       const uploadResult = await streamUpload();
-      imageUrl = uploadResult.secure_url;
+      imageurl = uploadResult.secure_url;
       public_id = uploadResult.public_id;
     }
 
     const result = await db.query(
-      "INSERT INTO shares (name, message, imageUrl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, message, imageUrl, public_id]
+      "INSERT INTO shares (name, message, imageurl, public_id) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, message, imageurl, public_id]
     );
     res.json({ success: true, share: result.rows[0] });
   } catch (err) {
@@ -386,3 +386,4 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
