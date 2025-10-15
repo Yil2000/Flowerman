@@ -308,32 +308,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
- // ===== קרוסלת שיתופים =====
+// ===== קרוסלת שיתופים =====
 const carousel = document.querySelector(".messages-wall-cards");
+
 if (carousel) {
-  const speed = 0.5; // מהירות הגלילה (אפשר לשנות)
-  let scrollPos = 0;
+  const speed = 0.5; // מהירות הגלילה
   let autoScroll = true;
 
-  // שכפול הקלפים כדי ליצור אפקט אינסופי
-  const originalContent = carousel.innerHTML;
-  carousel.innerHTML += originalContent; // עכשיו יש פעמיים אותה רשימה!
-
-  // הפעלת הגלילה האינסופית
   function loopScroll() {
-    if (autoScroll) {
-      scrollPos += speed;
-      if (scrollPos >= carousel.scrollWidth / 2) {
-        scrollPos = 0; // חזרה לתחילת הגלילה
-      }
-      carousel.scrollLeft = scrollPos;
+    if (!autoScroll) return;
+    carousel.scrollLeft += speed;
+
+    // אם הגיע לסוף, חוזר להתחלה
+    if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth) {
+      carousel.scrollLeft = 0;
     }
+
     requestAnimationFrame(loopScroll);
   }
 
+  // הפעלת האנימציה
   loopScroll();
 
-  // תמיכה בגרירה עם עכבר / נגיעה במסך
+  // ===== גרירה ידנית =====
   let isDragging = false;
   let startX;
   let scrollStart;
@@ -347,13 +344,14 @@ if (carousel) {
 
   const moveDrag = (x) => {
     if (!isDragging) return;
-    const distance = (x - startX) * 2;
-    carousel.scrollLeft = scrollStart - distance;
+    const walk = (x - startX) * 1.5;
+    carousel.scrollLeft = scrollStart - walk;
   };
 
   const stopDrag = () => {
     isDragging = false;
     autoScroll = true;
+    loopScroll();
   };
 
   // עכבר
@@ -362,7 +360,7 @@ if (carousel) {
   carousel.addEventListener("mouseup", stopDrag);
   carousel.addEventListener("mouseleave", stopDrag);
 
-  // מגע (מסך נייד)
+  // מגע בטלפון
   carousel.addEventListener("touchstart", (e) => startDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchmove", (e) => moveDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchend", stopDrag);
@@ -370,9 +368,11 @@ if (carousel) {
 
 
 
+
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
