@@ -1260,7 +1260,6 @@
     overflow-y: hidden;
     width: 100%;
     height: fit-content;
-    scroll-behavior: smooth;
     display: flex;
     gap: 2em;
 
@@ -1272,7 +1271,6 @@
     width: 15em;
     min-height: 100%;
     background-color: #fafafa;
-    transition: transform 0.3s ease;
 
 }
 
@@ -1962,6 +1960,7 @@ a {
 
     
 }
+
 
 
 
