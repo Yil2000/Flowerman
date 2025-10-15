@@ -127,7 +127,7 @@
       "footer_about_p1":"לזכרו של סמל אריאל סוסנוב הי\"ד",
       "footer_about_p2":"זר קטן שמספר סיפור גדול",
 
-      "footer_nav_h6":"ניווט מהיר"
+      "footer_nav_h6":"ניווט מהיר",
       "footer_nav_home_a":"דף הבית",
       "footer_nav_about_a":"על אריאל",
       "footer_nav_project_a":"על הפרוייקט",
@@ -275,7 +275,7 @@
       "footer_about_p1":"In memory of Ariel Sosnov Z\"L",
       "footer_about_p2":"A small bouquet that tells a big story",
 
-      "footer_nav_h6":"Fast Navigation"
+      "footer_nav_h6":"Fast Navigation",
       "footer_nav_home_a":"Home Page",
       "footer_nav_about_a":"About Ariel",
       "footer_nav_project_a":"About the project",
@@ -304,6 +304,7 @@
 
   }
 }
+
 
 
 
