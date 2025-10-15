@@ -1260,24 +1260,9 @@
     overflow-y: hidden;
     width: 100%;
     height: fit-content;
+    scroll-behavior: smooth;
     display: flex;
     gap: 2em;
-/*     -webkit-mask-image: linear-gradient(to right,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(0, 0, 0, 1) 10%,
-            rgba(0, 0, 0, 1) 90%,
-            rgba(0, 0, 0, 0) 100%);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-
-    mask-image: linear-gradient(to right,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(0, 0, 0, 1) 10%,
-            rgba(0, 0, 0, 1) 90%,
-            rgba(0, 0, 0, 0) 100%);
-    mask-repeat: no-repeat;
-    mask-size: 100% 100%; */
-}
 
 
 .messages-wall-card{
@@ -1287,6 +1272,7 @@
     width: 15em;
     min-height: 100%;
     background-color: #fafafa;
+    transition: transform 0.3s ease;
 
 }
 
@@ -1976,6 +1962,7 @@ a {
 
     
 }
+
 
 
 
