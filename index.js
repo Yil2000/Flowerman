@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Clean old JWT =====
   localStorage.removeItem("token");
-  console.log("Contact form JS loaded!");
-  console.log(document.querySelector(".contact-form"));
 
 
 
@@ -366,6 +364,7 @@ if (carousel) {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
