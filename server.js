@@ -307,15 +307,78 @@ app.get("/shares/published", async (req, res) => {
 });
 
 // ===== Admin Shares =====
+
+// פרסום שיתוף
 app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
   try {
-    await pool.query("UPDATE shares SET published = TRUE WHERE id = $1", [req.params.id]);
+    await db.query("UPDATE shares SET published = TRUE WHERE id = $1", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error(err.stack);
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// ביטול פרסום שיתוף
+app.post("/admin/shares/unpublish/:id", authenticateAdmin, async (req, res) => {
+  try {
+    await db.query("UPDATE shares SET published = FALSE WHERE id = $1", [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// מחיקת שיתוף
+app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
+  try {
+    const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: "שיתוף לא נמצא" });
+
+    const share = rows[0];
+    await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
+
+    // מחיקת תמונה מ‑Cloudinary אם קיימת
+    if (share.public_id) {
+      try {
+        await cloudinary.uploader.destroy(share.public_id);
+      } catch (err) {
+        console.error("❌ Failed to delete from Cloudinary:", err.stack);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
+
+// שליפת כל השיתופים ל‑admin
+app.get("/admin/shares", authenticateAdmin, async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "Failed to fetch shares" });
+  }
+});
+
+// שליפת שיתופים מפורסמים ללקוח
+app.get("/shares/published", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
+    if (result.rows.length === 0) return res.json({ message: "לא נמצאו שיתופים" });
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "DB error fetching published shares" });
+  }
+});
+
+
 
 
 // ===== Contacts =====
@@ -360,6 +423,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
