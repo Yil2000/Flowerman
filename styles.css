@@ -1262,7 +1262,7 @@
     height: fit-content;
     display: flex;
     gap: 2em;
-
+}
 
 .messages-wall-card{
     font-family: var(--h-font);
@@ -1960,6 +1960,7 @@ a {
 
     
 }
+
 
 
 
