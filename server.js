@@ -307,44 +307,65 @@ app.get("/shares/published", async (req, res) => {
 });
 
 // ===== Admin Shares =====
+// שליפת כל השיתופים (כפי שהיה)
+app.get("/admin/shares", authenticateAdmin, async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "Failed to fetch shares" });
+  }
+});
 
-// פרסום שיתוף
+// פרסום שיתוף כולל תמונה אם יש
 app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
   try {
-    await db.query("UPDATE shares SET published = TRUE WHERE id = $1", [req.params.id]);
-    res.json({ success: true });
+    // בדיקה אם השיתוף קיים
+    const { rows } = await db.query("SELECT * FROM shares WHERE id = $1", [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: "Share not found" });
+
+    const share = rows[0];
+
+    // עדכון השיתוף כולל פרסום ושמירה של imageUrl ו-public_id
+    await db.query(
+      "UPDATE shares SET published = TRUE, imageUrl = $1, public_id = $2 WHERE id = $3",
+      [share.imageurl, share.public_id, req.params.id]
+    );
+
+    res.json({ success: true, share: { ...share, published: true } });
   } catch (err) {
-    console.error(err.stack);
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// ביטול פרסום שיתוף
+// ביטול פרסום
 app.post("/admin/shares/unpublish/:id", authenticateAdmin, async (req, res) => {
   try {
-    await db.query("UPDATE shares SET published = FALSE WHERE id = $1", [req.params.id]);
+    await db.query("UPDATE shares SET published = FALSE WHERE id=$1", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
-    console.error(err.stack);
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// מחיקת שיתוף
+// מחיקה של שיתוף כולל תמונה ב-Cloudinary
 app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
   try {
     const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: "שיתוף לא נמצא" });
+    if (rows.length === 0) return res.status(404).json({ error: "Share not found" });
 
     const share = rows[0];
     await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
 
-    // מחיקת תמונה מ‑Cloudinary אם קיימת
+    // מחיקת התמונה מ-Cloudinary אם קיימת
     if (share.public_id) {
       try {
         await cloudinary.uploader.destroy(share.public_id);
       } catch (err) {
-        console.error("❌ Failed to delete from Cloudinary:", err.stack);
+        console.error("Failed to delete image from Cloudinary:", err.stack);
       }
     }
 
@@ -355,16 +376,6 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
   }
 });
 
-// שליפת כל השיתופים ל‑admin
-app.get("/admin/shares", authenticateAdmin, async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "Failed to fetch shares" });
-  }
-});
 
 // שליפת שיתופים מפורסמים ללקוח
 app.get("/shares/published", async (req, res) => {
@@ -423,6 +434,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
