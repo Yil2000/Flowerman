@@ -307,42 +307,16 @@ app.get("/shares/published", async (req, res) => {
 });
 
 // ===== Admin Shares =====
-app.get("/admin/shares", authenticateAdmin, async (req, res) => {
-  const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
-  res.json(result.rows);
-});
-
 app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
-  await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
-  res.json({ success: true });
-});
-
-app.post("/admin/shares/unpublish/:id", authenticateAdmin, async (req, res) => {
-  await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
-  res.json({ success: true });
-});
-
-app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
   try {
-    const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: "לא נמצא" });
-
-    const share = rows[0];
-    await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
-
-    if (share.public_id) {
-      try {
-        await cloudinary.uploader.destroy(share.public_id);
-      } catch (err) {
-        console.error("❌ Failed to delete from Cloudinary:", err.stack);
-      }
-    }
+    await pool.query("UPDATE shares SET published = TRUE WHERE id = $1", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "Delete failed" });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 // ===== Contacts =====
 app.post("/contacts", async (req, res) => {
@@ -373,14 +347,19 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ===== Start Server =====
+// ===== Start Server (with Loading Mode) =====
+app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
+
+// נתחיל לטעון את ה־DB והטבלאות ברקע
 Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
   .then(() => {
     serverReady = true;
-    app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
+    console.log("✅ Server fully ready!");
   })
   .catch(err => {
     console.error("❌ Init error:", err.stack);
-    app.listen(PORT, () => console.log(`🌸 Server running on port ${PORT}`));
+    serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
+
 
