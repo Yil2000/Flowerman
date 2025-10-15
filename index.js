@@ -308,9 +308,84 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  //קרוסלת שיתופים//
+  const carousel = document.querySelector(".messages-wall-cards");
+  if (!carousel) return;
+
+  const speed = 1; // מהירות גלילה אוטומטית
+  let scrollAmount = 0;
+  let autoScroll = true;
+
+  // ===== אוטומטית אינסופית =====
+  function loopScroll() {
+    if (!autoScroll) return;
+    scrollAmount += speed;
+    if (scrollAmount >= carousel.scrollWidth / 2) scrollAmount = 0; // חוזר להתחלה
+    carousel.scrollLeft = scrollAmount;
+    requestAnimationFrame(loopScroll);
+  }
+
+  loopScroll();
+
+  // ===== כפתורי גלילה למובייל =====
+  // אפשר גם באמצעות mouse drag / touch drag
+  let isDragging = false;
+  let startX;
+  let scrollLeftStart;
+
+  carousel.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    startX = e.pageX - carousel.offsetLeft;
+    scrollLeftStart = carousel.scrollLeft;
+    autoScroll = false;
+  });
+
+  carousel.addEventListener("mouseleave", () => {
+    isDragging = false;
+    autoScroll = true;
+    loopScroll();
+  });
+
+  carousel.addEventListener("mouseup", () => {
+    isDragging = false;
+    autoScroll = true;
+    loopScroll();
+  });
+
+  carousel.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - carousel.offsetLeft;
+    const walk = (x - startX) * 2; // רגישות גרירה
+    carousel.scrollLeft = scrollLeftStart - walk;
+  });
+
+  // ===== תמיכה במגע נייד =====
+  carousel.addEventListener("touchstart", (e) => {
+    isDragging = true;
+    startX = e.touches[0].pageX - carousel.offsetLeft;
+    scrollLeftStart = carousel.scrollLeft;
+    autoScroll = false;
+  });
+
+  carousel.addEventListener("touchend", () => {
+    isDragging = false;
+    autoScroll = true;
+    loopScroll();
+  });
+
+  carousel.addEventListener("touchmove", (e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - carousel.offsetLeft;
+    const walk = (x - startX) * 2;
+    carousel.scrollLeft = scrollLeftStart - walk;
+  });
+
+
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
