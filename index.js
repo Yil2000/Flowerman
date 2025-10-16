@@ -310,18 +310,17 @@ document.addEventListener("DOMContentLoaded", () => {
 const carousel = document.querySelector(".messages-wall-cards");
 
 if (carousel) {
-  const speed = 0.5;
+  const speed = 0.5; // מהירות הגלילה
   let autoScroll = true;
 
-  // שכפול התוכן כדי לאפשר גלילה חלקה
+  // משכפלים את התוכן כדי ליצור אפקט אינסופי
   carousel.innerHTML += carousel.innerHTML;
 
   function loopScroll() {
     if (!autoScroll) return;
-
     carousel.scrollLeft += speed;
 
-    // כשמגיעים לחצי הדרך – מחזירים להתחלה
+    // אם עברנו חצי מהתוכן (כי שוכפל פעמיים) — חוזרים להתחלה
     if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
       carousel.scrollLeft = 0;
     }
@@ -355,8 +354,7 @@ if (carousel) {
     loopScroll();
   };
 
-
-  // ===== גרירה עם מגע =====
+  // מגע בטלפון
   carousel.addEventListener("touchstart", (e) => startDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchmove", (e) => moveDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchend", stopDrag);
@@ -369,6 +367,7 @@ if (carousel) {
   // ===== Load initial shares =====
   loadPublishedShares();
 });
+
 
 
 
