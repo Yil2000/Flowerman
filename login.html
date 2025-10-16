@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flowerman</title>
+    <title>פלאוורמן</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -74,9 +74,18 @@
     <div id="site-content">
       <div class="login-box">
         <form id="login-form">
-          <h1>התחברות צוות פלאוורמן</h1>
-          <input type="text" id="username" placeholder="שם משתמש" required />
-          <input type="password" id="password" placeholder="סיסמה" required />
+          <h1>התחברות לאתר - צוות פלאוורמן</h1>
+          <span class="inputs"
+            ><input type="text" id="username" placeholder="שם משתמש" required />
+            <i class="fa-solid fa-user"></i
+          ></span>
+          <span class="inputs"
+            ><input
+              type="password"
+              id="password"
+              placeholder="סיסמה"
+              required /><i class="fa-solid fa-eye-slash" id="show-pass-btn"></i
+          ></span>
           <button type="submit">התחבר</button>
         </form>
       </div>
@@ -88,4 +97,3 @@
     <script src="accessibility.js"></script>
   </body>
 </html>
-
