@@ -314,11 +314,15 @@ function startCarousel() {
   const carousel = document.querySelector(".messages-wall-cards");
   if (!carousel) return;
 
-  const speed = 0.5; // מהירות הגלילה
+  // מהירות גלילה בפיקסלים
+  const speed = 0.5;
   let autoScroll = true;
 
-  // משכפלים את התוכן כדי ליצור אפקט אינסופי
-  carousel.innerHTML += carousel.innerHTML;
+  // אם כבר שכפול קודם, אל תשכפל שוב
+  if (!carousel.dataset.duplicated) {
+    carousel.innerHTML += carousel.innerHTML; // שכפול תוכן לאינסוף
+    carousel.dataset.duplicated = "true";
+  }
 
   function loopScroll() {
     if (!autoScroll) return;
@@ -352,19 +356,68 @@ function startCarousel() {
   };
 
   const stopDrag = () => {
+    if (!isDragging) return;
     isDragging = false;
     autoScroll = true;
     loopScroll();
   };
 
+  // אירועי עכבר
+  carousel.addEventListener("mousedown", (e) => startDrag(e.pageX));
+  carousel.addEventListener("mousemove", (e) => moveDrag(e.pageX));
+  carousel.addEventListener("mouseup", stopDrag);
+  carousel.addEventListener("mouseleave", stopDrag);
+
+  // אירועי טאץ' למובייל
   carousel.addEventListener("touchstart", (e) => startDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchmove", (e) => moveDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchend", stopDrag);
 }
 
-loadPublishedShares();
+// ===== טעינת שיתופים מהשרת =====
+async function loadPublishedShares() {
+  try {
+    const res = await fetch(`${serverUrl}/shares/published?${Date.now()}`);
+    if (!res.ok) throw new Error("שגיאה בשליפת השיתופים");
+    const data = await res.json();
+    renderSharesOnWall(data); // ⬅️ כאן הקרוסלה תתחיל
+  } catch (err) {
+    console.error(err);
+    alert(err.message, "error");
+  }
+}
+
+// ===== הצגת השיתופים על הקיר =====
+function renderSharesOnWall(shares) {
+  const wallContainer = document.querySelector(".messages-wall-cards");
+  if (!wallContainer) return;
+
+  wallContainer.innerHTML = ""; // נקה קודם
+
+  shares.forEach(share => {
+    const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
+    const div = document.createElement("div");
+    div.classList.add("messages-wall-card");
+    div.innerHTML = `
+      <div class="messages-wall-card-content">
+        <div class="messages-wall-card-content-text">
+          <h5>${share.name}</h5>
+          <p>${share.message}</p>
+        </div>
+        <div class="messages-wall-card-img">
+          <img src="${imgSrc}" alt="" />
+        </div>
+      </div>
+    `;
+    wallContainer.appendChild(div);
+  });
+
+  startCarousel(); // מתחיל אוטומטית אחרי הטעינה
+}
+
 
 });
+
 
 
 
