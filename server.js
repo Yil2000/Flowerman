@@ -419,40 +419,6 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
 });
 
 
-
-
-// ===== TEMP: Add new admin (delete after use) =====
-app.post("/admin/add", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: "Missing username or password" });
-    }
-
-    // בדיקה אם המשתמש כבר קיים
-    const existing = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-    if (existing.rows.length > 0) {
-      return res.status(400).json({ error: "Username already exists" });
-    }
-
-    // הצפנת סיסמה
-    const hash = await bcrypt.hash(password, 10);
-
-    // יצירת המשתמש
-    await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
-
-    res.json({ success: true, message: `✅ Admin '${username}' created successfully!` });
-  } catch (err) {
-    console.error("❌ Error adding admin:", err.stack);
-    res.status(500).json({ error: "Server error while creating admin" });
-  }
-});
-
-
-
-
-
 // ===== Catch-All =====
 app.get("*", (req, res) => {
   if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
@@ -473,6 +439,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
