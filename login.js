@@ -37,6 +37,27 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Login error:", err);
       errorMsg.textContent = "שגיאה בשרת, נסה שוב";
     }
+
+    // ===== Show / Hide Password =====
+const passwordInput = document.getElementById("password");
+const showPassBtn = document.getElementById("show-pass-btn");
+
+if (showPassBtn && passwordInput) {
+  showPassBtn.addEventListener("click", () => {
+    const isHidden = passwordInput.type === "password";
+
+    // שינוי סוג השדה
+    passwordInput.type = isHidden ? "text" : "password";
+
+    // שינוי האייקון
+    showPassBtn.classList.toggle("fa-eye", isHidden);
+    showPassBtn.classList.toggle("fa-eye-slash", !isHidden);
+  });
+}
+
+
+    
   });
 });
+
 
