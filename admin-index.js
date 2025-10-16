@@ -48,7 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("adminToken");
-      window.location.reload();
+      window.location.href = "index.html";
+
     });
   }
 
@@ -126,3 +127,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
