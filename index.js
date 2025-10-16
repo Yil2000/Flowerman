@@ -216,11 +216,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  // ===== Share Form =====
+ // ===== Share Form =====
   const shareForm = document.querySelector("#share-form");
   const messageBox = document.querySelector("#share-message");
 
-  function alert(msg, type = "info") {
+  function alertMessage(msg, type = "info") {
     if (!messageBox) return;
     messageBox.innerText = msg;
     messageBox.className = `share-message ${type}`;
@@ -230,33 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   }
 
-function renderSharesOnWall(shares) {
-  const wallContainer = document.querySelector(".messages-wall-cards");
-  if (!wallContainer) return;
-
-  wallContainer.innerHTML = "";
-  shares.forEach(share => {
-    const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
-    const div = document.createElement("div");
-    div.classList.add("messages-wall-card");
-    div.innerHTML = `
-      <div class="messages-wall-card-content">
-        <div class="messages-wall-card-content-text">
-          <h5>${share.name}</h5>
-          <p>${share.message}</p>
-        </div>
-        <div class="messages-wall-card-img">
-          <img src="${imgSrc}" alt="" />
-        </div>
-      </div>
-    `;
-    wallContainer.prepend(div);
-  });
-
-  // ⬇️ אחרי שהקלפים נטענו, מפעילים את הקרוסלה
-  startCarousel();
-}
-
   async function loadPublishedShares() {
     try {
       const res = await fetch(`${serverUrl}/shares/published?${Date.now()}`);
@@ -265,10 +238,100 @@ function renderSharesOnWall(shares) {
       renderSharesOnWall(data);
     } catch (err) {
       console.error(err);
-      alert(err.message, "error");
+      alertMessage(err.message, "error");
     }
   }
 
+  function renderSharesOnWall(shares) {
+    const wallContainer = document.querySelector(".messages-wall-cards");
+    if (!wallContainer) return;
+
+    wallContainer.innerHTML = "";
+
+    shares.forEach(share => {
+      const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
+      const div = document.createElement("div");
+      div.classList.add("messages-wall-card");
+      div.innerHTML = `
+        <div class="messages-wall-card-content">
+          <div class="messages-wall-card-content-text">
+            <h5>${share.name}</h5>
+            <p>${share.message}</p>
+          </div>
+          <div class="messages-wall-card-img">
+            <img src="${imgSrc}" alt="" />
+          </div>
+        </div>
+      `;
+      wallContainer.appendChild(div);
+    });
+
+    startCarousel(wallContainer);
+  }
+
+  // ===== קרוסלת שיתופים מתוקנת =====
+  function startCarousel(carousel) {
+    if (!carousel) return;
+
+    // מהירות גלילה
+    const speed = 0.5;
+    let autoScroll = true;
+
+    // שכפול תוכן פעם אחת בלבד
+    if (!carousel.dataset.duplicated) {
+      carousel.innerHTML += carousel.innerHTML;
+      carousel.dataset.duplicated = "true";
+    }
+
+    function loopScroll() {
+      if (!autoScroll) return;
+      carousel.scrollLeft += speed;
+
+      if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
+        carousel.scrollLeft = 0;
+      }
+
+      requestAnimationFrame(loopScroll);
+    }
+
+    loopScroll();
+
+    // גרירה ידנית
+    let isDragging = false;
+    let startX;
+    let scrollStart;
+
+    const startDrag = (x) => {
+      isDragging = true;
+      startX = x - carousel.offsetLeft;
+      scrollStart = carousel.scrollLeft;
+      autoScroll = false;
+    };
+
+    const moveDrag = (x) => {
+      if (!isDragging) return;
+      const walk = (x - startX) * 1.5;
+      carousel.scrollLeft = scrollStart - walk;
+    };
+
+    const stopDrag = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      autoScroll = true;
+      loopScroll();
+    };
+
+    carousel.addEventListener("mousedown", e => startDrag(e.pageX));
+    carousel.addEventListener("mousemove", e => moveDrag(e.pageX));
+    carousel.addEventListener("mouseup", stopDrag);
+    carousel.addEventListener("mouseleave", stopDrag);
+
+    carousel.addEventListener("touchstart", e => startDrag(e.touches[0].pageX), { passive: true });
+    carousel.addEventListener("touchmove", e => moveDrag(e.touches[0].pageX), { passive: true });
+    carousel.addEventListener("touchend", stopDrag);
+  }
+
+  // ===== Share Form submit =====
   if (shareForm) {
     shareForm.addEventListener("submit", async e => {
       e.preventDefault();
@@ -278,7 +341,7 @@ function renderSharesOnWall(shares) {
       const file = formData.get("file");
 
       if (!name || !message) {
-        alert("נא למלא שם והודעה", "error");
+        alertMessage("נא למלא שם והודעה", "error");
         return;
       }
 
@@ -292,131 +355,22 @@ function renderSharesOnWall(shares) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
-        window.alert("השיתוף נשלח לבדיקת מנהל בהצלחה!", "success");
+        window.alert("השיתוף נשלח לבדיקת מנהל בהצלחה!");
         shareForm.reset();
 
-        // הצגת השיתוף מיד בצד לקוח לפי הנתונים שהשרת החזיר
-        if (data && data.share) {
-          renderSharesOnWall([data.share]);
-        }
-
-        loadPublishedShares(); // טען שיתופים מהשרת
+        if (data && data.share) renderSharesOnWall([data.share]);
+        loadPublishedShares();
       } catch (err) {
         console.error(err);
-        alert(err.message || "שגיאה בשרת", "error");
+        alertMessage(err.message || "שגיאה בשרת", "error");
       }
     });
   }
-  
 
-// ===== קרוסלת שיתופים =====
-function startCarousel() {
-  const carousel = document.querySelector(".messages-wall-cards");
-  if (!carousel) return;
-
-  // מהירות גלילה בפיקסלים
-  const speed = 0.5;
-  let autoScroll = true;
-
-  // אם כבר שכפול קודם, אל תשכפל שוב
-  if (!carousel.dataset.duplicated) {
-    carousel.innerHTML += carousel.innerHTML; // שכפול תוכן לאינסוף
-    carousel.dataset.duplicated = "true";
-  }
-
-  function loopScroll() {
-    if (!autoScroll) return;
-    carousel.scrollLeft += speed;
-
-    if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
-      carousel.scrollLeft = 0;
-    }
-
-    requestAnimationFrame(loopScroll);
-  }
-
-  loopScroll();
-
-  // ===== גרירה ידנית =====
-  let isDragging = false;
-  let startX;
-  let scrollStart;
-
-  const startDrag = (x) => {
-    isDragging = true;
-    startX = x - carousel.offsetLeft;
-    scrollStart = carousel.scrollLeft;
-    autoScroll = false;
-  };
-
-  const moveDrag = (x) => {
-    if (!isDragging) return;
-    const walk = (x - startX) * 1.5;
-    carousel.scrollLeft = scrollStart - walk;
-  };
-
-  const stopDrag = () => {
-    if (!isDragging) return;
-    isDragging = false;
-    autoScroll = true;
-    loopScroll();
-  };
-
-  // אירועי עכבר
-  carousel.addEventListener("mousedown", (e) => startDrag(e.pageX));
-  carousel.addEventListener("mousemove", (e) => moveDrag(e.pageX));
-  carousel.addEventListener("mouseup", stopDrag);
-  carousel.addEventListener("mouseleave", stopDrag);
-
-  // אירועי טאץ' למובייל
-  carousel.addEventListener("touchstart", (e) => startDrag(e.touches[0].pageX), { passive: true });
-  carousel.addEventListener("touchmove", (e) => moveDrag(e.touches[0].pageX), { passive: true });
-  carousel.addEventListener("touchend", stopDrag);
-}
-
-// ===== טעינת שיתופים מהשרת =====
-async function loadPublishedShares() {
-  try {
-    const res = await fetch(`${serverUrl}/shares/published?${Date.now()}`);
-    if (!res.ok) throw new Error("שגיאה בשליפת השיתופים");
-    const data = await res.json();
-    renderSharesOnWall(data); // ⬅️ כאן הקרוסלה תתחיל
-  } catch (err) {
-    console.error(err);
-    alert(err.message, "error");
-  }
-}
-
-// ===== הצגת השיתופים על הקיר =====
-function renderSharesOnWall(shares) {
-  const wallContainer = document.querySelector(".messages-wall-cards");
-  if (!wallContainer) return;
-
-  wallContainer.innerHTML = ""; // נקה קודם
-
-  shares.forEach(share => {
-    const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
-    const div = document.createElement("div");
-    div.classList.add("messages-wall-card");
-    div.innerHTML = `
-      <div class="messages-wall-card-content">
-        <div class="messages-wall-card-content-text">
-          <h5>${share.name}</h5>
-          <p>${share.message}</p>
-        </div>
-        <div class="messages-wall-card-img">
-          <img src="${imgSrc}" alt="" />
-        </div>
-      </div>
-    `;
-    wallContainer.appendChild(div);
-  });
-
-  startCarousel(); // מתחיל אוטומטית אחרי הטעינה
-}
-
-
+  // ===== טעינת שיתופים מהשרת =====
+  loadPublishedShares();
 });
+
 
 
 
