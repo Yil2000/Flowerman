@@ -164,7 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
  // ===== Contact Form =====
-document.addEventListener("DOMContentLoaded", () => {
   const contactForm = document.querySelector(".contact-form");
   const contactMessage = document.querySelector(".contact-message");
 
@@ -213,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       contactMessage.className = "contact-message";
     }, 5000);
   }
-});
+
 
 
 
@@ -231,29 +230,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   }
 
-  function renderSharesOnWall(shares) {
-    const wallContainer = document.querySelector(".messages-wall-cards");
-    if (!wallContainer) return;
+function renderSharesOnWall(shares) {
+  const wallContainer = document.querySelector(".messages-wall-cards");
+  if (!wallContainer) return;
 
-    wallContainer.innerHTML = "";
-    shares.forEach(share => {
-      const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
-      const div = document.createElement("div");
-      div.classList.add("messages-wall-card");
-      div.innerHTML = `
-        <div class="messages-wall-card-content">
-          <div class="messages-wall-card-content-text">
-            <h5>${share.name}</h5>
-            <p>${share.message}</p>
-          </div>
-          <div class="messages-wall-card-img">
-            <img src="${imgSrc}" alt="" />
-          </div>
+  wallContainer.innerHTML = "";
+  shares.forEach(share => {
+    const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
+    const div = document.createElement("div");
+    div.classList.add("messages-wall-card");
+    div.innerHTML = `
+      <div class="messages-wall-card-content">
+        <div class="messages-wall-card-content-text">
+          <h5>${share.name}</h5>
+          <p>${share.message}</p>
         </div>
-      `;
-      wallContainer.prepend(div);
-    });
-  }
+        <div class="messages-wall-card-img">
+          <img src="${imgSrc}" alt="" />
+        </div>
+      </div>
+    `;
+    wallContainer.prepend(div);
+  });
+
+  // ⬇️ אחרי שהקלפים נטענו, מפעילים את הקרוסלה
+  startCarousel();
+}
 
   async function loadPublishedShares() {
     try {
@@ -308,9 +310,10 @@ document.addEventListener("DOMContentLoaded", () => {
   
 
 // ===== קרוסלת שיתופים =====
-const carousel = document.querySelector(".messages-wall-cards");
+function startCarousel() {
+  const carousel = document.querySelector(".messages-wall-cards");
+  if (!carousel) return;
 
-if (carousel) {
   const speed = 0.5; // מהירות הגלילה
   let autoScroll = true;
 
@@ -321,7 +324,6 @@ if (carousel) {
     if (!autoScroll) return;
     carousel.scrollLeft += speed;
 
-    // אם עברנו חצי מהתוכן (כי שוכפל פעמיים) — חוזרים להתחלה
     if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
       carousel.scrollLeft = 0;
     }
@@ -355,14 +357,15 @@ if (carousel) {
     loopScroll();
   };
 
-  // מגע בטלפון
   carousel.addEventListener("touchstart", (e) => startDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchmove", (e) => moveDrag(e.touches[0].pageX), { passive: true });
   carousel.addEventListener("touchend", stopDrag);
 }
 
+loadPublishedShares();
 
 });
+
 
 
 
