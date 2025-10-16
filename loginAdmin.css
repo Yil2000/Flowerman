@@ -209,7 +209,7 @@
         display: block;
       }
 
-       .comment-cards{
+       #comment-cards{
         display: flex;
         gap: 1em;
         flex-wrap: wrap;
@@ -253,4 +253,5 @@
         display: block;
         margin: 10px 0;
       }
+
 
