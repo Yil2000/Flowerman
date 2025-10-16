@@ -305,6 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  
 
 // ===== קרוסלת שיתופים =====
 const carousel = document.querySelector(".messages-wall-cards");
@@ -361,12 +362,8 @@ if (carousel) {
 }
 
 
-
-
-
-  // ===== Load initial shares =====
-  loadPublishedShares();
 });
+
 
 
 
