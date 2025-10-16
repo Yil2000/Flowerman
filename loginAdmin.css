@@ -43,7 +43,7 @@
 #site-content{
     height: 100vh;
     width: 100vw;
-    background:linear-gradient(128deg,#741d96,#a32751 );
+    background:linear-gradient(128deg,#ecbcff,#fac6d7 );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -68,7 +68,7 @@
     font-family: var(--h-font);
     font-size: var(--fs-p);
     gap: 2em;
-    color: white;
+    color: black;
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -81,18 +81,36 @@
     background: rgba(255, 255, 255, 0.2);  
     backdrop-filter: blur(10px);        
     -webkit-backdrop-filter: blur(10px);   
-    color: white;                    
+    color: black;                    
     font-size: var(--fs-p);
     padding: 1em;
     width: 100%;
     border-radius: 50px;
-    border: none;
+    border: 1px solid black;
 
+}
+
+.inputs{
+  width: 100%;
+  position:relative;
+}
+
+.inputs i{
+  font-size: var(--fs-h6);
+  position: absolute;
+  top: 17px;
+  left: 25px;
+}
+
+#show-pass-btn:hover{
+  cursor: pointer;
+  color: #4e1266;
+  transition: 0.3s;
 }
 
 
 #login-form input::placeholder {
-    color: whi;                      
+    color: black;                      
     font-size: var(--fs-p);  
 }
 
@@ -113,7 +131,7 @@
     backdrop-filter: blur(10px);        
     -webkit-backdrop-filter: blur(10px); 
     transition: 0.3s;
-    color: white;                   
+    color: black;                   
 }
 
 #login-form button:hover{
@@ -134,7 +152,7 @@
       /* Sidebar */
       #sidebar{
         height: 100vh;
-        width: 20vw;
+        width: 220px;
         background: #ff9b9b65;
         color: white;
         display: flex;
@@ -191,7 +209,7 @@
         display: block;
       }
 
-       .massages-wall-cards{
+       .comment-cards{
         display: flex;
         gap: 1em;
         flex-wrap: wrap;
@@ -234,5 +252,3 @@
         display: block;
         margin: 10px 0;
       }
-
-
