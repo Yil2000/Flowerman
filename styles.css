@@ -1258,7 +1258,7 @@
 
 .messages-wall-cards {
     overflow-y: hidden;
-    overflow-x: hidden;
+    overflow-x: scroll;
     width: 100%;
     height: fit-content;
     display: flex;
@@ -1968,6 +1968,7 @@ a {
 
     
 }
+
 
 
 
