@@ -104,7 +104,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
 
-// ===== Initialize Tables =====
+// ===== Initialize Admin (replace your existing initAdmin) =====
 async function initAdmin() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS admins (
@@ -113,19 +113,47 @@ async function initAdmin() {
       password TEXT NOT NULL
     )
   `);
+
   const username = process.env.ADMIN_USER;
-  const password = process.env.ADMIN_PASS;
-  if (!username || !password) {
-    console.warn("⚠️ ADMIN_USER or ADMIN_PASS not set, skipping admin creation");
+  const passwordEnv = process.env.ADMIN_PASS;
+
+  if (!username) {
+    console.warn("⚠️ ADMIN_USER not set in ENV, skipping admin creation/update");
     return;
   }
-  const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-  if (result.rows.length === 0) {
-    const hash = await bcrypt.hash(password, 10);
-    await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
-    console.log("✅ Admin created from ENV");
+
+  try {
+    const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
+    if (result.rows.length === 0) {
+      if (!passwordEnv) {
+        console.warn("⚠️ ADMIN_PASS not set in ENV, cannot create admin without password");
+        return;
+      }
+      const hash = await bcrypt.hash(passwordEnv, 10);
+      await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
+      console.log("✅ Admin created from ENV");
+      return;
+    }
+
+    // admin exists — אם ENV מכיל סיסמה חדשה, נבדוק האם היא שונה ונעדכן
+    const admin = result.rows[0];
+    if (passwordEnv) {
+      const same = await bcrypt.compare(passwordEnv, admin.password).catch(() => false);
+      if (!same) {
+        const newHash = await bcrypt.hash(passwordEnv, 10);
+        await db.query("UPDATE admins SET password=$1 WHERE username=$2", [newHash, username]);
+        console.log("🔄 Admin password updated from ENV");
+      } else {
+        console.log("ℹ️ Admin password in DB already matches ENV (no update)");
+      }
+    } else {
+      console.log("ℹ️ ADMIN_PASS not provided — keeping existing admin password");
+    }
+  } catch (err) {
+    console.error("❌ initAdmin error:", err.stack);
   }
 }
+
 
 async function initSharesTable() {
   await db.query(`
@@ -410,6 +438,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
