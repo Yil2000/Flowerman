@@ -25,13 +25,13 @@ if (!process.env.SECRET_KEY) {
 }
 const SECRET_KEY = process.env.SECRET_KEY;
 
-let serverReady = false;
-
 // הגשה ידנית של robots.txt
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");
   res.sendFile(path.join(__dirname, "robots.txt"));
 });
+
+let serverReady = false;
 
 // ===== Middleware =====
 app.use(cors());
@@ -430,10 +430,15 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
 
 // ===== Catch-All =====
 app.get("*", (req, res) => {
+  // תמיד מאפשר robots.txt גם אם serverReady=false
+  if (req.path === "/robots.txt") return res.sendFile(path.join(__dirname, "robots.txt"));
+
   if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
   if (req.path.startsWith("/api")) return res.status(404).json({ error: "Endpoint not found" });
+
   res.sendFile(path.join(__dirname, "index.html"));
 });
+
 
 // ===== Start Server (with Loading Mode) =====
 app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
@@ -448,6 +453,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
