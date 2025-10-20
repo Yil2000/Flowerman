@@ -179,6 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData.entries());
 
+    console.log(data); // מה נשלח לפני הבדיקה
     if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
       showContactMessage("נא למלא את כל השדות", "error");
       return;
@@ -364,6 +365,7 @@ function startCarousel() {
     });
   }
  });
+
 
 
 
