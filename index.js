@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("/contacts", {
+      const res = await fetch(`${serverUrl}/contacts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -364,6 +364,7 @@ function startCarousel() {
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
 });
+
 
 
 
