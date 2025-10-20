@@ -360,10 +360,11 @@ function startCarousel() {
         if (data && data.share) renderSharesOnWall([data.share]);
           // ===== טעינת שיתופים מהשרת =====
         loadPublishedShares();
-          } catch (err) {
+        } catch (err) {
         console.error(err);
         alertMessage(err.message || "שגיאה בשרת", "error");
       }
     });
   }
 });
+
