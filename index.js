@@ -358,6 +358,7 @@ function startCarousel() {
         shareForm.reset();
 
         if (data && data.share) renderSharesOnWall([data.share]);
+          // ===== טעינת שיתופים מהשרת =====
         loadPublishedShares();
       } catch (err) {
         console.error(err);
@@ -365,10 +366,8 @@ function startCarousel() {
       }
     });
   }
+});
 
-  // ===== טעינת שיתופים מהשרת =====
-  loadPublishedShares();
-};
 
 
 
