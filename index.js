@@ -182,16 +182,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch(`${serverUrl}/contacts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contact_name: data.contact_name,
-          phone: data.phone,
-          region: data.region,
-          message: data.message
-        })
-      });
+    console.log("Sending contact form:", {
+  contact_name: data.contact_name,
+  phone: data.phone,
+  region: data.region,
+  message: data.message
+});
+
+const res = await fetch(`${serverUrl}/contacts`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    contact_name: data.contact_name,
+    phone: data.phone,
+    region: data.region,
+    message: data.message
+  })
+});
+
 
       if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
 
@@ -364,6 +372,7 @@ function startCarousel() {
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
 });
+
 
 
 
