@@ -1,5 +1,6 @@
 // index.js
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("index.js loaded ✅");
   const serverUrl = "https://flowerman.onrender.com";
 
   // ===== Clean old JWT =====
@@ -164,10 +165,12 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
  // ===== Contact Form =====
-  const contactForm = document.querySelector(".contact-form");
+const contactForm = document.querySelector(".contact-form");
+console.log("contactForm found:", contactForm);
   const contactMessage = document.querySelector(".contact-message");
 
   if (!contactForm) return;
+  console.log("Adding event listener...");
 
   contactForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -372,6 +375,7 @@ function startCarousel() {
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
 });
+
 
 
 
