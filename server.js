@@ -407,14 +407,20 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
 
 // ===== Contacts =====
 app.post("/contacts", async (req, res) => {
-const { contact_name, phone, region, message } = req.body;
-  if (!name || !phone || !region || !message) return res.status(400).json({ error: "Missing fields" });
+  const { contact_name, phone, region, message } = req.body;
+  if (!contact_name || !phone || !region || !message)
+    return res.status(400).json({ error: "Missing fields" });
 
-  const result = await db.query(
-   INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4)
-  [contact_name, phone, region, message]
-  );
-  res.json({ success: true, contact: result.rows[0] });
+  try {
+    const result = await db.query(
+      "INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4) RETURNING *",
+      [contact_name, phone, region, message]
+    );
+    res.json({ success: true, contact: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 app.get("/admin/contacts", authenticateAdmin, async (req, res) => {
@@ -426,6 +432,7 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
   await db.query("DELETE FROM contacts WHERE id=$1", [req.params.id]);
   res.json({ success: true });
 });
+
 
 
 // ===== Catch-All =====
@@ -453,6 +460,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
