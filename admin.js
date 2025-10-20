@@ -213,25 +213,18 @@ if (!window.hasRunAdminScript) {
 
     // ===== פניות =====
 async function loadContacts(token) {
-  console.log("📥 מתחיל לטעון פניות...");
-
   const contactsContainer = document.getElementById("contacts-list");
   if (!contactsContainer) {
     console.error("❌ לא נמצא האלמנט contacts-list ב־HTML!");
     return;
-  }
-  console.log("✅ contactsContainer נמצא:", contactsContainer);
 
   try {
     const res = await fetch("/admin/contacts", {
       headers: { Authorization: "Bearer " + token },
     });
-
-    console.log("HTTP status:", res.status);
     if (!res.ok) throw new Error("שגיאה בשליפת הפניות מהשרת");
 
     const contacts = await res.json();
-    console.log("Fetched contacts:", contacts);
 
     contactsContainer.innerHTML = "";
 
@@ -245,7 +238,6 @@ async function loadContacts(token) {
     }
 
     contacts.forEach(contact => {
-      console.log("Rendering contact:", contact);
 
       const div = document.createElement("div");
       div.className = "contact-card";
@@ -304,6 +296,7 @@ async function loadContacts(token) {
     checkToken();
   });
 }
+
 
 
 
