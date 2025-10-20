@@ -7,7 +7,7 @@ if (!window.hasRunAdminScript) {
     const errorDiv = document.getElementById("unauthorized");
     const logoutBtn = document.getElementById("logout-btn");
     const sharesContainer = document.getElementById("comment-cards");
-    const contactsContainer = document.getElementById("contacts-container");
+    const contactsContainer = document.getElementById("contacts-list");
     const uploadFiles = document.getElementById("upload-files");
     const uploadBtn = document.getElementById("upload-btn");
     const uploadTag = document.getElementById("upload-tag");
@@ -266,3 +266,4 @@ if (!window.hasRunAdminScript) {
     checkToken();
   });
 }
+
