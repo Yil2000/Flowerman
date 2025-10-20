@@ -366,5 +366,6 @@ function startCarousel() {
       }
     });
   }
-});
+};
+
 
