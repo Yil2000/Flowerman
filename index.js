@@ -363,7 +363,9 @@ function startCarousel() {
       } catch (err) {
         console.error(err);
         alertMessage(err.message || "שגיאה בשרת", "error");
+        });
       }
     });
+
 
 
