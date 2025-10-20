@@ -366,7 +366,4 @@ function startCarousel() {
       }
     });
   }
-});
-
-
-
+ });
