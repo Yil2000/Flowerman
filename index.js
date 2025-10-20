@@ -167,7 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
 const contactForm = document.querySelector(".contact-form");
   const contactMessage = document.querySelector(".contact-message");
 
-  if (!contactForm) return;
+ if (!contactForm) {
+  console.warn("⚠️ No contact form found on this page");
+} else {
+  console.log("✅ Contact form found:", contactForm);
+
 
   contactForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -365,6 +369,7 @@ function startCarousel() {
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
 });
+
 
 
 
