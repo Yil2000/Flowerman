@@ -365,43 +365,5 @@ function startCarousel() {
         alertMessage(err.message || "שגיאה בשרת", "error");
       }
     });
-  }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
