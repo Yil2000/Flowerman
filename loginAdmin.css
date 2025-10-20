@@ -255,3 +255,11 @@
       }
 
 
+    /*טפסים של יצירת קשר*/
+    .contact-card{
+        margin:1em;
+        border: 1px solid var(--purple);
+    }
+
+
+
