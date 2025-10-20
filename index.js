@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: data.contact_name,
+          contact_name: data.contact_name,
           phone: data.phone,
           region: data.region,
           message: data.message
@@ -364,6 +364,7 @@ function startCarousel() {
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
 });
+
 
 
 
