@@ -213,37 +213,77 @@ if (!window.hasRunAdminScript) {
 
     // ===== פניות =====
 async function loadContacts(token) {
+  console.log("📥 מתחיל לטעון פניות...");
+
   const contactsContainer = document.getElementById("contacts-list");
-  const res = await fetch("/admin/contacts", {
-    headers: { Authorization: "Bearer " + token },
-  });
-  const contacts = await res.json();
+  if (!contactsContainer) {
+    console.error("❌ לא נמצא האלמנט contacts-list ב־HTML!");
+    return;
+  }
+  console.log("✅ contactsContainer נמצא:", contactsContainer);
 
-  contactsContainer.innerHTML = "";
-
-  contacts.forEach(contact => {
-    const div = document.createElement("div");
-    div.className = "contact-card";
-    div.innerHTML = `
-      <p><strong>שם:</strong> ${contact.name}</p>
-      <p><strong>טלפון:</strong> ${contact.phone}</p>
-      <p><strong>אזור:</strong> ${contact.region}</p>
-      <p><strong>הודעה:</strong> ${contact.message}</p>
-      <button class="delete-contact-btn">סמן כטופל ומחק</button>
-    `;
-    contactsContainer.appendChild(div);
-
-    // מצמיד אירוע למחיקה כאן
-    div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
-      if (!confirm("להסיר את הפנייה?")) return;
-      await fetch(`/admin/contacts/${contact.id}`, {
-        method: "DELETE",
-        headers: { Authorization: "Bearer " + token },
-      });
-      div.remove();
+  try {
+    const res = await fetch("/admin/contacts", {
+      headers: { Authorization: "Bearer " + token },
     });
-  });
+
+    console.log("HTTP status:", res.status);
+    if (!res.ok) throw new Error("שגיאה בשליפת הפניות מהשרת");
+
+    const contacts = await res.json();
+    console.log("Fetched contacts:", contacts);
+
+    contactsContainer.innerHTML = "";
+
+    if (!contacts || contacts.length === 0) {
+      console.warn("⚠️ לא נמצאו פניות");
+      const emptyMsg = document.createElement("p");
+      emptyMsg.textContent = "לא נמצאו פניות";
+      emptyMsg.className = "empty-message";
+      contactsContainer.appendChild(emptyMsg);
+      return;
+    }
+
+    contacts.forEach(contact => {
+      console.log("Rendering contact:", contact);
+
+      const div = document.createElement("div");
+      div.className = "contact-card";
+      div.innerHTML = `
+        <p><strong>שם:</strong> ${contact.name}</p>
+        <p><strong>טלפון:</strong> ${contact.phone}</p>
+        <p><strong>אזור:</strong> ${contact.region}</p>
+        <p><strong>הודעה:</strong> ${contact.message}</p>
+        <button class="delete-contact-btn">סמן כטופל ומחק</button>
+      `;
+      contactsContainer.appendChild(div);
+
+      const deleteBtn = div.querySelector(".delete-contact-btn");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", async () => {
+          if (!confirm("להסיר את הפנייה?")) return;
+          try {
+            const delRes = await fetch(`/admin/contacts/${contact.id}`, {
+              method: "DELETE",
+              headers: { Authorization: "Bearer " + token },
+            });
+            if (!delRes.ok) throw new Error("שגיאה במחיקת הפנייה");
+            div.remove();
+            console.log("🗑️ הפנייה נמחקה בהצלחה:", contact.id);
+          } catch (err) {
+            console.error("Error deleting contact:", err);
+          }
+        });
+      } else {
+        console.warn("❌ לא נמצא כפתור המחיקה לפנייה:", contact.id);
+      }
+    });
+  } catch (err) {
+    console.error("Error loading contacts:", err);
+    contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
+  }
 }
+
 
 
     function showNotification(text) {
@@ -264,6 +304,7 @@ async function loadContacts(token) {
     checkToken();
   });
 }
+
 
 
 
