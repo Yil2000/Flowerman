@@ -1,6 +1,5 @@
 // index.js
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("index.js loaded ✅");
   const serverUrl = "https://flowerman.onrender.com";
 
   // ===== Clean old JWT =====
@@ -166,11 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
  // ===== Contact Form =====
 const contactForm = document.querySelector(".contact-form");
-console.log("contactForm found:", contactForm);
   const contactMessage = document.querySelector(".contact-message");
 
   if (!contactForm) return;
-  console.log("Adding event listener...");
 
   contactForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -185,13 +182,6 @@ console.log("contactForm found:", contactForm);
     }
 
     try {
-    console.log("Sending contact form:", {
-  contact_name: data.contact_name,
-  phone: data.phone,
-  region: data.region,
-  message: data.message
-});
-
 const res = await fetch(`${serverUrl}/contacts`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -375,6 +365,7 @@ function startCarousel() {
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
 });
+
 
 
 
