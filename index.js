@@ -368,7 +368,8 @@ function startCarousel() {
 
   // ===== טעינת שיתופים מהשרת =====
   loadPublishedShares();
-});
+};
+
 
 
 
