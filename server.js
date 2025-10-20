@@ -407,12 +407,12 @@ app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
 
 // ===== Contacts =====
 app.post("/contacts", async (req, res) => {
-  const { name, phone, region, message } = req.body;
+const { contact_name, phone, region, message } = req.body;
   if (!name || !phone || !region || !message) return res.status(400).json({ error: "Missing fields" });
 
   const result = await db.query(
-    "INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4) RETURNING *",
-    [name, phone, region, message]
+   INSERT INTO contacts (name, phone, region, message) VALUES ($1,$2,$3,$4)
+  [contact_name, phone, region, message]
   );
   res.json({ success: true, contact: result.rows[0] });
 });
@@ -453,6 +453,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
