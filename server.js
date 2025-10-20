@@ -27,6 +27,12 @@ const SECRET_KEY = process.env.SECRET_KEY;
 
 let serverReady = false;
 
+// הגשה ידנית של robots.txt
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.sendFile(path.join(__dirname, "robots.txt"));
+});
+
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
@@ -38,11 +44,6 @@ app.use("/admin.html", (req, res, next) => {
 });
 
 
-// הגשה ידנית של robots.txt
-app.get("/robots.txt", (req, res) => {
-  res.type("text/plain");
-  res.sendFile(path.join(__dirname, "robots.txt"));
-});
 
 
 // ===== Uploads Folder =====
@@ -447,6 +448,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
