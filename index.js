@@ -164,10 +164,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
 // ===== Contact Form =====
-const contactForm = document.querySelector(".contact-form");
+  const contactForm = document.querySelector(".contact-form");
 
-if (contactForm) {
-  contactForm.addEventListener("submit", async e => {
+  if (!contactForm) return; // אם אין טופס בדף, לא עושים כלום
+
+  const contactMessage = document.createElement("div");
+  contactMessage.className = "contact-message";
+  contactForm.after(contactMessage); // מצמידים את ההודעה אחרי הטופס
+
+  contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -175,11 +180,12 @@ if (contactForm) {
     const data = Object.fromEntries(formData.entries());
 
     if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
-      return; // לא שולח אם יש שדות ריקים
+      showContactMessage("נא למלא את כל השדות", "error");
+      return;
     }
 
     try {
-      await fetch(`${serverUrl}/contacts`, {
+      const res = await fetch("https://flowerman.onrender.com/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -190,16 +196,25 @@ if (contactForm) {
         })
       });
 
-      contactForm.reset(); // מנקה את הטופס
+      if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
 
-      // יוצג למשתמש
-      alert("הפניה התקבלה בהצלחה ותענה בהקדם האפשרי.");
+      showContactMessage("הטופס נשלח בהצלחה!", "success");
+      contactForm.reset();
     } catch (err) {
-      console.error("Error sending contact form:", err);
-      alert("התרחשה שגיאה בשליחת הטופס. אנא נסה שוב מאוחר יותר.");
+      console.error(err);
+      showContactMessage(err.message || "שגיאה בשרת", "error");
     }
   });
-}
+
+  function showContactMessage(msg, type = "info") {
+    contactMessage.innerText = msg;
+    contactMessage.className = `contact-message ${type}`;
+    setTimeout(() => {
+      contactMessage.innerText = "";
+      contactMessage.className = "contact-message";
+    }, 5000);
+  }
+
 
 
 
@@ -349,5 +364,6 @@ function startCarousel() {
     });
   }
  });
+
 
 
