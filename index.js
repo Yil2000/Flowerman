@@ -364,7 +364,11 @@ function startCarousel() {
       }
     });
   }
+  // ===== טעינת שיתופים מהשרת מייד כשנכנסים לדף =====
+loadPublishedShares();
+
  });
+
 
 
 
