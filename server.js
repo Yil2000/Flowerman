@@ -433,6 +433,16 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
+// ✅ Public shares route (alias)
+app.get("/shares", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "DB error" });
+  }
+});
 
 
 // ===== Catch-All =====
@@ -460,6 +470,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
