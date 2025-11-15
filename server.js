@@ -165,6 +165,20 @@ app.post("/admin/login", (req, res) => {
 });
 
 
+// ===== Verify Token =====
+app.post("/admin/verify-token", (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ valid: false });
+
+  const token = authHeader.split(" ")[1];
+  try {
+    jwt.verify(token, SECRET_KEY);
+    res.json({ valid: true });
+  } catch {
+    res.status(403).json({ valid: false });
+  }
+});
+
 // ===== Upload Single =====
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
@@ -420,6 +434,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
