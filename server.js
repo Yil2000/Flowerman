@@ -6,7 +6,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 import multer from "multer";
 import fs from "fs";
 import { Pool } from "pg";
@@ -113,54 +112,12 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
 
-// ===== Initialize Admin (replace your existing initAdmin) =====
-async function initAdmin() {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS admins (
-      id SERIAL PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL
-    )
-  `);
+const ADMIN_USER = process.env.ADMIN_USER;
+const ADMIN_PASS = process.env.ADMIN_PASS;
 
-  const username = process.env.ADMIN_USER;
-  const passwordEnv = process.env.ADMIN_PASS;
-
-  if (!username) {
-    console.warn("⚠️ ADMIN_USER not set in ENV, skipping admin creation/update");
-    return;
-  }
-
-  try {
-    const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-    if (result.rows.length === 0) {
-      if (!passwordEnv) {
-        console.warn("⚠️ ADMIN_PASS not set in ENV, cannot create admin without password");
-        return;
-      }
-      const hash = await bcrypt.hash(passwordEnv, 10);
-      await db.query("INSERT INTO admins (username, password) VALUES ($1, $2)", [username, hash]);
-      console.log("✅ Admin created from ENV");
-      return;
-    }
-
-    // admin exists — אם ENV מכיל סיסמה חדשה, נבדוק האם היא שונה ונעדכן
-    const admin = result.rows[0];
-    if (passwordEnv) {
-      const same = await bcrypt.compare(passwordEnv, admin.password).catch(() => false);
-      if (!same) {
-        const newHash = await bcrypt.hash(passwordEnv, 10);
-        await db.query("UPDATE admins SET password=$1 WHERE username=$2", [newHash, username]);
-        console.log("🔄 Admin password updated from ENV");
-      } else {
-        console.log("ℹ️ Admin password in DB already matches ENV (no update)");
-      }
-    } else {
-      console.log("ℹ️ ADMIN_PASS not provided — keeping existing admin password");
-    }
-  } catch (err) {
-    console.error("❌ initAdmin error:", err.stack);
-  }
+if (!ADMIN_USER || !ADMIN_PASS) {
+  console.error("❌ ADMIN_USER or ADMIN_PASS not set in ENV");
+  process.exit(1);
 }
 
 
@@ -193,22 +150,16 @@ async function initContactsTable() {
 }
 
 // ===== Admin Login =====
-app.post("/admin/login", async (req, res) => {
+
+app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
-  try {
-    const result = await db.query("SELECT * FROM admins WHERE username=$1", [username]);
-    const admin = result.rows[0];
-    if (!admin) return res.status(401).json({ error: "User not found" });
 
-    const match = await bcrypt.compare(password, admin.password);
-    if (!match) return res.status(401).json({ error: "Wrong password" });
-
-    const token = jwt.sign({ username: admin.username }, SECRET_KEY, { expiresIn: "30m" });
-    res.json({ token });
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "Login failed" });
+  if (username !== ADMIN_USER || password !== ADMIN_PASS) {
+    return res.status(401).json({ error: "Invalid credentials" });
   }
+
+  const token = jwt.sign({ username: ADMIN_USER }, SECRET_KEY, { expiresIn: "30m" });
+  res.json({ token });
 });
 
 app.post("/admin/verify-token", authenticateAdmin, (req, res) => {
@@ -461,7 +412,7 @@ app.get("*", (req, res) => {
 app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
 
 // נתחיל לטעון את ה־DB והטבלאות ברקע
-Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
+Promise.all([initSharesTable(), initContactsTable()])
   .then(() => {
     serverReady = true;
     console.log("✅ Server fully ready!");
@@ -470,6 +421,7 @@ Promise.all([initAdmin(), initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
