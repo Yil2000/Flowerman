@@ -154,17 +154,14 @@ async function initContactsTable() {
 app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
 
-  if (username !== ADMIN_USER || password !== ADMIN_PASS) {
+  if (username !== process.env.ADMIN_USER || password !== process.env.ADMIN_PASS) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const token = jwt.sign({ username: ADMIN_USER }, SECRET_KEY, { expiresIn: "30m" });
+  const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "30m" });
   res.json({ token });
 });
 
-app.post("/admin/verify-token", authenticateAdmin, (req, res) => {
-  res.json({ valid: true });
-});
 
 // ===== Upload Single =====
 app.post("/upload", upload.single("file"), async (req, res) => {
@@ -421,6 +418,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
