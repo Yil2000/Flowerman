@@ -17,12 +17,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+
+const SECRET_KEY = process.env.SECRET_KEY;
 // 🔹 Require SECRET_KEY
 if (!process.env.SECRET_KEY) {
   console.error("❌ SECRET_KEY not set in ENV");
   process.exit(1);
 }
-const SECRET_KEY = process.env.SECRET_KEY;
+
 
 // הגשה ידנית של robots.txt
 app.get("/robots.txt", (req, res) => {
@@ -418,6 +420,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
