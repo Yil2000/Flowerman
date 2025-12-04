@@ -29,7 +29,7 @@ if (!process.env.SECRET_KEY) {
 
 
 // הגשה ידנית של robots.txt
-app.get("/robots.txt", (req, res) => {
+app.get("/robots.txt",  cacheMiddleware, (req, res) => {
   res.set("Cache-Control", "public, max-age=86400"); // 24 שעות
   res.type("text/plain");
   res.sendFile(path.join(__dirname, "robots.txt"));
@@ -337,7 +337,7 @@ app.get("/shares/published", cacheMiddleware, async (req, res) => {
 });
 
 // ===== Admin Shares =====
-app.get("/admin/shares", cacheMiddleware, authenticateAdmin, async (req, res) => {
+app.get("/admin/shares",authenticateAdmin, async (req, res) => {
   const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
   res.json(result.rows);
 });
@@ -392,7 +392,7 @@ app.post("/contacts", async (req, res) => {
   }
 });
 
-app.get("/admin/contacts", cacheMiddleware, authenticateAdmin, async (req, res) => {
+app.get("/admin/contacts",authenticateAdmin, async (req, res) => {
   const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
   res.json(result.rows);
 });
@@ -415,7 +415,7 @@ app.get("/shares", cacheMiddleware, async (req, res) => {
 
 
 // ===== Catch-All =====
-app.get("*", (req, res) => {
+app.get("*", cacheMiddleware, (req, res) => {
   // תמיד מאפשר robots.txt גם אם serverReady=false
   if (req.path === "/robots.txt") return res.sendFile(path.join(__dirname, "robots.txt"));
 
@@ -439,6 +439,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
