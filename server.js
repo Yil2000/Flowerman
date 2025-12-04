@@ -30,6 +30,7 @@ if (!process.env.SECRET_KEY) {
 
 // הגשה ידנית של robots.txt
 app.get("/robots.txt", (req, res) => {
+  res.set("Cache-Control", "public, max-age=86400"); // 24 שעות
   res.type("text/plain");
   res.sendFile(path.join(__dirname, "robots.txt"));
 });
@@ -438,5 +439,6 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
