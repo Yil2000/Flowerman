@@ -281,9 +281,6 @@ function startCarousel() {
   let startX = 0;
   let scrollStart = 0;
 
-
-  loopScroll();
-
   // ===== גרירה עם עכבר וטאץ' =====
   const startDrag = (x) => {
     isDragging = true;
@@ -350,6 +347,7 @@ function startCarousel() {
 loadPublishedShares();
 
  });
+
 
 
 
