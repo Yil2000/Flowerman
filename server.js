@@ -9,6 +9,8 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import fs from "fs";
 import { Pool } from "pg";
+import { cacheMiddleware } from "./cache.js";
+
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -43,19 +45,7 @@ app.use("/admin.html", (req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   next();
 });
-
-const express = require("express");
-const cacheMiddleware = require("./cache");
-
-const app = express();
-
-app.get("/page/:id", cacheMiddleware, async (req, res) => {
-  // שליפת תוכן מה־DB או תהליך כבד
-  const content = await getPageFromDB(req.params.id);
-  res.send(content);
-});
-
-app.listen(3000, () => console.log("Server running on port 3000"));
+;
 
 
 
@@ -334,7 +324,7 @@ app.get("/images/:name", async (req, res) => {
 });
 
 // ===== Published Shares =====
-app.get("/shares/published", async (req, res) => {
+app.get("/shares/published", cacheMiddleware, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
     if (result.rows.length === 0) return res.json({ message: "לא נמצאו טפסים" });
@@ -346,7 +336,7 @@ app.get("/shares/published", async (req, res) => {
 });
 
 // ===== Admin Shares =====
-app.get("/admin/shares", authenticateAdmin, async (req, res) => {
+app.get("/admin/shares", cacheMiddleware, authenticateAdmin, async (req, res) => {
   const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
   res.json(result.rows);
 });
@@ -401,7 +391,7 @@ app.post("/contacts", async (req, res) => {
   }
 });
 
-app.get("/admin/contacts", authenticateAdmin, async (req, res) => {
+app.get("/admin/contacts", cacheMiddleware, authenticateAdmin, async (req, res) => {
   const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
   res.json(result.rows);
 });
@@ -412,7 +402,7 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
 });
 
 // ✅ Public shares route (alias)
-app.get("/shares", async (req, res) => {
+app.get("/shares", cacheMiddleware, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
     res.json(result.rows);
@@ -448,21 +438,5 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
