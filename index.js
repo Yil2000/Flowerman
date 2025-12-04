@@ -281,24 +281,6 @@ function startCarousel() {
   let startX = 0;
   let scrollStart = 0;
 
-  // שכפול תוכן כדי ליצור גלילה אינסופית
-  if (!carousel.dataset.duplicated) {
-    carousel.innerHTML += carousel.innerHTML;
-    carousel.dataset.duplicated = "true";
-  }
-
-  // פונקציית גלילה רציפה
-  function loopScroll() {
-    if (!isDragging) {
-      carousel.scrollLeft += speed;
-
-      // כשמגיעים לחצי, מחזירים בחלק הקטן לאותו המקום כדי לא להקפיץ
-      if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
-        carousel.scrollLeft -= carousel.scrollWidth / 2;
-      }
-    }
-    requestAnimationFrame(loopScroll);
-  }
 
   loopScroll();
 
@@ -368,6 +350,7 @@ function startCarousel() {
 loadPublishedShares();
 
  });
+
 
 
 
