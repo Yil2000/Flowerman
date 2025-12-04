@@ -51,6 +51,50 @@ app.use("/admin.html", (req, res, next) => {
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
+// ===== Multer =====
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+});
+
+const ADMIN_USER = process.env.ADMIN_USER;
+const ADMIN_PASS = process.env.ADMIN_PASS;
+
+if (!ADMIN_USER || !ADMIN_PASS) {
+  console.error("❌ ADMIN_USER or ADMIN_PASS not set in ENV");
+  process.exit(1);
+}
+
+
+async function initSharesTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS shares (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      imageurl TEXT,
+      public_id TEXT,
+      published BOOLEAN DEFAULT FALSE
+    )
+  `);
+  console.log("✅ Shares table ready");
+}
+
+async function initContactsTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      region TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  console.log("✅ Contacts table ready");
+}
+
 // ===== Database =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -107,49 +151,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || "",
 });
 
-// ===== Multer =====
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
-});
-
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASS = process.env.ADMIN_PASS;
-
-if (!ADMIN_USER || !ADMIN_PASS) {
-  console.error("❌ ADMIN_USER or ADMIN_PASS not set in ENV");
-  process.exit(1);
-}
-
-
-async function initSharesTable() {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS shares (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      message TEXT NOT NULL,
-      imageurl TEXT,
-      public_id TEXT,
-      published BOOLEAN DEFAULT FALSE
-    )
-  `);
-  console.log("✅ Shares table ready");
-}
-
-async function initContactsTable() {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS contacts (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      region TEXT NOT NULL,
-      message TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-  console.log("✅ Contacts table ready");
-}
 
 // ===== Admin Login =====
 
@@ -434,6 +435,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
