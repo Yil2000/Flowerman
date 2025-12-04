@@ -1,23 +1,20 @@
-const NodeCache = require("node-cache");
-const cache = new NodeCache({ stdTTL: 600 }); // TTL = 10 דקות
+import NodeCache from "node-cache";
 
-function cacheMiddleware(req, res, next) {
+const cache = new NodeCache({ stdTTL: 600 });
+
+export function cacheMiddleware(req, res, next) {
   const key = req.originalUrl;
-  const cachedContent = cache.get(key);
+  const cached = cache.get(key);
 
-  if (cachedContent) {
-    console.log("Serving from cache:", key);
-    return res.send(cachedContent);
+  if (cached) {
+    return res.send(cached);
   }
 
-  // שמירת send המקורי כדי לשמור את התוכן ב-cache
-  res.originalSend = res.send;
+  const originalSend = res.send.bind(res);
   res.send = (body) => {
     cache.set(key, body);
-    res.originalSend(body);
+    originalSend(body);
   };
 
   next();
 }
-
-module.exports = cacheMiddleware;
