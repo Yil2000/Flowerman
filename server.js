@@ -44,6 +44,19 @@ app.use("/admin.html", (req, res, next) => {
   next();
 });
 
+const express = require("express");
+const cacheMiddleware = require("./cache");
+
+const app = express();
+
+app.get("/page/:id", cacheMiddleware, async (req, res) => {
+  // שליפת תוכן מה־DB או תהליך כבד
+  const content = await getPageFromDB(req.params.id);
+  res.send(content);
+});
+
+app.listen(3000, () => console.log("Server running on port 3000"));
+
 
 
 
@@ -435,6 +448,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
