@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head><meta charset="utf-8"><title>הגדרת מנהל ראשי</title></head>
+<body>
+  <h1>הגדרות מנהל ראשי</h1>
+  <form id="complete-setup-form">
+    <input id="cs-fullname" placeholder="שם מלא" required />
+    <input id="cs-username" placeholder="שם משתמש רצוי" required />
+    <input id="cs-password" type="password" placeholder="סיסמה" required />
+    <input id="cs-password-confirm" type="password" placeholder="אימות סיסמה" required />
+    <button type="submit">צור מנהל ראשי</button>
+  </form>
+  <p id="cs-msg" style="color:green"></p>
+  <p id="cs-err" style="color:red"></p>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("complete-setup-form");
+      const msg = document.getElementById("cs-msg");
+      const err = document.getElementById("cs-err");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.textContent = ""; err.textContent = "";
+        const fullname = document.getElementById("cs-fullname").value.trim();
+        const username = document.getElementById("cs-username").value.trim();
+        const password = document.getElementById("cs-password").value;
+        const passwordConfirm = document.getElementById("cs-password-confirm").value;
+        const bootstrapToken = sessionStorage.getItem("bootstrapToken");
+        if (!bootstrapToken) { err.textContent = "אין טוקן bootstrap. חזור לעמוד ההתחברות"; return; }
+        try {
+          const res = await fetch("/auth/complete-setup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + bootstrapToken },
+            body: JSON.stringify({ fullname, username, password, passwordConfirm })
+          });
+          const data = await res.json();
+          if (!res.ok) { err.textContent = data.error || "שגיאה"; return; }
+          // שמירת token חדש
+          sessionStorage.setItem("userToken", data.token);
+          msg.textContent = "מנהל נוצר. מועבר לעמוד המנהל...";
+          setTimeout(() => window.location.href = "/admin.html", 800);
+        } catch (e) {
+          console.error(e); err.textContent = "שגיאה בשרת";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
