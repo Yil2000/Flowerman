@@ -1,4 +1,4 @@
-// server.js (Improved & Fixed)
+// server.js
 import express from "express";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
@@ -10,6 +10,11 @@ import multer from "multer";
 import fs from "fs";
 import { Pool } from "pg";
 import { cacheMiddleware } from "./cache.js";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "10", 10);
+
 
 
 dotenv.config();
@@ -70,19 +75,54 @@ if (!ADMIN_USER || !ADMIN_PASS) {
   process.exit(1);
 }
 
+// יצירת JWT למשתמש
+function signUserToken(user) {
+  // include id and role
+  return jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: "2h" });
+}
 
-async function initSharesTable() {
+// middleware לאימות user/token
+function authenticateUser(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token" });
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(403).json({ error: "Invalid token" });
+  }
+}
+
+// middleware בדיקת role
+function requireRole(roles = []) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+    if (!roles.includes(req.user.role)) return res.status(403).json({ error: "Not authorized" });
+    next();
+  };
+}
+
+
+// הוסף בחלק ה־DB / init tables:
+async function initUsersTable() {
   await db.query(`
-    CREATE TABLE IF NOT EXISTS shares (
+    CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      message TEXT NOT NULL,
-      imageurl TEXT,
-      public_id TEXT,
-      published BOOLEAN DEFAULT FALSE
+      fullname TEXT,
+      username TEXT UNIQUE,
+      email TEXT UNIQUE,
+      password_hash TEXT,
+      role TEXT NOT NULL DEFAULT 'pending', -- pending, user, admin, superadmin
+      approved_by INTEGER REFERENCES users(id),
+      reset_token TEXT,
+      reset_expires TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW(),
+      last_login TIMESTAMP
     )
   `);
-  console.log("✅ Shares table ready");
+  console.log("✅ Users table ready");
 }
 
 async function initContactsTable() {
@@ -425,6 +465,193 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// ===== Register (user requests account) =====
+app.post("/auth/register", async (req, res) => {
+  const { fullname, username, password, passwordConfirm, email } = req.body;
+  if (!fullname || !username || !password || !passwordConfirm) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+  if (password !== passwordConfirm) return res.status(400).json({ error: "Passwords do not match" });
+
+  try {
+    const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    const result = await db.query(
+      `INSERT INTO users (fullname, username, email, password_hash, role) VALUES ($1,$2,$3,$4,'pending') RETURNING id, username, fullname, role`,
+      [fullname, username, email || null, hash]
+    );
+    res.json({ success: true, user: result.rows[0], message: "ביקשת יצירת משתמש נשלחה – מחכה לאישור מנהל" });
+  } catch (err) {
+    console.error("Register error:", err.stack);
+    if (err.code === "23505") return res.status(400).json({ error: "Username or email already exists" });
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+// ===== List pending users (admin only) =====
+app.get("/admin/users/pending", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
+  const result = await db.query("SELECT id, fullname, username, email, created_at FROM users WHERE role='pending' ORDER BY created_at ASC");
+  res.json(result.rows);
+});
+
+// ===== Approve / Reject user (admin only) =====
+app.post("/admin/users/approve/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
+  const userId = parseInt(req.params.id,10);
+  try {
+    const result = await db.query("UPDATE users SET role='user', approved_by=$1 WHERE id=$2 RETURNING id, username, role", [req.user.id, userId]);
+    if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error("Approve error:", err.stack);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
+  const userId = parseInt(req.params.id,10);
+  try {
+    await db.query("DELETE FROM users WHERE id=$1 AND role='pending'", [userId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Reject error:", err.stack);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+// ===== User login (general) =====
+app.post("/auth/login", async (req,res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
+  try {
+    const q = await db.query("SELECT * FROM users WHERE username=$1", [username]);
+    if (q.rows.length === 0) {
+      // fallback: allow env bootstrap admin (keeps your current flow) 
+      if (username === ADMIN_USER && password === ADMIN_PASS) {
+        // sign short token and return special flag that admin must "complete setup"
+        const token = jwt.sign({ username: ADMIN_USER, role: "bootstrap" }, SECRET_KEY, { expiresIn: "30m" });
+        return res.json({ token, bootstrap: true });
+      }
+      return res.status(401).json({ error: "Invalid username/password" });
+    }
+    const user = q.rows[0];
+    const ok = await bcrypt.compare(password, user.password_hash || "");
+    if (!ok) return res.status(401).json({ error: "Invalid username/password" });
+    // if role pending -> not allowed to login as full user
+    if (user.role === "pending") return res.status(403).json({ error: "Account awaiting admin approval" });
+    // update last login
+    await db.query("UPDATE users SET last_login=NOW() WHERE id=$1", [user.id]);
+    const token = signUserToken(user);
+   res.json({
+  token,
+  user: {
+    id: user.id,
+    username: user.username,
+    fullname: user.fullname,
+    email: user.email,
+    role: user.role,
+    last_login: user.last_login
+  }
+});
+  } catch (err) {
+    console.error("Login error:", err.stack);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===== Complete bootstrap/setup (when using ADMIN_USER/ADMIN_PASS first-time) =====
+app.post("/auth/complete-setup", async (req,res) => {
+  // expects bootstrap token (from /auth/login when using env admin) in Authorization header
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token" });
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    if (decoded.role !== "bootstrap" || decoded.username !== ADMIN_USER) return res.status(403).json({ error: "Invalid bootstrap token" });
+
+    const { fullname, username, password, passwordConfirm } = req.body;
+    if (!username || !password || password !== passwordConfirm) return res.status(400).json({ error: "Invalid fields" });
+
+    // create superadmin user row
+    const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    const result = await db.query(
+      `INSERT INTO users (fullname, username, password_hash, role) VALUES ($1,$2,$3,'superadmin') RETURNING id, username, fullname, role`,
+      [fullname || 'Admin', username, hash]
+    );
+    const user = result.rows[0];
+    const newToken = signUserToken(user);
+    res.json({ success: true, token: newToken, user });
+  } catch (err) {
+    console.error("Complete setup error:", err.stack);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===== Password reset: request (sends email with token) =====
+async function createTransporter() {
+  if (!process.env.SMTP_HOST) return null;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || "587", 10),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+}
+
+app.post("/auth/request-reset", async (req,res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Missing email" });
+  try {
+    const q = await db.query("SELECT id, username, email FROM users WHERE email=$1", [email]);
+    if (q.rows.length === 0) return res.json({ success: true }); // don't reveal
+    const user = q.rows[0];
+    const token = crypto.randomBytes(24).toString("hex");
+    const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
+    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [token, expires, user.id]);
+
+    const transporter = await createTransporter();
+    const resetLink = `${process.env.SITE_URL || ''}/reset-password.html?token=${token}&u=${user.id}`;
+    if (transporter) {
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: user.email,
+        subject: "איפוס סיסמה",
+        text: `להחלפת סיסמה היכנס: ${resetLink}`,
+        html: `<p>להחלפת סיסמה לחץ: <a href="${resetLink}">${resetLink}</a></p>`
+      });
+    } else {
+      console.log("Reset link (no SMTP configured):", resetLink);
+      // אם אין SMTP נא להדפיס ללוג — ניתן להחליף לשליחה ידנית
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Request reset error:", err.stack);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===== Password reset: perform reset =====
+app.post("/auth/reset-password", async (req,res) => {
+  const { userId, token, password, passwordConfirm } = req.body;
+  if (!userId || !token || !password || password !== passwordConfirm) return res.status(400).json({ error: "Invalid input" });
+  try {
+    const q = await db.query("SELECT id, reset_token, reset_expires FROM users WHERE id=$1", [userId]);
+    if (q.rows.length === 0) return res.status(400).json({ error: "Invalid" });
+    const user = q.rows[0];
+    if (!user.reset_token || user.reset_token !== token) return res.status(400).json({ error: "Invalid token" });
+    if (new Date(user.reset_expires) < new Date()) return res.status(400).json({ error: "Token expired" });
+
+    const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    await db.query("UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2", [hash, userId]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Reset password error:", err.stack);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 // ===== Start Server (with Loading Mode) =====
 app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
@@ -439,6 +666,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
