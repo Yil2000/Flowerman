@@ -271,6 +271,78 @@ if (!window.hasRunAdminScript) {
       }
     }
 
+    // בתוך DOMContentLoaded או אחרי טעינת content
+async function loadPendingUsers() {
+  try {
+    const token = sessionStorage.getItem("userToken");
+    const res = await fetch("/admin/users/pending", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const data = await res.json();
+    const container = document.getElementById("pending-users-list");
+    container.innerHTML = "";
+    if (!res.ok) {
+      container.textContent = data.error || "שגיאה בטעינה";
+      return;
+    }
+    if (data.length === 0) { container.textContent = "אין בקשות"; return; }
+    for (const u of data) {
+      const el = document.createElement("div");
+      el.className = "pending-user";
+      el.innerHTML = `
+        <strong>${u.fullname}</strong> (${u.username}) ${u.email ? '- ' + u.email : ''}
+        <button data-id="${u.id}" class="approve-btn">אשר</button>
+        <button data-id="${u.id}" class="reject-btn">דחה</button>
+      `;
+      container.appendChild(el);
+    }
+    // attach listeners
+    container.querySelectorAll(".approve-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        await actionApprove(id);
+        loadPendingUsers();
+      });
+    });
+    container.querySelectorAll(".reject-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        await actionReject(id);
+        loadPendingUsers();
+      });
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function actionApprove(id) {
+  const token = sessionStorage.getItem("userToken");
+  const res = await fetch(`/admin/users/approve/${id}`, { method: "POST", headers: { Authorization: "Bearer " + token }});
+  if (!res.ok) {
+    const data = await res.json();
+    alert(data.error || "שגיאה באישור");
+  } else {
+    alert("המשתמש אושר");
+  }
+}
+
+async function actionReject(id) {
+  const token = sessionStorage.getItem("userToken");
+  const res = await fetch(`/admin/users/reject/${id}`, { method: "POST", headers: { Authorization: "Bearer " + token }});
+  if (!res.ok) {
+    const data = await res.json();
+    alert(data.error || "שגיאה");
+  } else alert("בקשה נדחתה");
+}
+
+// קריאה ראשונית
+document.addEventListener("DOMContentLoaded", () => {
+  // ... הקוד הקיים שלך לטעינת shares וכו'
+  loadPendingUsers();
+});
+
+
     // ===== Notification =====
     function showNotification(text) {
       const notif = document.createElement("div");
@@ -291,3 +363,4 @@ if (!window.hasRunAdminScript) {
     checkToken();
   });
 }
+
