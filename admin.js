@@ -1,103 +1,75 @@
-// ✅ Admin Dashboard Script
-if (!window.hasRunAdminScript) {
-  window.hasRunAdminScript = true;
+// ✅ Admin Unified Script
+if (!window.hasRunAdminUnified) {
+  window.hasRunAdminUnified = true;
 
   document.addEventListener("DOMContentLoaded", () => {
+    const serverUrl = "https://flowerman.onrender.com";
     const content = document.getElementById("admin-content");
     const errorDiv = document.getElementById("unauthorized");
     const logoutBtn = document.getElementById("logout-btn");
     const sharesContainer = document.getElementById("comment-cards");
     const contactsContainer = document.getElementById("contacts-list");
+    const wallContainer = document.querySelector(".messages-wall-cards");
+
+    // Upload Elements
     const uploadFiles = document.getElementById("upload-files");
     const uploadBtn = document.getElementById("upload-btn");
     const uploadTag = document.getElementById("upload-tag");
     const uploadStatus = document.getElementById("upload-status");
     const clearFileBtn = document.getElementById("clear-file");
 
-    // ===== העלאת קבצים =====
-    if (uploadBtn) {
-      uploadBtn.addEventListener("click", async () => {
-        const files = uploadFiles.files;
-        const tag = uploadTag.value;
-        if (!files.length) return alert("בחר קבצים להעלאה");
+    // Sidebar
+    const buttons = document.querySelectorAll("#sidebar button");
+    const sections = document.querySelectorAll(".section");
 
-        const formData = new FormData();
-        for (const file of files) formData.append("files", file);
-        formData.append("tag", tag);
-
-        const token = sessionStorage.getItem("adminToken");
-        try {
-          uploadStatus.textContent = "⏳ מעלה קבצים...";
-          const res = await fetch("/upload-with-tag", {
-            method: "POST",
-            headers: { "Authorization": "Bearer " + token },
-            body: formData
-          });
-
-          const data = await res.json();
-          if (data.success) {
-            uploadStatus.textContent = `✅ הועלו ${data.files.length} קבצים בהצלחה!`;
-            uploadFiles.value = "";
-            clearFileBtn.style.display = "none";
-          } else {
-            uploadStatus.textContent = "❌ שגיאה בהעלאה";
-            console.error(data);
-          }
-        } catch (err) {
-          uploadStatus.textContent = "❌ שגיאה בהעלאה";
-          console.error(err);
-        }
-      });
-
-      clearFileBtn.addEventListener("click", () => {
-        uploadFiles.value = "";
-        uploadStatus.textContent = "";
-        clearFileBtn.style.display = "none";
-      });
-
-      uploadFiles.addEventListener("change", () => {
-        if (uploadFiles.files.length) clearFileBtn.style.display = "inline";
-      });
+    // ===== Functions =====
+    function showNotification(text) {
+      const notif = document.createElement("div");
+      notif.textContent = text;
+      notif.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: #4caf50; color: white;
+        padding: 10px 20px; border-radius: 5px;
+        z-index: 9999;
+      `;
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 2000);
     }
 
-    // ===== בדיקת טוקן =====
+    function showError(reason) {
+      console.warn("Unauthorized:", reason);
+      if (content) content.style.display = "none";
+      if (errorDiv) errorDiv.style.display = "block";
+    }
+
     async function checkToken() {
       const token = sessionStorage.getItem("adminToken");
       if (!token) return showError("אין טוקן");
 
       try {
-        const res = await fetch("/admin/verify-token", {
+        const res = await fetch(`${serverUrl}/admin/verify-token`, {
           method: "POST",
           headers: {
             "Authorization": "Bearer " + token,
             "Content-Type": "application/json"
           }
         });
-
         if (!res.ok) return showError("שגיאה בשרת");
         const data = await res.json();
-
         if (data.valid) {
-          content.style.display = "flex";
-          errorDiv.style.display = "none";
+          if (content) content.style.display = "flex";
+          if (errorDiv) errorDiv.style.display = "none";
           loadShares(token);
           loadContacts(token);
-        } else {
-          showError("טוקן לא תקין");
-        }
+          loadPendingUsers();
+        } else showError("טוקן לא תקין");
       } catch (err) {
         console.error("Token verification error:", err);
         showError("שגיאה ברשת");
       }
     }
 
-    function showError(reason) {
-      console.warn("Unauthorized:", reason);
-      content.style.display = "none";
-      errorDiv.style.display = "block";
-    }
-
-    // ===== התנתקות =====
+    // ===== Logout =====
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
         sessionStorage.removeItem("adminToken");
@@ -105,17 +77,28 @@ if (!window.hasRunAdminScript) {
       });
     }
 
-    // ===== שליפת שיתופים =====
+    // ===== Sidebar Navigation =====
+    if (buttons && sections) {
+      buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.target;
+          if (!target) return;
+          sections.forEach(sec => sec.classList.remove("active"));
+          const targetSection = document.getElementById(target);
+          if (targetSection) targetSection.classList.add("active");
+        });
+      });
+    }
+
+    // ===== Shares =====
     async function loadShares(token) {
       if (!sharesContainer) return;
       try {
-        const res = await fetch("/admin/shares?" + Date.now(), {
+        const res = await fetch(`${serverUrl}/admin/shares?${Date.now()}`, {
           headers: { "Authorization": "Bearer " + token }
         });
-
         if (!res.ok) throw new Error("שגיאה בשליפת שיתופים");
         const shares = await res.json();
-
         sharesContainer.innerHTML = "";
         if (!shares || shares.length === 0) {
           const emptyMsg = document.createElement("p");
@@ -124,7 +107,6 @@ if (!window.hasRunAdminScript) {
           sharesContainer.appendChild(emptyMsg);
           return;
         }
-
         shares.forEach(renderShare);
       } catch (err) {
         console.error("Error loading shares:", err);
@@ -136,6 +118,9 @@ if (!window.hasRunAdminScript) {
       const div = document.createElement("div");
       div.classList.add("comment-card");
       div.dataset.id = share.id;
+      div.dataset.name = share.name;
+      div.dataset.message = share.message;
+      div.dataset.imageUrl = share.imageurl || "";
 
       div.innerHTML = `
         <h3 class="share-name">${share.name}</h3>
@@ -150,34 +135,40 @@ if (!window.hasRunAdminScript) {
       `;
       sharesContainer.appendChild(div);
 
-      if (share.published)
-        div.querySelector(".unpublish-btn").addEventListener("click", () => unpublishShare(div));
-      else
-        div.querySelector(".publish-btn").addEventListener("click", () => publishShare(div));
+      const publishBtn = div.querySelector(".publish-btn");
+      const unpublishBtn = div.querySelector(".unpublish-btn");
+      const deleteBtn = div.querySelector(".delete-btn");
 
-      div.querySelector(".delete-btn").addEventListener("click", () => deleteShare(div));
+      if (publishBtn) publishBtn.addEventListener("click", () => publishShare(div));
+      if (unpublishBtn) unpublishBtn.addEventListener("click", () => unpublishShare(div));
+      if (deleteBtn) deleteBtn.addEventListener("click", () => deleteShare(div));
     }
 
     async function publishShare(div) {
       const token = sessionStorage.getItem("adminToken");
       try {
-        const res = await fetch(`/admin/shares/publish/${div.dataset.id}`, {
+        const res = await fetch(`${serverUrl}/admin/shares/publish/${div.dataset.id}`, {
           method: "POST",
           headers: { "Authorization": "Bearer " + token }
         });
         if (!res.ok) throw new Error("שגיאה בפרסום השיתוף");
-        loadShares(token);
+        addShareToWall({
+          name: div.dataset.name,
+          message: div.dataset.message,
+          imageUrl: div.dataset.imageUrl
+        });
+        div.remove();
         showNotification("✅ השיתוף פורסם!");
       } catch (err) {
         console.error(err);
-        alert("אירעה שגיאה בפרסום השיתוף");
+        alert(err.message || "שגיאה בפרסום");
       }
     }
 
     async function unpublishShare(div) {
       const token = sessionStorage.getItem("adminToken");
       try {
-        const res = await fetch(`/admin/shares/unpublish/${div.dataset.id}`, {
+        const res = await fetch(`${serverUrl}/admin/shares/unpublish/${div.dataset.id}`, {
           method: "POST",
           headers: { "Authorization": "Bearer " + token }
         });
@@ -194,7 +185,7 @@ if (!window.hasRunAdminScript) {
       const token = sessionStorage.getItem("adminToken");
       if (!confirm("למחוק את השיתוף לצמיתות?")) return;
       try {
-        const res = await fetch(`/admin/shares/${div.dataset.id}`, {
+        const res = await fetch(`${serverUrl}/admin/shares/${div.dataset.id}`, {
           method: "DELETE",
           headers: { "Authorization": "Bearer " + token }
         });
@@ -207,32 +198,41 @@ if (!window.hasRunAdminScript) {
       }
     }
 
-    // ===== פניות =====
+    function addShareToWall(share) {
+      if (!wallContainer) return;
+      const div = document.createElement("div");
+      div.classList.add("messages-wall-card");
+      div.innerHTML = `
+        <div class="messages-wall-card-content">
+          <div class="messages-wall-card-content-text">
+            <h5>${share.name}</h5>
+            <p>${share.message}</p>
+          </div>
+          <div class="messages-wall-card-img">
+            <img src="${share.imageUrl || 'media/flowerman-logo.PNG'}" alt="תמונה">
+          </div>
+        </div>
+      `;
+      wallContainer.prepend(div);
+    }
+
+    // ===== Contacts =====
     async function loadContacts(token) {
-      if (!contactsContainer) {
-        console.error("❌ לא נמצא האלמנט contacts-list ב־HTML!");
-        return;
-      }
-
+      if (!contactsContainer) return;
       try {
-        const res = await fetch("/admin/contacts", {
-          headers: { Authorization: "Bearer " + token },
+        const res = await fetch(`${serverUrl}/admin/contacts`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error("שגיאה בשליפת הפניות מהשרת");
-
+        if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
         const contacts = await res.json();
-
         contactsContainer.innerHTML = "";
-
         if (!contacts || contacts.length === 0) {
-          console.warn("⚠️ לא נמצאו פניות");
           const emptyMsg = document.createElement("p");
           emptyMsg.textContent = "לא נמצאו פניות";
           emptyMsg.className = "empty-message";
           contactsContainer.appendChild(emptyMsg);
           return;
         }
-
         contacts.forEach(contact => {
           const div = document.createElement("div");
           div.className = "contact-card";
@@ -244,123 +244,140 @@ if (!window.hasRunAdminScript) {
             <button class="delete-contact-btn">סמן כטופל ומחק</button>
           `;
           contactsContainer.appendChild(div);
-
           const deleteBtn = div.querySelector(".delete-contact-btn");
           if (deleteBtn) {
             deleteBtn.addEventListener("click", async () => {
               if (!confirm("להסיר את הפנייה?")) return;
               try {
-                const delRes = await fetch(`/admin/contacts/${contact.id}`, {
+                const delRes = await fetch(`${serverUrl}/admin/contacts/${contact.id}`, {
                   method: "DELETE",
-                  headers: { Authorization: "Bearer " + token },
+                  headers: { Authorization: `Bearer ${token}` }
                 });
-                if (!delRes.ok) throw new Error("שגיאה במחיקת הפנייה");
+                if (!delRes.ok) throw new Error("שגיאה במחיקה");
                 div.remove();
-                console.log("🗑️ הפנייה נמחקה בהצלחה:", contact.id);
-              } catch (err) {
-                console.error("Error deleting contact:", err);
-              }
+                showNotification("🗑️ הפנייה נמחקה בהצלחה!");
+              } catch (err) { console.error(err); }
             });
-          } else {
-            console.warn("❌ לא נמצא כפתור המחיקה לפנייה:", contact.id);
           }
         });
       } catch (err) {
-        console.error("Error loading contacts:", err);
+        console.error(err);
         contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
       }
     }
 
-    // בתוך DOMContentLoaded או אחרי טעינת content
-async function loadPendingUsers() {
-  try {
-    const token = sessionStorage.getItem("userToken");
-    const res = await fetch("/admin/users/pending", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const data = await res.json();
-    const container = document.getElementById("pending-users-list");
-    container.innerHTML = "";
-    if (!res.ok) {
-      container.textContent = data.error || "שגיאה בטעינה";
-      return;
+    // ===== Pending Users =====
+    async function loadPendingUsers() {
+      try {
+        const token = sessionStorage.getItem("userToken");
+        const res = await fetch(`${serverUrl}/admin/users/pending`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const container = document.getElementById("pending-users-list");
+        if (!container) return;
+        container.innerHTML = "";
+        if (!res.ok) { container.textContent = data.error || "שגיאה"; return; }
+        if (data.length === 0) { container.textContent = "אין בקשות"; return; }
+
+        for (const u of data) {
+          const el = document.createElement("div");
+          el.className = "pending-user";
+          el.innerHTML = `
+            <strong>${u.fullname}</strong> (${u.username}) ${u.email ? '- ' + u.email : ''}
+            <button data-id="${u.id}" class="approve-btn">אשר</button>
+            <button data-id="${u.id}" class="reject-btn">דחה</button>
+          `;
+          container.appendChild(el);
+        }
+
+        container.querySelectorAll(".approve-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            await actionApprove(btn.dataset.id);
+            loadPendingUsers();
+          });
+        });
+        container.querySelectorAll(".reject-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            await actionReject(btn.dataset.id);
+            loadPendingUsers();
+          });
+        });
+
+      } catch (err) { console.error(err); }
     }
-    if (data.length === 0) { container.textContent = "אין בקשות"; return; }
-    for (const u of data) {
-      const el = document.createElement("div");
-      el.className = "pending-user";
-      el.innerHTML = `
-        <strong>${u.fullname}</strong> (${u.username}) ${u.email ? '- ' + u.email : ''}
-        <button data-id="${u.id}" class="approve-btn">אשר</button>
-        <button data-id="${u.id}" class="reject-btn">דחה</button>
-      `;
-      container.appendChild(el);
-    }
-    // attach listeners
-    container.querySelectorAll(".approve-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        await actionApprove(id);
-        loadPendingUsers();
+
+    async function actionApprove(id) {
+      const token = sessionStorage.getItem("userToken");
+      const res = await fetch(`${serverUrl}/admin/users/approve/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
       });
-    });
-    container.querySelectorAll(".reject-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        await actionReject(id);
-        loadPendingUsers();
-      });
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-async function actionApprove(id) {
-  const token = sessionStorage.getItem("userToken");
-  const res = await fetch(`/admin/users/approve/${id}`, { method: "POST", headers: { Authorization: "Bearer " + token }});
-  if (!res.ok) {
-    const data = await res.json();
-    alert(data.error || "שגיאה באישור");
-  } else {
-    alert("המשתמש אושר");
-  }
-}
-
-async function actionReject(id) {
-  const token = sessionStorage.getItem("userToken");
-  const res = await fetch(`/admin/users/reject/${id}`, { method: "POST", headers: { Authorization: "Bearer " + token }});
-  if (!res.ok) {
-    const data = await res.json();
-    alert(data.error || "שגיאה");
-  } else alert("בקשה נדחתה");
-}
-
-// קריאה ראשונית
-document.addEventListener("DOMContentLoaded", () => {
-  // ... הקוד הקיים שלך לטעינת shares וכו'
-  loadPendingUsers();
-});
-
-
-    // ===== Notification =====
-    function showNotification(text) {
-      const notif = document.createElement("div");
-      notif.textContent = text;
-      notif.style.position = "fixed";
-      notif.style.top = "20px";
-      notif.style.right = "20px";
-      notif.style.background = "#4caf50";
-      notif.style.color = "white";
-      notif.style.padding = "10px 20px";
-      notif.style.borderRadius = "5px";
-      notif.style.zIndex = "9999";
-      document.body.appendChild(notif);
-      setTimeout(() => notif.remove(), 2000);
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "שגיאה באישור");
+      } else alert("המשתמש אושר");
     }
 
-    // ===== התחלת סקריפט =====
+    async function actionReject(id) {
+      const token = sessionStorage.getItem("userToken");
+      const res = await fetch(`${serverUrl}/admin/users/reject/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "שגיאה");
+      } else alert("בקשה נדחתה");
+    }
+
+    // ===== Upload =====
+    if (uploadBtn && uploadFiles && uploadTag && uploadStatus) {
+      uploadBtn.addEventListener("click", async () => {
+        const files = uploadFiles.files;
+        const tag = uploadTag.value.trim();
+        if (!files.length || !tag) return alert("אנא מלא תג ובחר קבצים");
+        const token = sessionStorage.getItem("adminToken");
+        const formData = new FormData();
+        for (const f of files) formData.append("files", f);
+        formData.append("tag", tag);
+
+        try {
+          uploadStatus.textContent = "⏳ מעלה קבצים...";
+          const res = await fetch(`${serverUrl}/upload-with-tag`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token },
+            body: formData
+          });
+          const data = await res.json();
+          if (data.success) {
+            uploadStatus.textContent = `✅ הועלו ${data.files.length} קבצים בהצלחה!`;
+            uploadFiles.value = "";
+            if (clearFileBtn) clearFileBtn.style.display = "none";
+          } else {
+            uploadStatus.textContent = "❌ שגיאה בהעלאה";
+            console.error(data);
+          }
+        } catch (err) {
+          uploadStatus.textContent = "❌ שגיאה בהעלאה";
+          console.error(err);
+        }
+      });
+
+      if (clearFileBtn) {
+        clearFileBtn.addEventListener("click", () => {
+          uploadFiles.value = "";
+          uploadStatus.textContent = "";
+          clearFileBtn.style.display = "none";
+        });
+      }
+
+      uploadFiles.addEventListener("change", () => {
+        if (uploadFiles.files.length && clearFileBtn) clearFileBtn.style.display = "inline";
+      });
+    }
+
+    // ===== Start =====
     checkToken();
   });
 }
-
