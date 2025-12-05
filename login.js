@@ -19,81 +19,54 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  //רישום משתמש
-  const regForm = document.getElementById("register-form");
-  const regMsg = document.getElementById("register-msg");
-  const regErr = document.getElementById("register-err");
+  
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  errorMsg.textContent = "";
 
-  if (regForm) {
-    regForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      regMsg.textContent = "";
-      regErr.textContent = "";
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
 
-      const fullname = document.getElementById("reg-fullname").value.trim();
-      const username = document.getElementById("reg-username").value.trim();
-      const email = document.getElementById("reg-email").value.trim();
-      const password = document.getElementById("reg-password").value;
-      const passwordConfirm = document.getElementById("reg-password-confirm").value;
-
-      try {
-        const res = await fetch("/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fullname, username, email, password, passwordConfirm })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          regErr.textContent = data.error || "שגיאה ברישום";
-          return;
-        }
-        regMsg.textContent = data.message || "בקשה נשלחה";
-        regForm.reset();
-      } catch (err) {
-        console.error("Register err:", err);
-        regErr.textContent = "שגיאת שרת";
-      }
-    });
+  if (!username || !password) {
+    errorMsg.textContent = "אנא מלא שם משתמש וסיסמה";
+    return;
   }
 
-  // ===== Login Form =====
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  try {
+    const res = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!username || !password) {
-      errorMsg.textContent = "אנא מלא שם משתמש וסיסמה";
+    const data = await res.json();
+    if (!res.ok) {
+      errorMsg.textContent = data.error || "שגיאה בהתחברות";
       return;
     }
 
-    try {
-      const res = await fetch("/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        errorMsg.textContent = data.error || "שגיאה בהתחברות";
-        return;
-      }
-
-      // שמירת הטוקן
-      sessionStorage.setItem("adminToken", data.token);
-
-      // הפניה ישירה לעמוד האדמין
-      window.location.href = "/admin.html?ts=" + new Date().getTime();
-
-    } catch (err) {
-      console.error("Login error:", err);
-      errorMsg.textContent = "שגיאה בשרת, נסה שוב";
+    // bootstrap admin flow (if ENV admin used)
+    if (data.bootstrap) {
+      // שמירת טוקן זמני כדי להשלים הגדרה ראשונית
+      sessionStorage.setItem("bootstrapToken", data.token);
+      // הפנה לדף setup שבו ימלא שם וסיסמה חדשים
+      window.location.href = "/complete-setup.html";
+      return;
     }
-  });
+
+    // רגיל: שמירת הטוקן של המשתמש
+    sessionStorage.setItem("userToken", data.token);
+
+    // אם המשתמש מנהל/סופר־אדמין יכול לגשת ל־/admin.html
+    window.location.href = "/admin.html?ts=" + new Date().getTime();
+  } catch (err) {
+    console.error("Login error:", err);
+    errorMsg.textContent = "שגיאה בשרת, נסה שוב";
+  }
 });
+
+});
+
 
 
 
