@@ -544,10 +544,13 @@ app.post("/auth/login", async (req,res) => {
       } */
 
 /*       למחוק כשאני רוצה להחזיר ליצירת סופר אדמין ראשי
- */      if (username === ADMIN_USER && password === ADMIN_PASS) {
-  const token = jwt.sign({ username: ADMIN_USER, role: "superadmin" }, SECRET_KEY, { expiresIn: "8h" });
-  return res.json({ token, user: { id: 0, username: ADMIN_USER, role: "superadmin" } });
+ */     if (username === ADMIN_USER && password === ADMIN_PASS) {
+  // יוצר משתמש מדומה של superadmin
+  const user = { id: 0, username: ADMIN_USER, fullname: "Admin", role: "superadmin" };
+  const token = jwt.sign(user, SECRET_KEY, { expiresIn: "1h" }); // זמן תפוגה כמו לכל משתמש רגיל
+  return res.json({ token, user });
 }
+
 
       
       return res.status(401).json({ error: "Invalid username/password" });
@@ -689,6 +692,7 @@ Promise.all([
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
