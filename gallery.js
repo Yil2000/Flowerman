@@ -1,6 +1,8 @@
 // gallery.js
 const serverUrl = "https://flowerman.onrender.com";
 const useServer = true;
+const seenImages = new Set();
+
 
 const homepageGallery = document.querySelector("#homepage-gallery .gallery-img-boxs");
 const mainGallery = document.getElementById("gallery");
@@ -32,7 +34,8 @@ function renderImages(container, images) {
     const img = document.createElement("img");
     img.src = useServer ? imgData.secure_url : `https://res.cloudinary.com/dkrckjqfn/image/upload/${imgData.public_id}.jpg`;
     img.alt = imgData.public_id || "";
-    img.style.opacity = 0;
+    img.setAttribute("data-id", imgData.public_id);
+    observer.observe(img);
     img.style.transition = `opacity ${transitionTime}ms ease, transform 0.3s ease`;
     img.style.cursor = "pointer";
 
@@ -51,7 +54,28 @@ function renderImages(container, images) {
     box.appendChild(overlay);
     container.appendChild(box);
 
-    setTimeout(() => img.style.opacity = 1, 50);
+    if (!seenImages.has(imgData.public_id)) {
+      img.style.opacity = 0;
+    } else {
+      img.style.opacity = 1;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.style.opacity = 1;
+
+          const id = img.getAttribute("data-id");
+          if (id) seenImages.add(id);
+
+          observer.unobserve(img);
+        }
+      });
+    }, {
+      threshold: 0.2
+    });
+
 
     box.addEventListener("mouseenter", () => {
       overlay.style.opacity = 1;
