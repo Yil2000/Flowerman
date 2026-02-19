@@ -537,11 +537,19 @@ app.post("/auth/login", async (req,res) => {
     const q = await db.query("SELECT * FROM users WHERE username=$1", [username]);
     if (q.rows.length === 0) {
       // fallback: allow env bootstrap admin (keeps your current flow) 
-      if (username === ADMIN_USER && password === ADMIN_PASS) {
+     /*  if (username === ADMIN_USER && password === ADMIN_PASS) {
         // sign short token and return special flag that admin must "complete setup"
         const token = jwt.sign({ username: ADMIN_USER, role: "bootstrap" }, SECRET_KEY, { expiresIn: "30m" });
         return res.json({ token, bootstrap: true });
-      }
+      } */
+
+/*       למחוק כשאני רוצה להחזיר ליצירת סופר אדמין ראשי
+ */      if (username === ADMIN_USER && password === ADMIN_PASS) {
+  const token = jwt.sign({ username: ADMIN_USER, role: "superadmin" }, SECRET_KEY, { expiresIn: "8h" });
+  return res.json({ token, user: { id: 0, username: ADMIN_USER, role: "superadmin" } });
+}
+
+      
       return res.status(401).json({ error: "Invalid username/password" });
     }
     const user = q.rows[0];
@@ -681,6 +689,7 @@ Promise.all([
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
