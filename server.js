@@ -671,7 +671,6 @@ app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
 // נתחיל לטעון את ה־DB והטבלאות ברקע
 Promise.all([
   initUsersTable(),
-  initSharesTable(),
   initContactsTable()
 ])
   .then(() => {
@@ -682,6 +681,7 @@ Promise.all([
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
