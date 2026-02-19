@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("login-form");
   const errorMsg = document.getElementById("error-msg");
+  const newRegisterBtn = document.getElementById("new-register-btn");
+const loginFormDiv = document.querySelector(".login-box");
+const registerBoxDiv = document.querySelector(".register-box");
 
   // ===== Show / Hide Password =====
   const passwordInput = document.getElementById("password");
@@ -65,8 +68,23 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
+// register-toggle.js
+
+
+// בהתחלה נסתר את דיב הרישום
+registerBoxDiv.style.display = "none";
+
+// מאזין ללחיצה על הכפתור
+newRegisterBtn.addEventListener("click", () => {
+  // מסתיר את דיב הלוגין
+  loginFormDiv.style.display = "none";
+
+  // מראה את דיב הרישום
+  registerBoxDiv.style.display = "block";
 });
 
+
+});
 
 
 
