@@ -50,7 +50,7 @@
 }
 
 .login-box{
-    max-width: 60%;
+    max-width: 50%;
     height: fit-content;
     background: rgba(255, 255, 255, 0.171); 
     border-radius: 15px;            
@@ -116,7 +116,7 @@
 
 #login-form input:focus {
     outline: none;      
-     border: 1px solid var(--purple);
+    border: 1px solid var(--purple);
               
 }
 
@@ -139,6 +139,125 @@
     border: none;
 }
 
+.new-register{
+  display: flex;
+}
+
+
+.new-register p{
+  padding:3px;
+}
+
+#new-register-btn{
+color: #4e1266;
+cursor: pointer;
+}
+#new-register-btn:hover{
+color: #350847;
+}
+
+
+/* Register Box - עיצוב כמו Login */
+.register-box{
+    max-width: 50%;
+    height: fit-content;
+    background: rgba(255, 255, 255, 0.171); 
+    border-radius: 15px;            
+    padding: 2rem;
+    width: fit-content;
+    text-align: center;
+    backdrop-filter: blur(10px);      
+    -webkit-backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);  
+    padding:2em;
+    margin: 0 auto; /* מרכז את הדיב */
+}
+
+#register-form{
+    font-family: var(--h-font);
+    font-size: var(--fs-p);
+    gap: 2em;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-direction: column;
+    width: 100%;
+}
+
+#register-form input{
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);  
+    backdrop-filter: blur(10px);        
+    -webkit-backdrop-filter: blur(10px);   
+    color: black;                    
+    font-size: var(--fs-p);
+    padding: 1em;
+    width: 100%;
+    border-radius: 50px;
+    border: 1px solid black;
+}
+
+#register-form input::placeholder {
+    color: black;                      
+    font-size: var(--fs-p);  
+}
+
+#register-form input:focus {
+    outline: none;      
+    border: 1px solid var(--purple);         
+}
+
+#register-form button{
+    cursor: pointer;
+    margin-top: 2em;
+    padding: 1em;
+    width: 80%;
+    border-radius: 50px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);  
+    backdrop-filter: blur(10px);        
+    -webkit-backdrop-filter: blur(10px); 
+    transition: 0.3s;
+    color: black;                   
+}
+
+#register-form button:hover{
+    background: rgba(255, 255, 255, 0.356);  
+    border: none;
+}
+
+/* אם רוצים אייקונים פנימיים כמו בלוגין */
+.register-inputs{
+  width: 100%;
+  position: relative;
+}
+
+.register-inputs i{
+  font-size: var(--fs-h6);
+  position: absolute;
+  top: 17px;
+  left: 25px;
+}
+
+.goto-login{
+  display: flex;
+}
+.goto-login p{
+  padding: 2px;
+}
+#goto-btn a{
+  color:#4e1266;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  
+}
+#goto-btn:hover{
+  color:#350847;
+  cursor: pointer;
+}
 
 
 /* ADMIN CSS */
@@ -260,6 +379,5 @@
         margin:1em;
         border: 1px solid var(--purple);
     }
-
 
 
