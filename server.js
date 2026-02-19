@@ -669,7 +669,7 @@ app.post("/auth/reset-password", async (req,res) => {
 app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
 
 // נתחיל לטעון את ה־DB והטבלאות ברקע
-Promise.all([initSharesTable(), initContactsTable()])
+Promise.all(initContactsTable()])
   .then(() => {
     serverReady = true;
     console.log("✅ Server fully ready!");
@@ -678,6 +678,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
