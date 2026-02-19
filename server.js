@@ -162,9 +162,21 @@ async function ensurePublicIdColumn() {
 ensurePublicIdColumn();
 
 
-pool.connect()
-  .then(() => console.log("✅ Connected to PostgreSQL"))
-  .catch((err) => console.error("❌ DB Connection Error:", err));
+// Test initial DB connection safely (without leaking client)
+(async () => {
+  try {
+    await pool.query("SELECT 1");
+    console.log("✅ Connected to PostgreSQL");
+  } catch (err) {
+    console.error("❌ DB Connection Error:", err.stack);
+  }
+})();
+
+// Prevent crash on unexpected idle client errors
+pool.on("error", (err) => {
+  console.error("❌ Unexpected PG Pool Error:", err.stack);
+});
+
 
 // ===== JWT Authentication =====
 function authenticateAdmin(req, res, next) {
@@ -666,6 +678,7 @@ Promise.all([initSharesTable(), initContactsTable()])
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
