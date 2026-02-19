@@ -160,13 +160,21 @@ buttons.forEach(button => {
 });
 
 // ====== אם יש פרמטר tag ב-URL, הפעל את הכפתור המתאים ======
-const urlParams = new URLSearchParams(window.location.search);
-const initialTag = urlParams.get("tag");
-if (initialTag) {
-  const tagButton = document.getElementById(initialTag);
-  if (tagButton) tagButton.click();
-}
+(async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialTag = urlParams.get("tag");
+
+  if (initialTag) {
+    buttons.forEach(btn => btn.classList.remove("active"));
+    const tagButton = document.getElementById(initialTag);
+    if (tagButton) {
+      tagButton.classList.add("active");
+      await renderMainGallery([initialTag]);
+    }
+  } else {
+    await renderMainGallery();
+  }
+})();
 
 // ====== הרצת ברירת מחדל ======
 renderHomepageGallery();
-renderMainGallery();
