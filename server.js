@@ -530,31 +530,50 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
 });
 
 // ===== User login (general) =====
-app.post("/auth/login", async (req,res) => {
+/* app.post("/auth/login", async (req,res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: "Missing fields" });
   try {
     const q = await db.query("SELECT * FROM users WHERE username=$1", [username]);
     if (q.rows.length === 0) {
       // fallback: allow env bootstrap admin (keeps your current flow) 
-     /*  if (username === ADMIN_USER && password === ADMIN_PASS) {
+      if (username === ADMIN_USER && password === ADMIN_PASS) {
         // sign short token and return special flag that admin must "complete setup"
         const token = jwt.sign({ username: ADMIN_USER, role: "bootstrap" }, SECRET_KEY, { expiresIn: "30m" });
         return res.json({ token, bootstrap: true });
-      } */
-
-/*       למחוק כשאני רוצה להחזיר ליצירת סופר אדמין ראשי
- */     if (username === ADMIN_USER && password === ADMIN_PASS) {
-  // יוצר משתמש מדומה של superadmin
-  const user = { id: 0, username: ADMIN_USER, fullname: "Admin", role: "superadmin" };
-  const token = jwt.sign(user, SECRET_KEY, { expiresIn: "1h" }); // זמן תפוגה כמו לכל משתמש רגיל
-  return res.json({ token, user });
-}
-
-
-      
+      } 
       return res.status(401).json({ error: "Invalid username/password" });
-    }
+    } */
+
+
+/* למחוק אחר כך!!
+ */
+app.post("/auth/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  // כניסה עם ADMIN_USER בלבד, ללא בדיקה ב-DB
+  if (username === ADMIN_USER && password === ADMIN_PASS) {
+    const user = {
+      id: 0,
+      username: ADMIN_USER,
+      fullname: "Admin",
+      role: "superadmin",
+    };
+
+    const token = jwt.sign(user, SECRET_KEY, { expiresIn: "1h" }); // 1 שעה, אפשר לשנות
+    return res.json({ token, user });
+  }
+
+  // שאר המשתמשים: אין כניסה
+  return res.status(401).json({ error: "Invalid username/password" });
+});
+
+
+
     const user = q.rows[0];
     const ok = await bcrypt.compare(password, user.password_hash || "");
     if (!ok) return res.status(401).json({ error: "Invalid username/password" });
@@ -692,6 +711,7 @@ Promise.all([
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
