@@ -87,33 +87,44 @@
               required /><i class="fa-solid fa-eye-slash" id="show-pass-btn"></i
           ></span>
           <button type="submit">התחבר</button>
+          <span class="new-register">
+            <p>חדשים?</p>
+            <p id="new-register-btn">צרו משתמש עכשיו</p>
+          </span>
+          <p id="error-msg" style="color: red"></p>
         </form>
       </div>
-
-      <p id="error-msg" style="color: red"></p>
+      <!-- Registration box -->
+      <div class="register-box">
+        <form id="register-form">
+          <h1>יצירת משתמש חדש</h1>
+          <span class="goto-login">
+            <p>כבר יש לכם משתמש?</p>
+            <p id="goto-btn"><a href="login.html">התחברו</a></p>
+          </span>
+          <input type="text" id="reg-fullname" placeholder="שם מלא" required />
+          <input
+            type="text"
+            id="reg-username"
+            placeholder="שם משתמש"
+            required
+          />
+          <input type="email" id="reg-email" placeholder="אימייל" />
+          <input
+            type="password"
+            id="reg-password"
+            placeholder="סיסמה"
+            required
+          />
+          <button type="submit">יצירת משתמש</button>
+        </form>
+        <p id="register-msg" style="color: green"></p>
+        <p id="register-err" style="color: red"></p>
+      </div>
     </div>
-            <!-- Registration box -->
-        <!-- <div class="register-box">
-          <h2>יצירת משתמש חדש</h2>
-          <form id="register-form">
-            <input type="text" id="reg-fullname" placeholder="שם מלא" required />
-            <input type="text" id="reg-username" placeholder="שם משתמש רצוי" required />
-            <input type="email" id="reg-email" placeholder="אימייל (להשבתת סיסמה)" />
-            <input type="password" id="reg-password" placeholder="סיסמה" required />
-            <input type="password" id="reg-password-confirm" placeholder="אימות סיסמה" required />
-            <button type="submit">בקשת יצירת משתמש</button>
-          </form>
-          <p id="register-msg" style="color:green"></p>
-          <p id="register-err" style="color:red"></p>
-        </div> -->
-
 
     <script src="login.js"></script>
-     <script src="register.js"></script>
+    <script src="register.js"></script>
     <script src="accessibility.js"></script>
   </body>
 </html>
-
-
-
-
