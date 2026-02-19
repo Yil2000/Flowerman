@@ -83,8 +83,71 @@ newRegisterBtn.addEventListener("click", () => {
   registerBoxDiv.style.display = "block";
 });
 
+  // ===== Register =====
+const registerForm = document.getElementById("register-form");
+const registerMsg = document.getElementById("register-msg");
+const registerErr = document.getElementById("register-err");
+
+if (registerForm) {
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    registerMsg.textContent = "";
+    registerErr.textContent = "";
+
+    const fullname = document.getElementById("reg-fullname").value.trim();
+    const username = document.getElementById("reg-username").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value.trim();
+
+    if (!fullname || !username || !password) {
+      registerErr.textContent = "אנא מלא את כל השדות החובה";
+      return;
+    }
+
+    try {
+      const res = await fetch("/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullname,
+          username,
+          email,
+          password,
+          passwordConfirm: password // כי אין לך שדה confirm בטופס
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        registerErr.textContent = data.error || "שגיאה בהרשמה";
+        return;
+      }
+
+      registerMsg.textContent = data.message;
+
+      // איפוס טופס
+      registerForm.reset();
+
+      // אחרי 2 שניות חוזר ללוגין
+      setTimeout(() => {
+        registerBoxDiv.style.display = "none";
+        loginFormDiv.style.display = "block";
+      }, 2000);
+
+    } catch (err) {
+      console.error("Register error:", err);
+      registerErr.textContent = "שגיאה בשרת, נסה שוב";
+    }
+  });
+}
+
 
 });
+
 
 
 
