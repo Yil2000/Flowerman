@@ -477,7 +477,7 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ===== Register (user requests account) =====
+/* // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
   const { fullname, username, password, passwordConfirm, email } = req.body;
   if (!fullname || !username || !password || !passwordConfirm) {
@@ -528,7 +528,7 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
     res.status(500).json({ error: "DB error" });
   }
 });
-
+ */
 // ===== User login (general) =====
 /* app.post("/auth/login", async (req,res) => {
   const { username, password } = req.body;
@@ -546,31 +546,30 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
     } */
 
 
-/* למחוק אחר כך!!
- */
-app.post("/auth/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
-  // כניסה עם ADMIN_USER בלבד, ללא בדיקה ב-DB
-  if (username === ADMIN_USER && password === ADMIN_PASS) {
-    const user = {
-      id: 0,
-      username: ADMIN_USER,
-      fullname: "Admin",
-      role: "superadmin",
-    };
-
-    const token = jwt.sign(user, SECRET_KEY, { expiresIn: "1h" }); // 1 שעה, אפשר לשנות
-    return res.json({ token, user });
-  }
-
-  // שאר המשתמשים: אין כניסה
-  return res.status(401).json({ error: "Invalid username/password" });
-});
+/* למחוק אחר כך!!*/
+  app.post("/auth/login", async (req, res) => {
+    const { username, password } = req.body;
+  
+    if (!username || !password) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+  
+    // כניסה עם ADMIN_USER בלבד, ללא בדיקה ב-DB
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+      const user = {
+        id: 0,
+        username: ADMIN_USER,
+        fullname: "Admin",
+        role: "superadmin",
+      };
+  
+      const token = jwt.sign(user, SECRET_KEY, { expiresIn: "1h" }); // 1 שעה, אפשר לשנות
+      return res.json({ token, user });
+    }
+  
+    // שאר המשתמשים: אין כניסה
+    return res.status(401).json({ error: "Invalid username/password" });
+  });
 
 
 
@@ -711,6 +710,7 @@ Promise.all([
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
+
 
 
 
