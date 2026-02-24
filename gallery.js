@@ -26,18 +26,48 @@ async function fetchImagesByTag(tag) {
 function renderImages(container, images) {
   if (!container) return;
   container.innerHTML = "";
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.style.opacity = 1;
+
+        const id = img.getAttribute("data-id");
+        if (id) seenImages.add(id);
+
+        obs.unobserve(img);
+      }
+    });
+  }, {
+    threshold: 0.2
+  });
+
   images.forEach(imgData => {
     const box = document.createElement("div");
-    box.className = container.id === "gallery" ? "gallery-page-img-box" : "gallery-img-box";
+    box.className = container.id === "gallery"
+      ? "gallery-page-img-box"
+      : "gallery-img-box";
+
     box.style.position = "relative";
 
     const img = document.createElement("img");
-    img.src = useServer ? imgData.secure_url : `https://res.cloudinary.com/dkrckjqfn/image/upload/${imgData.public_id}.jpg`;
+    img.src = useServer
+      ? imgData.secure_url
+      : `https://res.cloudinary.com/dkrckjqfn/image/upload/${imgData.public_id}.jpg`;
+
     img.alt = imgData.public_id || "";
     img.setAttribute("data-id", imgData.public_id);
-    observer.observe(img);
     img.style.transition = `opacity ${transitionTime}ms ease, transform 0.3s ease`;
     img.style.cursor = "pointer";
+
+    // אם לא נראה בעבר – מתחיל שקוף
+    if (!seenImages.has(imgData.public_id)) {
+      img.style.opacity = 0;
+      observer.observe(img); // ✅ עכשיו זה אחרי ההגדרה
+    } else {
+      img.style.opacity = 1;
+    }
 
     const overlay = document.createElement("div");
     overlay.style.position = "absolute";
@@ -54,39 +84,19 @@ function renderImages(container, images) {
     box.appendChild(overlay);
     container.appendChild(box);
 
-    if (!seenImages.has(imgData.public_id)) {
-      img.style.opacity = 0;
-    } else {
-      img.style.opacity = 1;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.style.opacity = 1;
-
-          const id = img.getAttribute("data-id");
-          if (id) seenImages.add(id);
-
-          observer.unobserve(img);
-        }
-      });
-    }, {
-      threshold: 0.2
-    });
-
-
     box.addEventListener("mouseenter", () => {
       overlay.style.opacity = 1;
       img.style.transform = "scale(1.05)";
     });
+
     box.addEventListener("mouseleave", () => {
       overlay.style.opacity = 0;
       img.style.transform = "scale(1)";
     });
 
-    img.addEventListener("click", () => openLightbox(img.src, img.alt));
+    img.addEventListener("click", () =>
+      openLightbox(img.src, img.alt)
+    );
   });
 }
 
@@ -202,3 +212,4 @@ buttons.forEach(button => {
 
 // ====== הרצת ברירת מחדל ======
 renderHomepageGallery();
+
