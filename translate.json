@@ -48,11 +48,11 @@
       "project_content_p3": " יום לאחר השבעה, כמה חברים התחילו לחלק זרי פרחים בתחנה המרכזית. מאז התרחבנו משמעותית. \n היום, אנחנו מחלקים זרי פרחים לחיילים מדי שבוע במספר נקודות ברחבי הארץ, באמצעות מערך מתנדבים מדהים בפריסה ארצית. בדוכנים, המתנדבים שוזרים את הפרחים בעצמם, ומצרפים לזר פתק אישי – אותו החיילים יכולים למלא ולהעניק לאדם שיקר להם.",
       "project_content_p4": " כך, המעגל של הטוב והאהבה מתרחב – ולא נשאר רק אצלנו.",
       "project_join_btn": "הצטרפו כמתנדבים",
-      "project_card_1_b": "+8500",
+      "project_card_1_b": "+15,000",
       "project_card_1_p": "פרחים חולקו",
-      "project_card_2_b": "+8",
+      "project_card_2_b": "+10",
       "project_card_2_p": "מקומות אליהם הגענו",
-      "project_card_3_b": "+350",
+      "project_card_3_b": "+500",
       "project_card_3_p": "מתנדבים פעילים",
 
       "support_head_h4": "תמכו בפרוייקט פלאוורמן",
@@ -193,11 +193,11 @@
       "project_content_p3": "The day after the shiva, a few friends began distributing bouquets at the central bus station. Since then, we have grown significantly.",
       "project_content_p4": "Today, we distribute bouquets to soldiers every week at several locations across the country, with the help of an incredible nationwide network of volunteers. At the stands, the volunteers arrange the flowers themselves and attach a personal note—one that the soldiers can fill out and pass along to someone dear to them. \n This way, the circle of kindness and love continues to grow—far beyond us.",
       "project_join_btn": "Join as volunteers",
-      "project_card_1_b": "+8500",
+      "project_card_1_b": "+15,000",
       "project_card_1_p": "Bouquets Distributed",
-      "project_card_2_b": "+8",
+      "project_card_2_b": "+10",
       "project_card_2_p": "Distribution Points",
-      "project_card_3_b": "+350",
+      "project_card_3_b": "+500",
       "project_card_3_p": "Active Volunteers",
 
       "support_head_h4": "Support the Flowerman Project",
@@ -304,6 +304,7 @@
 
   }
 }
+
 
 
 
