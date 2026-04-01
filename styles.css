@@ -1257,8 +1257,10 @@
 }
 
 .messages-wall-cards {
+    overflow-x: auto;
+    user-select: none;
+    touch-action: pan-y; /* חשוב למובייל */
     overflow-y: hidden;
-    overflow-x: hidden;
     width: 100%;
     height: fit-content;
     display: flex;
