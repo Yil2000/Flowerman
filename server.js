@@ -477,49 +477,6 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
-async function createSuperAdmin() {
-  try {
-    const username = 'Yannai';
-    const plainPassword = '123456';
-    const role = 'superadmin';
-
-    const hash = await bcrypt.hash(plainPassword, BCRYPT_ROUNDS);
-
-    const result = await pool.query(
-      `
-      INSERT INTO users (username, password_hash, role)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (username) DO NOTHING
-      RETURNING id, username, role
-      `,
-      [username, hash, role]
-    );
-
-    if (result.rows.length > 0) {
-      console.log('✅ סופר אדמין נוצר בהצלחה:', result.rows[0]);
-    } else {
-      console.log('ℹ️ הסופר אדמין כבר קיים במערכת');
-    }
-  } catch (err) {
-    console.error('❌ Error creating superadmin:', err.stack);
-  } finally {
-    await pool.end();
-  }
-}
-
-// הרצה
-createSuperAdmin();
-
  // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
   const { fullname, username, password, passwordConfirm, email } = req.body;
