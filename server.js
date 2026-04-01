@@ -477,7 +477,6 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-import bcrypt from 'bcrypt';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
