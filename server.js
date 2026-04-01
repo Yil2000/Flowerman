@@ -477,28 +477,30 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// TEMP: Create superadmin once
-app.get("/create-superadmin-temp", async (req, res) => {
-  try {
-    const existing = await User.findOne({ username: "yanai" });
-    if (existing) return res.send("משתמש כבר קיים");
 
-    const hashedPassword = await bcrypt.hash("YourTempPassword123!", 10);
 
-    const user = await User.create({
-      username: "yannai",
+// startup.js או index.js של השרת
+const bcrypt = require('bcrypt');
+const User = require('./models/User'); // מודל המשתמשים שלך
+
+async function ensureSuperAdmin() {
+  const existing = await User.findOne({ username: 'tempSuperAdmin' });
+  if (!existing) {
+    const hashedPassword = await bcrypt.hash('1234567890!!TestSuperAdmin', 10);
+    const superAdmin = new User({
+      username: 'Yannai',
       password: hashedPassword,
-      role: "superadmin",
-      email: "yannai.iluz@gmail.com",
-      fullname: "ינאי אילוז"
+      role: 'superadmin',
+      email: 'temp@flowerman.com',
+      fullname: 'ינאי אילוז'
     });
-
-    res.send("סופר־אדמין נוצר! ⚠️ מחק את הקוד אחרי השימוש");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("שגיאה ביצירת סופר־אדמין");
+    await superAdmin.save();
+    console.log('✅ Superadmin זמני נוצר: tempSuperAdmin / SuperSecret123!');
   }
-});
+}
+
+// קריאה בתחילת השרת
+ensureSuperAdmin().catch(console.error);
 
  // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
