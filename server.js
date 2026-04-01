@@ -480,7 +480,7 @@ app.get("*", cacheMiddleware, (req, res) => {
 
 
 // startup.js או index.js של השרת
-const User = require('./models/User'); // מודל המשתמשים שלך
+import User from './models/User.js'; // מודל המשתמשים שלך
 
 async function ensureSuperAdmin() {
   const existing = await User.findOne({ username: 'tempSuperAdmin' });
