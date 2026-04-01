@@ -477,7 +477,7 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-/* // ===== Register (user requests account) =====
+ // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
   const { fullname, username, password, passwordConfirm, email } = req.body;
   if (!fullname || !username || !password || !passwordConfirm) {
@@ -528,47 +528,8 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
     res.status(500).json({ error: "DB error" });
   }
 });
- */
-// ===== User login (general) =====
-/* app.post("/auth/login", async (req,res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
-  try {
-    const q = await db.query("SELECT * FROM users WHERE username=$1", [username]);
-    if (q.rows.length === 0) {
-      // fallback: allow env bootstrap admin (keeps your current flow) 
-      if (username === ADMIN_USER && password === ADMIN_PASS) {
-        // sign short token and return special flag that admin must "complete setup"
-        const token = jwt.sign({ username: ADMIN_USER, role: "bootstrap" }, SECRET_KEY, { expiresIn: "30m" });
-        return res.json({ token, bootstrap: true });
-      } 
-      return res.status(401).json({ error: "Invalid username/password" });
-    } */
-/* 
-    const user = q.rows[0];
-    const ok = await bcrypt.compare(password, user.password_hash || "");
-    if (!ok) return res.status(401).json({ error: "Invalid username/password" });
-    // if role pending -> not allowed to login as full user
-    if (user.role === "pending") return res.status(403).json({ error: "Account awaiting admin approval" });
-    // update last login
-    await db.query("UPDATE users SET last_login=NOW() WHERE id=$1", [user.id]);
-    const token = signUserToken(user);
-   res.json({
-  token,
-  user: {
-    id: user.id,
-    username: user.username,
-    fullname: user.fullname,
-    email: user.email,
-    role: user.role,
-    last_login: user.last_login
-  }
-});
-  } catch (err) {
-    console.error("Login error:", err.stack);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+
+
 
 // ===== Complete bootstrap/setup (when using ADMIN_USER/ADMIN_PASS first-time) =====
 app.post("/auth/complete-setup", async (req,res) => {
@@ -664,31 +625,53 @@ app.post("/auth/reset-password", async (req,res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
- */
-/* למחוק אחר כך!!*/
-  app.post("/auth/login", async (req, res) => {
-    const { username, password } = req.body;
-  
-    if (!username || !password) {
-      return res.status(400).json({ error: "Missing fields" });
+
+app.post("/auth/login", async (req,res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password)
+    return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    const q = await db.query("SELECT * FROM users WHERE username=$1", [username]);
+
+    if (q.rows.length === 0) {
+      return res.status(401).json({ error: "Invalid username/password" });
     }
-  
-    // כניסה עם ADMIN_USER בלבד, ללא בדיקה ב-DB
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-      const user = {
-        id: 0,
-        username: ADMIN_USER,
-        fullname: "Admin",
-        role: "superadmin",
-      };
-  
-      const token = jwt.sign(user, SECRET_KEY, { expiresIn: "1h" }); // 1 שעה, אפשר לשנות
-      return res.json({ token, user });
+
+    const user = q.rows[0];
+
+    const ok = await bcrypt.compare(password, user.password_hash || "");
+    if (!ok) {
+      return res.status(401).json({ error: "Invalid username/password" });
     }
-  
-    // שאר המשתמשים: אין כניסה
-    return res.status(401).json({ error: "Invalid username/password" });
-  });
+
+    // חסימה אם לא אושר
+    if (user.role === "user") {
+      return res.status(403).json({ error: "המשתמש ממתין לאישור מנהל" });
+    }
+
+    // עדכון כניסה אחרונה
+    await db.query("UPDATE users SET last_login=NOW() WHERE id=$1", [user.id]);
+
+    const token = signUserToken(user);
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    console.error("Login error:", err.stack);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 
@@ -709,19 +692,3 @@ Promise.all([
     console.error("❌ Init error:", err.stack);
     serverReady = true; // נמשיך להריץ גם אם קרתה שגיאה
   });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
