@@ -479,27 +479,36 @@ app.get("*", cacheMiddleware, (req, res) => {
 
 
 
-// startup.js או index.js של השרת
-import User from './models/User.js'; // מודל המשתמשים שלך
+import pkg from 'pg';
+const { Client } = pkg;
 
-async function ensureSuperAdmin() {
-  const existing = await User.findOne({ username: 'tempSuperAdmin' });
-  if (!existing) {
-    const hashedPassword = await bcrypt.hash('1234567890!!TestSuperAdmin', 10);
-    const superAdmin = new User({
-      username: 'Yannai',
-      password: hashedPassword,
-      role: 'superadmin',
-      email: 'temp@flowerman.com',
-      fullname: 'ינאי אילוז'
-    });
-    await superAdmin.save();
-    console.log('✅ Superadmin זמני נוצר: tempSuperAdmin / SuperSecret123!');
-  }
-}
+// חיבור ל־Postgres
+const client = new Client({
+  connectionString: 'postgresql://neondb_owner:npg_GbXQfzh3A0Dp@ep-withered-moon-aby7lr7m-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require'
+});
 
-// קריאה בתחילת השרת
-ensureSuperAdmin().catch(console.error);
+await client.connect();
+
+// יוצרים טבלת משתמשים אם אין עדיין
+await client.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE,
+    password TEXT,
+    role TEXT
+  )
+`);
+
+// יוצרים סופר אדמין עם הנתונים שלך
+await client.query(`
+  INSERT INTO users (username, password, role)
+  VALUES ($1, $2, $3)
+  ON CONFLICT (username) DO NOTHING
+`, ['Yannai', '123456', 'superadmin']);
+
+console.log('סופר אדמין נוצר בהצלחה!');
+
+await client.end();
 
  // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
