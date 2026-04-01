@@ -1,33 +1,33 @@
-// createSuperAdmin.js
 import bcrypt from 'bcrypt';
-import { prisma } from './prismaClient.js'; // החלף לפי הנתיב הנכון ל־Prisma או מסד הנתונים שלך
+import { prisma } from './prismaClient.js'; // או החלף עם חיבור מסד הנתונים שלך
 
 async function main() {
-  const email = 'yannai.iluz@gmailcom'; // החלף למייל שלך
+  const email = 'yannai.iluz@gmail.com'; // החלף למייל שלך
   const password = '123456'; // החלף לסיסמה שלך
+  const fullname = 'ינאי אילוז'; // שם מלא
+  const role = 'superadmin'; // תמיד סופר־אדמין
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email }
-  });
-
+  // אם אתה משתמש ב־Prisma
+  const existingAdmin = await prisma.user.findUnique({ where: { email } });
   if (existingAdmin) {
-    console.log('Admin already exists');
+    console.log('משתמש כבר קיים!');
     return;
   }
 
-  const admin = await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
+      fullname,
       email,
       password: hashedPassword,
-      role: 'superadmin' // או לפי השדה שלך במסד
+      role
     }
   });
 
-  console.log('Super admin created:', admin);
+  console.log('סופר־אדמין נוצר בהצלחה:', user);
 }
 
 main()
   .catch((e) => console.error(e))
-  .finally(() => process.exit());
+  .finally(async () => await prisma.$disconnect());
