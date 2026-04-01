@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ===== Sliders Setup =====
+ /*  // ===== Sliders Setup =====
   function setupSliding(containerSelector, interval = 4000, fadeTime = 800) {
     const containers = document.querySelectorAll(containerSelector);
     if (!containers.length) return;
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       startSliding();
     });
-  }
+  } */
 
   setupSliding(".weekly-activity-content-sliding-imgs");
   setupSliding(".special-activity-content-sliding-img");
