@@ -56,12 +56,19 @@ if (!window.hasRunAdminUnified) {
         });
         if (!res.ok) return showError("שגיאה בשרת");
         const data = await res.json();
-        if (data.valid) {
-          if (content) content.style.display = "flex";
-          if (errorDiv) errorDiv.style.display = "none";
-          loadShares(token);
-          loadContacts(token);
-          loadPendingUsers();
+       if (data.valid) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+      
+        if (!["admin", "superadmin"].includes(payload.role)) {
+          return showError("אין הרשאות");
+        }
+      
+        if (content) content.style.display = "flex";
+        if (errorDiv) errorDiv.style.display = "none";
+      
+        loadShares(token);
+        loadContacts(token);
+        loadPendingUsers();
         } else showError("טוקן לא תקין");
       } catch (err) {
         console.error("Token verification error:", err);
