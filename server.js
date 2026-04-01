@@ -481,7 +481,6 @@ import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "10", 10);
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
