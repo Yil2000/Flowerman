@@ -480,7 +480,6 @@ app.get("*", cacheMiddleware, (req, res) => {
 
 
 // startup.js או index.js של השרת
-const bcrypt = require('bcrypt');
 const User = require('./models/User'); // מודל המשתמשים שלך
 
 async function ensureSuperAdmin() {
