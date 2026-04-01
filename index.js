@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("mouseleave", startSliding);
       });
 
-    /*   startSliding(); */
+      startSliding();
     });
   }
 
@@ -272,35 +272,69 @@ document.addEventListener("DOMContentLoaded", () => {
     startCarousel(wallContainer);
   }
 
-function startCarousel() {
-  const carousel = document.querySelector(".messages-wall-cards");
+function startCarousel(carousel) {
   if (!carousel) return;
 
-  const speed = 0.5; // מהירות גלילה בפיקסלים
+  // מונע כפילות
+  if (carousel.dataset.dragInitialized) return;
+  carousel.dataset.dragInitialized = "true";
+
   let isDragging = false;
   let startX = 0;
   let scrollStart = 0;
 
-  // ===== גרירה עם עכבר וטאץ' =====
-  const startDrag = (x) => {
-    isDragging = true;
-    startX = x;
-    scrollStart = carousel.scrollLeft;
-  };
+  let velocity = 0;
+  let lastX = 0;
+  let lastTime = 0;
+  let momentumID;
 
-  const moveDrag = (x) => {
+  carousel.style.cursor = "grab";
+
+  carousel.addEventListener("pointerdown", (e) => {
+    isDragging = true;
+    startX = e.pageX;
+    scrollStart = carousel.scrollLeft;
+
+    velocity = 0;
+    lastX = e.pageX;
+    lastTime = Date.now();
+
+    cancelAnimationFrame(momentumID);
+    carousel.style.cursor = "grabbing";
+  });
+
+  carousel.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
-    const walk = x - startX;
+
+    const now = Date.now();
+    const dx = e.pageX - lastX;
+    const dt = now - lastTime;
+
+    velocity = dx / dt;
+
+    lastX = e.pageX;
+    lastTime = now;
+
+    const walk = e.pageX - startX;
     carousel.scrollLeft = scrollStart - walk;
+  });
+
+  const applyMomentum = () => {
+    carousel.scrollLeft -= velocity * 20;
+    velocity *= 0.95;
+
+    if (Math.abs(velocity) > 0.02) {
+      momentumID = requestAnimationFrame(applyMomentum);
+    }
   };
 
   const stopDrag = () => {
+    if (!isDragging) return;
     isDragging = false;
+    carousel.style.cursor = "grab";
+    applyMomentum();
   };
 
-  // אירועי Pointer (תומך גם בעכבר וגם בטאץ')
-  carousel.addEventListener("pointerdown", (e) => startDrag(e.pageX));
-  carousel.addEventListener("pointermove", (e) => moveDrag(e.pageX));
   carousel.addEventListener("pointerup", stopDrag);
   carousel.addEventListener("pointerleave", stopDrag);
   carousel.addEventListener("pointercancel", stopDrag);
