@@ -477,38 +477,50 @@ app.get("*", cacheMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+import bcrypt from 'bcrypt';
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
 
+dotenv.config();
+const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "10", 10);
 
-import pkg from 'pg';
-const { Client } = pkg;
-
-// חיבור ל־Postgres
-const client = new Client({
-  connectionString: 'postgresql://neondb_owner:npg_GbXQfzh3A0Dp@ep-withered-moon-aby7lr7m-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require'
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
-await client.connect();
+async function createSuperAdmin() {
+  try {
+    const username = 'Yannai';
+    const plainPassword = '123456';
+    const role = 'superadmin';
 
-// יוצרים טבלת משתמשים אם אין עדיין
-await client.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT
-  )
-`);
+    const hash = await bcrypt.hash(plainPassword, BCRYPT_ROUNDS);
 
-// יוצרים סופר אדמין עם הנתונים שלך
-await client.query(`
-  INSERT INTO users (username, password, role)
-  VALUES ($1, $2, $3)
-  ON CONFLICT (username) DO NOTHING
-`, ['Yannai', '123456', 'superadmin']);
+    const result = await pool.query(
+      `
+      INSERT INTO users (username, password_hash, role)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (username) DO NOTHING
+      RETURNING id, username, role
+      `,
+      [username, hash, role]
+    );
 
-console.log('סופר אדמין נוצר בהצלחה!');
+    if (result.rows.length > 0) {
+      console.log('✅ סופר אדמין נוצר בהצלחה:', result.rows[0]);
+    } else {
+      console.log('ℹ️ הסופר אדמין כבר קיים במערכת');
+    }
+  } catch (err) {
+    console.error('❌ Error creating superadmin:', err.stack);
+  } finally {
+    await pool.end();
+  }
+}
 
-await client.end();
+// הרצה
+createSuperAdmin();
 
  // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
