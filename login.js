@@ -61,7 +61,11 @@ form.addEventListener("submit", async (e) => {
     sessionStorage.setItem("userToken", data.token);
 
     // אם המשתמש מנהל/סופר־אדמין יכול לגשת ל־/admin.html
-    window.location.href = "/admin.html?ts=" + new Date().getTime();
+    if (data.user.role === "admin" || data.user.role === "superadmin") {
+      window.location.href = "/admin.html?ts=" + new Date().getTime();
+    } else {
+      window.location.href = "/index.html";
+    }
   } catch (err) {
     console.error("Login error:", err);
     errorMsg.textContent = "שגיאה בשרת, נסה שוב";
