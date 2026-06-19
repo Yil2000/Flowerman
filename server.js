@@ -12,7 +12,7 @@ import { Pool } from "pg";
 import { cacheMiddleware } from "./cache.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import nodemailer from "nodemailer
+import nodemailer from "nodemailer";
 import streamifier from "streamifier";
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "10", 10);
 
@@ -846,7 +846,7 @@ app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
 Promise.all([
   initUsersTable(),
   initContactsTable(),
-  initSharesTable()
+  initSharesTable(),
   ensurePublicIdColumn();
 
 ])
