@@ -12,7 +12,8 @@ import { Pool } from "pg";
 import { cacheMiddleware } from "./cache.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import nodemailer from "nodemailer
+import streamifier from "streamifier";
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "10", 10);
 
 
@@ -195,10 +196,6 @@ async function ensurePublicIdColumn() {
   }
 }
 
-// קריאה חד־פעמית
-ensurePublicIdColumn();
-
-
 // Test initial DB connection safely (without leaking client)
 (async () => {
   try {
@@ -303,6 +300,13 @@ app.post("/admin/verify-token", (req, res) => {
   }
 });
 
+// ✅ להוסיף לאחר /admin/verify-token
+app.post("/admin/refresh-token", authenticateAdmin, (req, res) => {
+  const { id, username, role } = req.admin;
+  const newToken = jwt.sign({ id, username, role }, SECRET_KEY, { expiresIn: "30m" });
+  res.json({ token: newToken });
+});
+
 // ===== Upload Single =====
 app.post(
   "/upload",
@@ -313,7 +317,6 @@ app.post(
   try {
     if (!req.file) return res.status(400).json({ error: "No file" });
 
-    const streamifier = (await import("streamifier")).default;
     const streamUpload = () =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -354,7 +357,6 @@ if (!/^[a-zA-Z0-9_-]+$/.test(tag)) {
 }
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: "No files selected" });
 
-    const streamifier = (await import("streamifier")).default;
     const uploadFile = (file) =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -378,7 +380,7 @@ if (!/^[a-zA-Z0-9_-]+$/.test(tag)) {
 });
 
 // ===== Shares =====
-app.post("/shares", upload.single("file"), async (req, res) => {
+app.post("/shares", authenticateUser, requireRole(["user", "admin", "superadmin"]), upload.single("file"), async (req, res) => {
   try {
     const { name, message } = req.body;
     if (!name || !message) {
@@ -390,7 +392,6 @@ app.post("/shares", upload.single("file"), async (req, res) => {
 
     // ✅ רק אם נשלחה תמונה — נעלה ל־Cloudinary
     if (req.file && req.file.buffer) {
-      const streamifier = (await import("streamifier")).default;
       const streamUpload = () =>
         new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
@@ -424,9 +425,15 @@ const imageCache = {}; // { tagOrFolderName: { images: [...], expires: timestamp
 const CACHE_DURATION = 60 * 60 * 1000; // 1 שעה
 
 app.get("/images/:name", async (req, res) => {
-  const { name } = req.params;
+  const name = req.params.name;
 
-  const cached = imageCache[name];
+  // ✅ מניעת prototype pollution ומניעת traversal
+  if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+    return res.status(400).json({ error: "Invalid name" });
+  }
+
+  const cacheKey = `img_${name}`;
+  const cached = imageCache[cacheKey];
   if (cached && cached.expires > Date.now()) return res.json(cached.images);
 
   try {
@@ -621,6 +628,17 @@ app.post("/auth/register", async (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
   }
   if (password !== passwordConfirm) return res.status(400).json({ error: "Passwords do not match" });
+if (username.length < 3 || username.length > 30)
+  return res.status(400).json({ error: "Username must be 3–30 characters" });
+
+if (!/^[a-zA-Z0-9_]+$/.test(username))
+  return res.status(400).json({ error: "Username may only contain letters, digits, underscores" });
+
+if (password.length < 5 || password.length > 72)
+  return res.status(400).json({ error: "Password must be 4–72 characters" });
+
+if (fullname.length > 100)
+  return res.status(400).json({ error: "Name too long" });
 
   try {
     const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -829,6 +847,8 @@ Promise.all([
   initUsersTable(),
   initContactsTable(),
   initSharesTable()
+  ensurePublicIdColumn();
+
 ])
   .then(() => {
     serverReady = true;
