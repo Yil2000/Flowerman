@@ -463,7 +463,7 @@ app.get("/images/:name", async (req, res) => {
       cursor = result.next_cursor;
     } while (cursor);
 
-    imageCache[name] = { images: allImages, expires: Date.now() + CACHE_DURATION };
+imageCache[cacheKey] = { images: allImages, expires: Date.now() + CACHE_DURATION };
     res.json(allImages);
   } catch (err) {
     console.error("❌ Failed to fetch images:", err.stack);
@@ -601,44 +601,6 @@ app.get("/shares", cacheMiddleware, async (req, res) => {
   }
 });
 
-// ===== ONE TIME SETUP - DELETE AFTER USE =====
-app.get("/create-superadmin", async (req, res) => {
-  try {
-    const hash = await bcrypt.hash("Yannai100", 10);
-    const result = await db.query(
-      `INSERT INTO users (fullname, username, email, password_hash, role)
-       VALUES ($1, $2, $3, $4, 'superadmin')
-       RETURNING id, username, role`,
-      ["Yannai iluz", "iluz_yan", "yannai.iluz@gmail.com", hash]
-    );
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// ===== END ONE TIME SETUP =====
-app.get("/list-users", async (req, res) => {
-  const q = await db.query("SELECT id, fullname, username, email, role, password_hash IS NOT NULL as has_password FROM users");
-  res.json(q.rows);
-});
-app.get("/fix-superadmin", async (req, res) => {
-  await db.query(
-    "UPDATE users SET fullname='ינאי אילוז', username='iluz_yan', role='superadmin, WHERE id=1"
-  );
-  res.json({ success: true });
-});
-
-
-// ===== Catch-All =====
-app.get("*", cacheMiddleware, (req, res) => {
-  // תמיד מאפשר robots.txt גם אם serverReady=false
-  if (req.path === "/robots.txt") return res.sendFile(path.join(__dirname, "robots.txt"));
-
-  if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
-  if (req.path.startsWith("/api")) return res.status(404).json({ error: "Endpoint not found" });
-
-  res.sendFile(path.join(__dirname, "index.html"));
-});
 
  // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
@@ -708,45 +670,6 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
   } catch (err) {
     console.error("Reject error:", err.stack);
     res.status(500).json({ error: "DB error" });
-  }
-});
-
-
-
-
-// ===== Complete bootstrap/setup (when using ADMIN_USER/ADMIN_PASS first-time) =====
-app.post("/auth/complete-setup", async (req,res) => {
-  // expects bootstrap token (from /auth/login when using env admin) in Authorization header
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token" });
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    if (decoded.role !== "bootstrap" || decoded.username !== ADMIN_USER) return res.status(403).json({ error: "Invalid bootstrap token" });
-
-    const { fullname, username, password, passwordConfirm, email } = req.body;
-    if (
-  email &&
-  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-) {
-  return res.status(400).json({
-    error: "Invalid email"
-  });
-}
-    if (!username || !password || password !== passwordConfirm) return res.status(400).json({ error: "Invalid fields" });
-
-    // create superadmin user row
-    const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const result = await db.query(
-      `INSERT INTO users (fullname, username, password_hash, role) VALUES ($1,$2,$3,'superadmin') RETURNING id, username, fullname, role`,
-      [fullname || 'Admin', username, hash]
-    );
-    const user = result.rows[0];
-    const newToken = signUserToken(user);
-    res.json({ success: true, token: newToken, user });
-  } catch (err) {
-    console.error("Complete setup error:", err.stack);
-    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -865,6 +788,16 @@ app.post("/auth/login", async (req,res) => {
 });
 
 
+// ===== Catch-All =====
+app.get("*", cacheMiddleware, (req, res) => {
+  // תמיד מאפשר robots.txt גם אם serverReady=false
+  if (req.path === "/robots.txt") return res.sendFile(path.join(__dirname, "robots.txt"));
+
+  if (!serverReady) return res.sendFile(path.join(__dirname, "loading.html"));
+  if (req.path.startsWith("/api")) return res.status(404).json({ error: "Endpoint not found" });
+
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 
 // ===== Start Server (with Loading Mode) =====
