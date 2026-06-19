@@ -791,7 +791,7 @@ app.get("/fix-superadmin", async (req, res) => {
   try {
     const hash = await bcrypt.hash("Yannai100", 10);
     await db.query(
-      "UPDATE users SET role='superadmin', password_hash=$1 WHERE email='yannai.iluz@gmail.com'",
+      "UPDATE users SET role='superadmin', username='iluz_yan', fullname='ינאי אילוז', password_hash=$1 WHERE email='yannai.iluz@gmail.com'",
       [hash]
     );
     res.json({ success: true });
