@@ -47,16 +47,7 @@ form.addEventListener("submit", async (e) => {
       errorMsg.textContent = data.error || "שגיאה בהתחברות";
       return;
     }
-
-    // bootstrap admin flow (if ENV admin used)
-    if (data.bootstrap) {
-      // שמירת טוקן זמני כדי להשלים הגדרה ראשונית
-      sessionStorage.setItem("bootstrapToken", data.token);
-      // הפנה לדף setup שבו ימלא שם וסיסמה חדשים
-      window.location.href = "/complete-setup.html";
-      return;
-    }
-
+    
     // רגיל: שמירת הטוקן של המשתמש
     sessionStorage.setItem("userToken", data.token);
 
