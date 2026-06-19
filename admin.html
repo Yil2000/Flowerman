@@ -21,18 +21,35 @@
       <div id="content">
         <button id="logout-btn">התנתקות</button>
 
-        <button data-target="users-section">ניהול משתמשים</button>
-
-        <!-- Users section -->
-        <div id="users-section" class="section">
-          <h2>ניהול משתמשים</h2>
-        
-          <h3>בקשות אישור</h3>
-          <div id="pending-users-list"></div>
-        
-          <h3>חיפוש / שינוי משתמש</h3>
-          <div id="users-list"></div>
-        </div>
+      <div id="manage-users" class="section">
+      <h2>ניהול משתמשים</h2>
+    
+      <!-- טאבים -->
+      <div class="um-tabs">
+        <button class="um-tab active" data-tab="pending">
+          ממתינים לאישור
+          <span class="um-tab-count" id="pending-count">0</span>
+        </button>
+        <button class="um-tab" data-tab="users">משתמשים רגילים</button>
+        <button class="um-tab" data-tab="admins">מנהלים</button>
+      </div>
+    
+      <!-- תוכן טאבים -->
+      <div id="um-tab-pending" class="um-tab-content active">
+        <p class="um-section-label">ממתינים לאישור</p>
+        <div class="um-cards" id="pending-users-list"></div>
+      </div>
+    
+      <div id="um-tab-users" class="um-tab-content">
+        <p class="um-section-label">משתמשים מאושרים</p>
+        <div class="um-cards" id="regular-users-list"></div>
+      </div>
+    
+      <div id="um-tab-admins" class="um-tab-content">
+        <p class="um-section-label">מנהלים</p>
+        <div class="um-cards" id="admin-users-list"></div>
+      </div>
+    </div>
 
 
         <!-- תגובות -->
