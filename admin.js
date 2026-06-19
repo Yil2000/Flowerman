@@ -383,154 +383,228 @@ if (!window.hasRunAdminUnified) {
       });
     }
 
-    // ===== User Management =====
-const token = sessionStorage.getItem("useradminToken");
+// ===== User Management =====
+let allUsersCache = [];
 
-// טאבים
-const umTabs = document.querySelectorAll(".um-tab");
-const umContents = document.querySelectorAll(".um-tab-content");
+function getCurrentToken() {
+  return sessionStorage.getItem("userToken");
+}
 
-if (umTabs) {
-  umTabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      umTabs.forEach(t => t.classList.remove("active"));
-      umContents.forEach(c => c.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById(`um-tab-${tab.dataset.tab}`).classList.add("active");
-    });
+function getCurrentRole() {
+  const t = getCurrentToken();
+  if (!t) return null;
+  try {
+    return JSON.parse(atob(t.split(".")[1])).role;
+  } catch { return null; }
+}
+
+// הצגת/הסתרת כפתור ניהול לפי role
+function setupManageUsersVisibility() {
+  const role = getCurrentRole();
+  const btn = document.getElementById("manage-users-btn");
+  if (btn && (role === "admin" || role === "superadmin")) {
+    btn.style.display = "block";
+  }
+}
+
+// מילוי ה-dropdown
+function populateUserSelect(users) {
+  const select = document.getElementById("um-user-select");
+  if (!select) return;
+  select.innerHTML = '<option value="">-- בחר משתמש --</option>';
+  users.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.id;
+    opt.textContent = u.fullname || u.username;
+    select.appendChild(opt);
   });
 }
 
-// צבעי avatar לפי אות ראשונה
+// צבע avatar
 function avatarColor(name) {
-  const colors = ["#9B59B6","#FF6B6B","#1abc9c","#3498db","#e67e22","#e91e8c"];
+  const colors = ["#9B59B6","#e91e8c","#1abc9c","#3498db","#e67e22","#FF6B6B"];
   return colors[(name?.charCodeAt(0) || 0) % colors.length];
 }
 
 // badge לפי role
-function roleBadge(role) {
-  const map = {
-    pending:    { cls: "badge-pending",    label: "ממתין" },
-    user:       { cls: "badge-user",       label: "משתמש" },
-    admin:      { cls: "badge-admin",      label: "מנהל" },
-    superadmin: { cls: "badge-superadmin", label: "Superadmin" },
-  };
-  const b = map[role] || { cls: "badge-user", label: role };
-  return `<span class="um-badge ${b.cls}">${b.label}</span>`;
+function roleBadgeClass(role) {
+  return { pending:"badge-pending", user:"badge-user", admin:"badge-admin", superadmin:"badge-superadmin" }[role] || "badge-user";
+}
+function roleBadgeLabel(role) {
+  return { pending:"ממתין", user:"משתמש", admin:"מנהל", superadmin:"Superadmin" }[role] || role;
 }
 
-// formatDate
-function fmtDate(d) {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("he-IL", { day:"2-digit", month:"2-digit", year:"numeric" });
-}
+// הצגת כרטיס משתמש
+function showUserCard(user) {
+  const card     = document.getElementById("um-user-card");
+  const avatar   = document.getElementById("um-avatar");
+  const fullname = document.getElementById("um-fullname");
+  const uname    = document.getElementById("um-username-display");
+  const badge    = document.getElementById("um-role-badge");
+  const fFullname  = document.getElementById("um-edit-fullname");
+  const fUsername  = document.getElementById("um-edit-username");
+  const fEmail     = document.getElementById("um-edit-email");
+  const fRole      = document.getElementById("um-edit-role");
+  const feedback   = document.getElementById("um-feedback");
+  const roleField  = document.getElementById("um-role-field");
 
-// בניית כרטיס יוזר
-function buildUserCard(user, currentRole) {
+  if (!card) return;
+
   const initial = (user.fullname || user.username || "?")[0];
-  const color   = avatarColor(user.fullname || user.username);
+  avatar.textContent = initial;
+  avatar.style.background = avatarColor(user.fullname || user.username);
+  fullname.textContent = user.fullname || "—";
+  uname.textContent = "@" + user.username;
+  badge.textContent = roleBadgeLabel(user.role);
+  badge.className = "um-badge " + roleBadgeClass(user.role);
 
-  let actions = "";
+  fFullname.value = user.fullname || "";
+  fUsername.value = user.username || "";
+  fEmail.value    = user.email    || "";
+  if (fRole) fRole.value = user.role || "user";
+  if (feedback) { feedback.textContent = ""; feedback.className = "um-feedback"; }
 
-  if (user.role === "pending") {
-    actions = `
-      <button class="btn-approve" data-id="${user.id}" data-action="approve">✓ אשר</button>
-      <button class="btn-reject"  data-id="${user.id}" data-action="reject">✗ דחה</button>`;
-  } else if (user.role === "user" && currentRole === "superadmin") {
-    actions = `
-      <button class="btn-promote" data-id="${user.id}" data-action="promote">↑ הפוך למנהל</button>
-      <button class="btn-delete"  data-id="${user.id}" data-action="delete">🗑 מחק</button>`;
-  } else if (user.role === "user" && currentRole === "admin") {
-    actions = `<button class="btn-delete" data-id="${user.id}" data-action="delete">🗑 מחק</button>`;
-  } else if (user.role === "admin" && currentRole === "superadmin") {
-    actions = `
-      <button class="btn-demote" data-id="${user.id}" data-action="demote">↓ הורד למשתמש</button>
-      <button class="btn-delete" data-id="${user.id}" data-action="delete">🗑 מחק</button>`;
-  } else if (user.role === "superadmin") {
-    actions = `<span style="font-size:11px;color:#bbb">לא ניתן לשינוי</span>`;
+  // superadmin לא יכול לשנות role של superadmin אחר
+  const currentRole = getCurrentRole();
+  if (roleField) {
+    roleField.style.display = (currentRole === "superadmin") ? "flex" : "none";
   }
 
-  return `
-    <div class="um-card">
-      <div class="um-card-header">
-        <div class="um-avatar" style="background:${color}">${initial}</div>
-        <div>
-          <div class="um-name">${user.fullname || "—"}</div>
-          <div class="um-username">@${user.username}</div>
-        </div>
-      </div>
-      ${roleBadge(user.role)}
-      <div class="um-email">${user.email || "—"}</div>
-      <div class="um-meta">
-        ${user.last_login ? "כניסה: " + fmtDate(user.last_login) : "נרשם: " + fmtDate(user.created_at)}
-      </div>
-      <div class="um-actions">${actions}</div>
-    </div>`;
+  // הסתרת אפשרות superadmin מ-admin רגיל
+  if (fRole) {
+    const superOpt = fRole.querySelector('option[value="superadmin"]');
+    if (superOpt) superOpt.style.display = currentRole === "superadmin" ? "" : "none";
+  }
+
+  card.style.display = "flex";
+  card.dataset.userId = user.id;
 }
 
 // טעינת כל המשתמשים
 async function loadAllUsers() {
   try {
+    const token = getCurrentToken();
     const res = await fetch(`${serverUrl}/admin/users/all`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    if (!res.ok) return;
-    const users = await res.json();
-
-    // זיהוי role של המשתמש הנוכחי
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const currentRole = payload.role;
-
-    // הצגת/הסתרת כפתור ניהול משתמשים לפי role
-    const manageBtn = document.getElementById("manage-users-btn");
-    if (manageBtn && (currentRole === "admin" || currentRole === "superadmin")) {
-      manageBtn.style.display = "block";
+    if (!res.ok) {
+      console.error("loadAllUsers failed:", res.status);
+      return;
     }
+    allUsersCache = await res.json();
+    populateUserSelect(allUsersCache);
 
-    const pending  = users.filter(u => u.role === "pending");
-    const regular  = users.filter(u => u.role === "user");
-    const admins   = users.filter(u => u.role === "admin" || u.role === "superadmin");
+    // אם כרטיס כבר פתוח — רענן אותו
+    const card = document.getElementById("um-user-card");
+    if (card && card.style.display !== "none" && card.dataset.userId) {
+      const u = allUsersCache.find(x => String(x.id) === card.dataset.userId);
+      if (u) showUserCard(u);
+    }
+  } catch (err) {
+    console.error("loadAllUsers error:", err);
+  }
+}
 
-    // עדכון מונה ממתינים
-    const countEl = document.getElementById("pending-count");
-    if (countEl) countEl.textContent = pending.length;
-    if (pending.length === 0 && countEl) countEl.style.display = "none";
+// שמירת שינויים
+async function saveUserChanges() {
+  const card = document.getElementById("um-user-card");
+  const feedback = document.getElementById("um-feedback");
+  if (!card || !card.dataset.userId) return;
 
-    // מילוי הרשימות
-    const pendingList  = document.getElementById("pending-users-list");
-    const regularList  = document.getElementById("regular-users-list");
-    const adminList    = document.getElementById("admin-users-list");
+  const id       = card.dataset.userId;
+  const fullname = document.getElementById("um-edit-fullname")?.value.trim();
+  const username = document.getElementById("um-edit-username")?.value.trim();
+  const email    = document.getElementById("um-edit-email")?.value.trim();
+  const role     = document.getElementById("um-edit-role")?.value;
 
-    if (pendingList)  pendingList.innerHTML  = pending.length  ? pending.map(u  => buildUserCard(u, currentRole)).join("") : `<p class="um-empty">אין משתמשים ממתינים</p>`;
-    if (regularList)  regularList.innerHTML  = regular.length  ? regular.map(u  => buildUserCard(u, currentRole)).join("") : `<p class="um-empty">אין משתמשים</p>`;
-    if (adminList)    adminList.innerHTML    = admins.length   ? admins.map(u   => buildUserCard(u, currentRole)).join("") : `<p class="um-empty">אין מנהלים</p>`;
+  if (!fullname || !username) {
+    feedback.textContent = "שם מלא ושם משתמש הם שדות חובה";
+    feedback.className = "um-feedback error";
+    return;
+  }
 
-    // Listeners על כפתורים
-    document.querySelectorAll(".um-actions button[data-action]").forEach(btn => {
-      btn.addEventListener("click", () => handleUserAction(btn.dataset.action, btn.dataset.id));
+  try {
+    const token = getCurrentToken();
+    const body = { fullname, username, email };
+    if (getCurrentRole() === "superadmin" && role) body.role = role;
+
+    const res = await fetch(`${serverUrl}/admin/users/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
     });
 
-  } catch (err) { console.error("loadAllUsers:", err); }
-}
-
-async function handleUserAction(action, id) {
-  try {
-    let res;
-    if (action === "approve") {
-      res = await fetch(`/admin/users/approve/${id}`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-    } else if (action === "reject" || action === "delete") {
-      res = await fetch(`/admin/users/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-    } else if (action === "promote") {
-      res = await fetch(`/admin/users/promote/${id}`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-    } else if (action === "demote") {
-      res = await fetch(`/admin/users/demote/${id}`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    if (res.ok) {
+      feedback.textContent = "✅ הפרטים עודכנו בהצלחה";
+      feedback.className = "um-feedback success";
+      await loadAllUsers();
+    } else {
+      feedback.textContent = "❌ " + (data.error || "שגיאה בעדכון");
+      feedback.className = "um-feedback error";
     }
-    if (res && res.ok) loadAllUsers();
-    else console.error("Action failed:", action, await res?.text());
-  } catch (err) { console.error("handleUserAction:", err); }
+  } catch (err) {
+    console.error("saveUserChanges:", err);
+    feedback.textContent = "❌ שגיאת רשת";
+    feedback.className = "um-feedback error";
+  }
 }
 
-// טעינה אוטומטית בכניסה לסקציה
+// מחיקת משתמש
+async function deleteUser() {
+  const card = document.getElementById("um-user-card");
+  if (!card || !card.dataset.userId) return;
+  const id = card.dataset.userId;
+  if (!confirm("למחוק את המשתמש לצמיתות?")) return;
+
+  try {
+    const token = getCurrentToken();
+    const res = await fetch(`${serverUrl}/admin/users/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      card.style.display = "none";
+      document.getElementById("um-user-select").value = "";
+      showNotification("🗑️ המשתמש נמחק");
+      await loadAllUsers();
+    } else {
+      const data = await res.json();
+      alert(data.error || "שגיאה במחיקה");
+    }
+  } catch (err) {
+    console.error("deleteUser:", err);
+  }
+}
+
+// Event Listeners של ניהול משתמשים
+const umSelect = document.getElementById("um-user-select");
+if (umSelect) {
+  umSelect.addEventListener("change", () => {
+    const id = umSelect.value;
+    if (!id) {
+      const card = document.getElementById("um-user-card");
+      if (card) card.style.display = "none";
+      return;
+    }
+    const user = allUsersCache.find(u => String(u.id) === id);
+    if (user) showUserCard(user);
+  });
+}
+
+const umRefresh = document.getElementById("um-refresh-btn");
+if (umRefresh) umRefresh.addEventListener("click", loadAllUsers);
+
+const umSave = document.getElementById("um-save-btn");
+if (umSave) umSave.addEventListener("click", saveUserChanges);
+
+const umDelete = document.getElementById("um-delete-btn");
+if (umDelete) umDelete.addEventListener("click", deleteUser);
+
+// טעינה בלחיצה על סיידבר
 document.querySelectorAll("#sidebar button").forEach(btn => {
   if (btn.dataset.target === "manage-users") {
     btn.addEventListener("click", loadAllUsers);
@@ -538,6 +612,7 @@ document.querySelectorAll("#sidebar button").forEach(btn => {
 });
 
     // ===== Start =====
+    setupManageUsersVisibility();
     checkToken();
   });
 }
