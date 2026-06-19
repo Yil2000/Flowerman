@@ -617,6 +617,13 @@ app.get("/create-superadmin", async (req, res) => {
   }
 });
 // ===== END ONE TIME SETUP =====
+app.get("/check-user/:username", async (req, res) => {
+  const q = await db.query("SELECT id, username, role, password_hash FROM users WHERE username=$1", [req.params.username]);
+  if (!q.rows.length) return res.json({ found: false });
+  const user = q.rows[0];
+  res.json({ found: true, role: user.role, hasHash: !!user.password_hash });
+});
+
 
 // ===== Catch-All =====
 app.get("*", cacheMiddleware, (req, res) => {
