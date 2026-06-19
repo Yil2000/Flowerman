@@ -685,6 +685,23 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
 });
 
 
+// ===== ONE TIME SETUP - DELETE AFTER USE =====
+app.get("/create-superadmin", async (req, res) => {
+  try {
+    const hash = await bcrypt.hash("Yannai100, 10);
+    const result = await db.query(
+      `INSERT INTO users (fullname, username, email, password_hash, role)
+       VALUES ($1, $2, $3, $4, 'superadmin')
+       RETURNING id, username, role`,
+      ["Yannai iluz", "iluz_yan", "yannai.iluz@gmail.com", hash]
+    );
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// ===== END ONE TIME SETUP =====
+
 
 // ===== Complete bootstrap/setup (when using ADMIN_USER/ADMIN_PASS first-time) =====
 app.post("/auth/complete-setup", async (req,res) => {
