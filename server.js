@@ -91,14 +91,6 @@ const upload = multer({
   }
 });
 
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASS = process.env.ADMIN_PASS;
-
-if (!ADMIN_USER || !ADMIN_PASS) {
-  console.error("❌ ADMIN_USER or ADMIN_PASS not set in ENV");
-  process.exit(1);
-}
-
 // יצירת JWT למשתמש
 function signUserToken(user) {
   // include id and role
@@ -261,28 +253,6 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
   api_key: process.env.CLOUDINARY_API_KEY || "",
   api_secret: process.env.CLOUDINARY_API_SECRET || "",
-});
-
-
-// ===== Admin Login =====
-
-app.post("/admin/login", (req, res) => {
-  const { username, password } = req.body;
-
-  if (username !== process.env.ADMIN_USER || password !== process.env.ADMIN_PASS) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  const token = jwt.sign(
-  {
-    id: null, // חייב להעביר null אם אין לאדמין הזה ID בדאטה בייס
-    username,
-    role: "superadmin"
-  },
-  SECRET_KEY,
-  { expiresIn: "30m" }
-);
-  res.json({ token });
 });
 
 
