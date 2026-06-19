@@ -42,8 +42,8 @@ if (!window.hasRunAdminUnified) {
       if (errorDiv) errorDiv.style.display = "block";
     }
 
-    async function checkToken() {
-      const token = sessionStorage.getItem("adminToken");
+   async function checkToken() {
+      const token = sessionStorage.getItem("userToken");
       if (!token) return showError("אין טוקן");
 
       try {
@@ -79,7 +79,7 @@ if (!window.hasRunAdminUnified) {
     // ===== Logout =====
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
-        sessionStorage.removeItem("adminToken");
+        sessionStorage.removeItem("userToken");
         window.location.replace("/index.html");
       });
     }
@@ -152,7 +152,7 @@ if (!window.hasRunAdminUnified) {
     }
 
     async function publishShare(div) {
-      const token = sessionStorage.getItem("adminToken");
+      const token = sessionStorage.getItem("userToken");
       try {
         const res = await fetch(`${serverUrl}/admin/shares/publish/${div.dataset.id}`, {
           method: "POST",
@@ -173,7 +173,7 @@ if (!window.hasRunAdminUnified) {
     }
 
     async function unpublishShare(div) {
-      const token = sessionStorage.getItem("adminToken");
+      const token = sessionStorage.getItem("userToken");
       try {
         const res = await fetch(`${serverUrl}/admin/shares/unpublish/${div.dataset.id}`, {
           method: "POST",
@@ -189,7 +189,7 @@ if (!window.hasRunAdminUnified) {
     }
 
     async function deleteShare(div) {
-      const token = sessionStorage.getItem("adminToken");
+      const token = sessionStorage.getItem("userToken");
       if (!confirm("למחוק את השיתוף לצמיתות?")) return;
       try {
         const res = await fetch(`${serverUrl}/admin/shares/${div.dataset.id}`, {
@@ -344,7 +344,7 @@ if (!window.hasRunAdminUnified) {
         const files = uploadFiles.files;
         const tag = uploadTag.value.trim();
         if (!files.length || !tag) return alert("אנא מלא תג ובחר קבצים");
-        const token = sessionStorage.getItem("adminToken");
+        const token = sessionStorage.getItem("userToken");
         const formData = new FormData();
         for (const f of files) formData.append("files", f);
         formData.append("tag", tag);
