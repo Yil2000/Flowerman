@@ -62,20 +62,6 @@ app.use("/admin.html", (req, res, next) => {
 });
 ;
 
-
-
-// DELETE /admin/users/:id — מחיקה (admin/superadmin, לא superadmin)
-app.delete("/admin/users/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "DELETE FROM users WHERE id=$1 AND role != 'superadmin' RETURNING id",
-    [req.params.id]
-  );
-  if (!result.rows.length) return res.status(404).json({ error: "User not found or protected" });
-  res.json({ success: true });
-});
-
-
-
 // ===== Uploads Folder =====
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -735,19 +721,6 @@ if (fullname.length > 100)
 app.get("/admin/users/pending", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
   const result = await db.query("SELECT id, fullname, username, email, created_at FROM users WHERE role='pending' ORDER BY created_at ASC");
   res.json(result.rows);
-});
-
-// ===== Approve / Reject user (admin only) =====
-app.post("/admin/users/approve/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
-  const userId = parseInt(req.params.id,10);
-  try {
-    const result = await db.query("UPDATE users SET role='user', approved_by=$1 WHERE id=$2 RETURNING id, username, role", [req.user.id, userId]);
-    if (!result.rows.length) return res.status(404).json({ error: "User not found" });
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    console.error("Approve error:", err.stack);
-    res.status(500).json({ error: "DB error" });
-  }
 });
 
 app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
