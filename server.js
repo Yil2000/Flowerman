@@ -688,7 +688,7 @@ app.post("/admin/users/reject/:id", authenticateUser, requireRole(["admin","supe
 // ===== ONE TIME SETUP - DELETE AFTER USE =====
 app.get("/create-superadmin", async (req, res) => {
   try {
-    const hash = await bcrypt.hash("Yannai100, 10);
+    const hash = await bcrypt.hash("Yannai100", 10);
     const result = await db.query(
       `INSERT INTO users (fullname, username, email, password_hash, role)
        VALUES ($1, $2, $3, $4, 'superadmin')
