@@ -622,6 +622,14 @@ app.get("/list-users", async (req, res) => {
   res.json(q.rows);
 });
 
+app.get("/fix-superadmin", async (req, res) => {
+  await db.query(
+    "UPDATE users SET fullname='ינאי', username='yannai', role='superadmin' WHERE id=1"
+  );
+  res.json({ success: true });
+});
+
+
 // ===== Catch-All =====
 app.get("*", cacheMiddleware, (req, res) => {
   // תמיד מאפשר robots.txt גם אם serverReady=false
