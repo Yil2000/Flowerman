@@ -63,33 +63,6 @@ app.use("/admin.html", (req, res, next) => {
 ;
 
 
-// GET /admin/users/all — כל המשתמשים (admin + superadmin)
-app.get("/admin/users/all", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
-  );
-  res.json(result.rows);
-});
-
-// POST /admin/users/promote/:id — הפוך ל-admin (superadmin בלבד)
-app.post("/admin/users/promote/:id", authenticateUser, requireRole(["superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "UPDATE users SET role='admin' WHERE id=$1 AND role='user' RETURNING id, username, role",
-    [req.params.id]
-  );
-  if (!result.rows.length) return res.status(404).json({ error: "User not found or not eligible" });
-  res.json({ success: true, user: result.rows[0] });
-});
-
-// POST /admin/users/demote/:id — הורד ל-user (superadmin בלבד)
-app.post("/admin/users/demote/:id", authenticateUser, requireRole(["superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "UPDATE users SET role='user' WHERE id=$1 AND role='admin' RETURNING id, username, role",
-    [req.params.id]
-  );
-  if (!result.rows.length) return res.status(404).json({ error: "User not found or not eligible" });
-  res.json({ success: true, user: result.rows[0] });
-});
 
 // DELETE /admin/users/:id — מחיקה (admin/superadmin, לא superadmin)
 app.delete("/admin/users/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
@@ -239,6 +212,34 @@ async function ensurePublicIdColumn() {
 // Prevent crash on unexpected idle client errors
 pool.on("error", (err) => {
   console.error("❌ Unexpected PG Pool Error:", err.stack);
+});
+
+// GET /admin/users/all — כל המשתמשים (admin + superadmin)
+app.get("/admin/users/all", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
+  const result = await db.query(
+    "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
+  );
+  res.json(result.rows);
+});
+
+// POST /admin/users/promote/:id — הפוך ל-admin (superadmin בלבד)
+app.post("/admin/users/promote/:id", authenticateUser, requireRole(["superadmin"]), async (req,res) => {
+  const result = await db.query(
+    "UPDATE users SET role='admin' WHERE id=$1 AND role='user' RETURNING id, username, role",
+    [req.params.id]
+  );
+  if (!result.rows.length) return res.status(404).json({ error: "User not found or not eligible" });
+  res.json({ success: true, user: result.rows[0] });
+});
+
+// POST /admin/users/demote/:id — הורד ל-user (superadmin בלבד)
+app.post("/admin/users/demote/:id", authenticateUser, requireRole(["superadmin"]), async (req,res) => {
+  const result = await db.query(
+    "UPDATE users SET role='user' WHERE id=$1 AND role='admin' RETURNING id, username, role",
+    [req.params.id]
+  );
+  if (!result.rows.length) return res.status(404).json({ error: "User not found or not eligible" });
+  res.json({ success: true, user: result.rows[0] });
 });
 
 
