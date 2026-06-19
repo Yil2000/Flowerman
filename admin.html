@@ -15,42 +15,72 @@
         <button data-target="comments-section">קיר השיתופים</button>
         <button data-target="contacts-container">טפסי יצירת קשר</button>
         <button data-target="upload-section">העלאת תמונות</button>
-        <button data-target="manage-users" id="manage-users-btn">ניהול משתמשים</button>
+        <button data-target="manage-users" id="manage-users-btn" style="display:none">ניהול משתמשים</button>
       </div>
 
       <!-- Content -->
       <div id="content">
         <button id="logout-btn">התנתקות</button>
 
-      <div id="manage-users" class="section">
-      <h2>ניהול משתמשים</h2>
-    
-      <!-- טאבים -->
-      <div class="um-tabs">
-        <button class="um-tab active" data-tab="pending">
-          ממתינים לאישור
-          <span class="um-tab-count" id="pending-count">0</span>
-        </button>
-        <button class="um-tab" data-tab="users">משתמשים רגילים</button>
-        <button class="um-tab" data-tab="admins">מנהלים</button>
+      <di<div id="manage-users" class="section">
+  <h2>ניהול משתמשים</h2>
+
+  <!-- בחירת משתמש -->
+  <div class="um-select-wrap">
+    <label for="um-user-select">בחר משתמש</label>
+    <select id="um-user-select">
+      <option value="">-- בחר משתמש --</option>
+    </select>
+    <button id="um-refresh-btn">↻ רענן רשימה</button>
+  </div>
+
+  <!-- כרטיס משתמש -->
+  <div id="um-user-card" style="display:none">
+
+    <div class="um-card-top">
+      <div class="um-avatar" id="um-avatar">א</div>
+      <div>
+        <div class="um-fullname" id="um-fullname">שם מלא</div>
+        <div class="um-username-display" id="um-username-display">@username</div>
       </div>
-    
-      <!-- תוכן טאבים -->
-      <div id="um-tab-pending" class="um-tab-content active">
-        <p class="um-section-label">ממתינים לאישור</p>
-        <div class="um-cards" id="pending-users-list"></div>
+      <span class="um-badge" id="um-role-badge">role</span>
+    </div>
+
+    <div class="um-divider"></div>
+
+    <!-- פרטי משתמש לעריכה -->
+    <div class="um-fields">
+      <div class="um-field-group">
+        <label>שם מלא</label>
+        <input type="text" id="um-edit-fullname" placeholder="שם מלא" />
       </div>
-    
-      <div id="um-tab-users" class="um-tab-content">
-        <p class="um-section-label">משתמשים מאושרים</p>
-        <div class="um-cards" id="regular-users-list"></div>
+      <div class="um-field-group">
+        <label>שם משתמש</label>
+        <input type="text" id="um-edit-username" placeholder="username" />
       </div>
-    
-      <div id="um-tab-admins" class="um-tab-content">
-        <p class="um-section-label">מנהלים</p>
-        <div class="um-cards" id="admin-users-list"></div>
+      <div class="um-field-group">
+        <label>אימייל</label>
+        <input type="email" id="um-edit-email" placeholder="email" />
+      </div>
+      <div class="um-field-group" id="um-role-field">
+        <label>הרשאה (Role)</label>
+        <select id="um-edit-role">
+          <option value="pending">ממתין (pending)</option>
+          <option value="user">משתמש (user)</option>
+          <option value="admin">מנהל (admin)</option>
+          <option value="superadmin">סופר מנהל (superadmin)</option>
+        </select>
       </div>
     </div>
+
+    <div class="um-card-actions">
+      <button id="um-save-btn">שמור שינויים</button>
+      <button id="um-delete-btn" class="um-btn-danger">מחק משתמש</button>
+    </div>
+
+    <div id="um-feedback" class="um-feedback"></div>
+  </div>
+</div>
 
 
         <!-- תגובות -->
