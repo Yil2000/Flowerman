@@ -618,13 +618,12 @@ app.get("/create-superadmin", async (req, res) => {
 });
 // ===== END ONE TIME SETUP =====
 app.get("/list-users", async (req, res) => {
-  const q = await db.query("SELECT id, username, email, role FROM users");
+  const q = await db.query("SELECT id, fullname, username, email, role, password_hash IS NOT NULL as has_password FROM users");
   res.json(q.rows);
-});
 
 app.get("/fix-superadmin", async (req, res) => {
   await db.query(
-    "UPDATE users SET fullname='ינאי', username='yannai', role='superadmin' WHERE id=1"
+    "UPDATE users SET fullname='ינאי אילוז', username='iluz_yan', role='superadmin', password='Yannai100', WHERE id=1"
   );
   res.json({ success: true });
 });
