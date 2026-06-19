@@ -43,7 +43,15 @@ app.get("/robots.txt", (req, res) => {
 let serverReady = false;
 
 // ===== Middleware =====
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "//https://flowerman.onrender.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
@@ -62,9 +70,24 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 // ===== Multer =====
 const storage = multer.memoryStorage();
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif"
+];
+
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  },
+  fileFilter: (req, file, cb) => {
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new Error("Unsupported file type"));
+    }
+    cb(null, true);
+  }
 });
 
 const ADMIN_USER = process.env.ADMIN_USER;
@@ -113,7 +136,7 @@ async function initUsersTable() {
       fullname TEXT,
       username TEXT UNIQUE,
       email TEXT UNIQUE,
-      password_hash TEXT,
+      password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'pending', -- pending, user, admin, superadmin
       approved_by INTEGER REFERENCES users(id),
       reset_token TEXT,
@@ -181,17 +204,39 @@ pool.on("error", (err) => {
 // ===== JWT Authentication =====
 function authenticateAdmin(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer "))
-    return res.status(401).json({ error: "Missing token" });
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      error: "Missing token"
+    });
+  }
 
   const token = authHeader.split(" ")[1];
+
   try {
-    const decoded = jwt.verify(token, SECRET_KEY);
+    const decoded = jwt.verify(
+      token,
+      SECRET_KEY
+    );
+
+    if (
+      decoded.role !== "admin" &&
+      decoded.role !== "superadmin"
+    ) {
+      return res.status(403).json({
+        error: "Not authorized"
+      });
+    }
+
     req.admin = decoded;
     next();
+
   } catch (err) {
-    console.error("JWT error:", err.stack);
-    res.status(403).json({ error: "Invalid token" });
+    console.error(err.stack);
+
+    return res.status(403).json({
+      error: "Invalid token"
+    });
   }
 }
 
@@ -217,7 +262,14 @@ app.post("/admin/login", (req, res) => {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "30m" });
+  const token = jwt.sign(
+  {
+    username,
+    role: "superadmin"
+  },
+  SECRET_KEY,
+  { expiresIn: "30m" }
+);
   res.json({ token });
 });
 
@@ -237,7 +289,12 @@ app.post("/admin/verify-token", (req, res) => {
 });
 
 // ===== Upload Single =====
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post(
+  "/upload",
+  authenticateUser,
+  requireRole(["user", "admin", "superadmin"]),
+  upload.single("file"),
+  async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file" });
 
@@ -260,10 +317,26 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 // ===== Upload Multiple with Tag =====
-app.post("/upload-with-tag", upload.array("files"), async (req, res) => {
+app.post(
+  "/upload-with-tag",
+  authenticateUser,
+  requireRole(["admin", "superadmin"]),
+  upload.array("files"),
+  async (req, res) => {
   try {
-    const tag = req.body.tag;
-    if (!tag) return res.status(400).json({ error: "Missing tag" });
+   const tag = req.body.tag;
+
+if (!tag) {
+  return res.status(400).json({
+    error: "Missing tag"
+  });
+}
+
+if (!/^[a-zA-Z0-9_-]+$/.test(tag)) {
+  return res.status(400).json({
+    error: "Invalid tag"
+  });
+}
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: "No files selected" });
 
     const streamifier = (await import("streamifier")).default;
@@ -333,7 +406,7 @@ app.post("/shares", upload.single("file"), async (req, res) => {
 
 // ===== Images by Tag or Folder with Cache & Pagination =====
 const imageCache = {}; // { tagOrFolderName: { images: [...], expires: timestamp } }
-const CACHE_DURATION = 30 * 60 * 1000; // 1 שעה
+const CACHE_DURATION = 60 * 60 * 1000; // 1 שעה
 
 app.get("/images/:name", async (req, res) => {
   const { name } = req.params;
@@ -395,34 +468,75 @@ app.get("/admin/shares",authenticateAdmin, async (req, res) => {
 });
 
 app.post("/admin/shares/publish/:id", authenticateAdmin, async (req, res) => {
-  await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
+  const result = await db.query(
+    "UPDATE shares SET published=TRUE WHERE id=$1",
+    [req.params.id]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({
+      error: "Share not found"
+    });
+  }
+
   res.json({ success: true });
 });
 
 app.post("/admin/shares/unpublish/:id", authenticateAdmin, async (req, res) => {
-  await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
-  res.json({ success: true });
-});
+  const result = await db.query(
+  "UPDATE shares SET published=FALSE WHERE id=$1",
+  [req.params.id]
+);
+
+if (result.rowCount === 0) {
+  return res.status(404).json({
+    error: "Share not found"
+  });
+}
+
+res.json({ success: true });
+  });
 
 app.delete("/admin/shares/:id", authenticateAdmin, async (req, res) => {
   try {
-    const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: "לא נמצא" });
+    const { rows } = await db.query(
+      "SELECT * FROM shares WHERE id=$1",
+      [req.params.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: "לא נמצא"
+      });
+    }
 
     const share = rows[0];
-    await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
+
+    await db.query(
+      "DELETE FROM shares WHERE id=$1",
+      [req.params.id]
+    );
 
     if (share.public_id) {
       try {
-        await cloudinary.uploader.destroy(share.public_id);
+        await cloudinary.uploader.destroy(
+          share.public_id
+        );
       } catch (err) {
-        console.error("❌ Failed to delete from Cloudinary:", err.stack);
+        console.error(
+          "❌ Failed to delete from Cloudinary:",
+          err.stack
+        );
       }
     }
+
     res.json({ success: true });
+
   } catch (err) {
     console.error(err.stack);
-    res.status(500).json({ error: "Delete failed" });
+    res.status(500).json({
+      error: "Delete failed"
+    });
   }
 });
 
@@ -450,7 +564,17 @@ app.get("/admin/contacts",authenticateAdmin, async (req, res) => {
 });
 
 app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
-  await db.query("DELETE FROM contacts WHERE id=$1", [req.params.id]);
+  const result = await db.query(
+    "DELETE FROM contacts WHERE id=$1",
+    [req.params.id]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({
+      error: "Contact not found"
+    });
+  }
+
   res.json({ success: true });
 });
 
@@ -480,6 +604,14 @@ app.get("*", cacheMiddleware, (req, res) => {
  // ===== Register (user requests account) =====
 app.post("/auth/register", async (req, res) => {
   const { fullname, username, password, passwordConfirm, email } = req.body;
+  if (
+  email &&
+  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+) {
+  return res.status(400).json({
+    error: "Invalid email"
+  });
+}
   if (!fullname || !username || !password || !passwordConfirm) {
     return res.status(400).json({ error: "Missing fields" });
   }
@@ -541,7 +673,15 @@ app.post("/auth/complete-setup", async (req,res) => {
     const decoded = jwt.verify(token, SECRET_KEY);
     if (decoded.role !== "bootstrap" || decoded.username !== ADMIN_USER) return res.status(403).json({ error: "Invalid bootstrap token" });
 
-    const { fullname, username, password, passwordConfirm } = req.body;
+    const { fullname, username, password, passwordConfirm, email } = req.body;
+    if (
+  email &&
+  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+) {
+  return res.status(400).json({
+    error: "Invalid email"
+  });
+}
     if (!username || !password || password !== passwordConfirm) return res.status(400).json({ error: "Invalid fields" });
 
     // create superadmin user row
@@ -647,7 +787,7 @@ app.post("/auth/login", async (req,res) => {
     }
 
     // חסימה אם לא אושר
-    if (user.role === "user") {
+    if (user.role === "pending") {
       return res.status(403).json({ error: "המשתמש ממתין לאישור מנהל" });
     }
 
