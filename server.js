@@ -623,7 +623,7 @@ app.get("/list-users", async (req, res) => {
 });
 app.get("/fix-superadmin", async (req, res) => {
   await db.query(
-    "UPDATE users SET fullname='ינאי אילוז', username='iluz_yan', role='superadmin', password_hash='Yannai100', WHERE id=1"
+    "UPDATE users SET fullname='ינאי אילוז', username='iluz_yan', role='superadmin, WHERE id=1"
   );
   res.json({ success: true });
 });
