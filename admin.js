@@ -385,7 +385,7 @@ if (!window.hasRunAdminUnified) {
     }
 
     // ===== User Management =====
-const token = localStorage.getItem("adminToken");
+const token = sessionStorage.getItem("adminToken");
 
 // טאבים
 const umTabs = document.querySelectorAll(".um-tab");
