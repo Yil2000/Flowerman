@@ -214,34 +214,113 @@ pool.on("error", (err) => {
   console.error("❌ Unexpected PG Pool Error:", err.stack);
 });
 
-// GET /admin/users/all — כל המשתמשים (admin + superadmin)
-app.get("/admin/users/all", authenticateUser, requireRole(["admin","superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
-  );
-  res.json(result.rows);
-});
+// ===== Admin Users Management =====
 
-// POST /admin/users/promote/:id — הפוך ל-admin (superadmin בלבד)
-app.post("/admin/users/promote/:id", authenticateUser, requireRole(["superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "UPDATE users SET role='admin' WHERE id=$1 AND role='user' RETURNING id, username, role",
-    [req.params.id]
-  );
-  if (!result.rows.length) return res.status(404).json({ error: "User not found or not eligible" });
-  res.json({ success: true, user: result.rows[0] });
-});
+// GET כל המשתמשים
+app.get("/admin/users/all",
+  authenticateUser,
+  requireRole(["admin", "superadmin"]),
+  async (req, res) => {
+    try {
+      const result = await db.query(
+        "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
 
-// POST /admin/users/demote/:id — הורד ל-user (superadmin בלבד)
-app.post("/admin/users/demote/:id", authenticateUser, requireRole(["superadmin"]), async (req,res) => {
-  const result = await db.query(
-    "UPDATE users SET role='user' WHERE id=$1 AND role='admin' RETURNING id, username, role",
-    [req.params.id]
-  );
-  if (!result.rows.length) return res.status(404).json({ error: "User not found or not eligible" });
-  res.json({ success: true, user: result.rows[0] });
-});
+// PUT עדכון פרטי משתמש
+app.put("/admin/users/:id",
+  authenticateUser,
+  requireRole(["admin", "superadmin"]),
+  async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+    const { fullname, username, email, role } = req.body;
 
+    if (!fullname || !username) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // רק superadmin יכול לשנות role
+    const allowRoleChange = req.user.role === "superadmin" && role;
+
+    // מניעת שינוי superadmin על ידי admin
+    if (role === "superadmin" && req.user.role !== "superadmin") {
+      return res.status(403).json({ error: "Not authorized to set superadmin" });
+    }
+
+    try {
+      // בדיקה שהמשתמש הנערך אינו superadmin (admin לא יכול לערוך superadmin)
+      const check = await db.query("SELECT role FROM users WHERE id=$1", [userId]);
+      if (!check.rows.length) return res.status(404).json({ error: "User not found" });
+      if (check.rows[0].role === "superadmin" && req.user.role !== "superadmin") {
+        return res.status(403).json({ error: "Cannot edit superadmin" });
+      }
+
+      let query, params;
+      if (allowRoleChange) {
+        query = `UPDATE users SET fullname=$1, username=$2, email=$3, role=$4 WHERE id=$5 RETURNING id, fullname, username, email, role`;
+        params = [fullname, username, email || null, role, userId];
+      } else {
+        query = `UPDATE users SET fullname=$1, username=$2, email=$3 WHERE id=$4 RETURNING id, fullname, username, email, role`;
+        params = [fullname, username, email || null, userId];
+      }
+
+      const result = await db.query(query, params);
+      if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+      res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+      console.error("Update user error:", err.stack);
+      if (err.code === "23505") return res.status(400).json({ error: "Username or email already exists" });
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
+// DELETE מחיקת משתמש
+app.delete("/admin/users/:id",
+  authenticateUser,
+  requireRole(["admin", "superadmin"]),
+  async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+    try {
+      // אסור למחוק superadmin
+      const result = await db.query(
+        "DELETE FROM users WHERE id=$1 AND role != 'superadmin' RETURNING id",
+        [userId]
+      );
+      if (!result.rows.length) return res.status(404).json({ error: "User not found or protected" });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Delete user error:", err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
+// POST אישור משתמש pending
+app.post("/admin/users/approve/:id",
+  authenticateUser,
+  requireRole(["admin", "superadmin"]),
+  async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+    try {
+      const result = await db.query(
+        "UPDATE users SET role='user', approved_by=$1 WHERE id=$2 AND role='pending' RETURNING id, username, role",
+        [req.user.id, userId]
+      );
+      if (!result.rows.length) return res.status(404).json({ error: "User not found or not pending" });
+      res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+      console.error("Approve error:", err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
 
 // ===== JWT Authentication =====
 function authenticateAdmin(req, res, next) {
