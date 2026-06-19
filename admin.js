@@ -68,7 +68,6 @@ if (!window.hasRunAdminUnified) {
       
         loadShares(token);
         loadContacts(token);
-        loadPendingUsers();
         } else showError("טוקן לא תקין");
       } catch (err) {
         console.error("Token verification error:", err);
@@ -472,7 +471,7 @@ function buildUserCard(user, currentRole) {
 // טעינת כל המשתמשים
 async function loadAllUsers() {
   try {
-    const res = await fetch("/admin/users/all", {
+    const res = await fetch(`${serverUrl}/admin/users/all`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) return;
