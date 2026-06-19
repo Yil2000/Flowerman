@@ -381,169 +381,195 @@ color: #350847;
     }
 
 
-            /* ===== ניהול משתמשים ===== */
-    .um-tabs {
-      display: flex;
-      gap: 0.5em;
-      margin-bottom: 1.5em;
-      flex-wrap: wrap;
-    }
-    
-    .um-tab {
-      padding: 0.5em 1.2em;
-      border-radius: 20px;
-      border: 1.5px solid var(--purple);
-      background: transparent;
-      color: var(--purple);
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.4em;
-    }
-    
-    .um-tab.active {
-      background: var(--purple);
-      color: white;
-    }
-    
-    .um-tab:hover:not(.active) {
-      background: rgba(155, 89, 182, 0.1);
-    }
-    
-    .um-tab-count {
-      background: var(--pink);
-      color: white;
-      border-radius: 10px;
-      padding: 1px 7px;
-      font-size: 11px;
-    }
-    
-    .um-tab-content {
-      display: none;
-    }
-    
-    .um-tab-content.active {
-      display: block;
-    }
-    
-    .um-section-label {
-      font-size: 13px;
-      color: var(--purple);
-      font-weight: 700;
-      margin-bottom: 1em;
-    }
-    
-    .um-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1em;
-    }
-    
-    .um-card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      padding: 1em 1.2em;
-      width: 230px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6em;
-      transition: box-shadow 0.2s;
-    }
-    
-    .um-card:hover {
-      box-shadow: 0 4px 16px rgba(155, 89, 182, 0.15);
-    }
-    
-    .um-card-header {
-      display: flex;
-      align-items: center;
-      gap: 0.7em;
-    }
-    
-    .um-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 15px;
-      color: white;
-      flex-shrink: 0;
-    }
-    
-    .um-name {
-      font-weight: 700;
-      font-size: 15px;
-      color: #222;
-    }
-    
-    .um-username {
-      font-size: 12px;
-      color: #888;
-    }
-    
-    .um-badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      width: fit-content;
-    }
-    
-    .badge-pending  { background: #FFF3CD; color: #856404; }
-    .badge-user     { background: #D1ECF1; color: #0C5460; }
-    .badge-admin    { background: #e8d5f5; color: #4e1266; }
-    .badge-superadmin { background: var(--purple); color: white; }
-    
-    .um-email {
-      font-size: 11px;
-      color: #999;
-      word-break: break-all;
-    }
-    
-    .um-meta {
-      font-size: 11px;
-      color: #bbb;
-    }
-    
-    .um-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4em;
-      margin-top: 0.4em;
-    }
-    
-    .um-actions button {
-      border: none;
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    
-    .um-actions button:hover { opacity: 0.8; }
-    
-    .btn-approve  { background: var(--purple); color: white; }
-    .btn-reject   { background: var(--pink);   color: white; }
-    .btn-promote  { background: #e8d5f5; color: #4e1266; }
-    .btn-demote   { background: #f0f0f0; color: #555; }
-    .btn-delete   { background: #ffe0e0; color: #c0392b; }
-    
-    .um-disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-    
-    .um-empty {
-      color: #aaa;
-      font-size: 14px;
-      padding: 2em 0;
-    }
+      /* ===== ניהול משתמשים ===== */
+.um-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-bottom: 2em;
+  flex-wrap: wrap;
+}
+
+.um-select-wrap label {
+  font-weight: 700;
+  color: var(--purple);
+  font-size: 14px;
+}
+
+#um-user-select {
+  padding: 0.6em 1em;
+  border-radius: 20px;
+  border: 1.5px solid var(--purple);
+  font-size: 14px;
+  color: #333;
+  background: white;
+  cursor: pointer;
+  min-width: 220px;
+  outline: none;
+}
+
+#um-user-select:focus {
+  border-color: #4e1266;
+}
+
+#um-refresh-btn {
+  padding: 0.6em 1.2em;
+  border-radius: 20px;
+  border: 1.5px solid var(--purple);
+  background: transparent;
+  color: var(--purple);
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#um-refresh-btn:hover {
+  background: var(--purple);
+  color: white;
+}
+
+/* כרטיס משתמש */
+#um-user-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(155, 89, 182, 0.12);
+  padding: 1.8em;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+}
+
+.um-card-top {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.um-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.um-fullname {
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+}
+
+.um-username-display {
+  font-size: 13px;
+  color: #999;
+}
+
+.um-badge {
+  margin-right: auto;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-pending    { background: #FFF3CD; color: #856404; }
+.badge-user       { background: #D1ECF1; color: #0C5460; }
+.badge-admin      { background: #e8d5f5; color: #4e1266; }
+.badge-superadmin { background: var(--purple); color: white; }
+
+.um-divider {
+  height: 1px;
+  background: #eee;
+  margin: 0.2em 0;
+}
+
+/* שדות עריכה */
+.um-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+}
+
+.um-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.um-field-group label {
+  font-size: 12px;
+  color: #888;
+  font-weight: 700;
+}
+
+.um-field-group input,
+.um-field-group select {
+  padding: 0.6em 0.9em;
+  border-radius: 8px;
+  border: 1.5px solid #ddd;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  transition: border 0.2s;
+  background: white;
+}
+
+.um-field-group input:focus,
+.um-field-group select:focus {
+  border-color: var(--purple);
+}
+
+/* כפתורי פעולה */
+.um-card-actions {
+  display: flex;
+  gap: 0.8em;
+  margin-top: 0.4em;
+}
+
+#um-save-btn {
+  padding: 0.7em 1.6em;
+  border-radius: 20px;
+  border: none;
+  background: var(--purple);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#um-save-btn:hover {
+  background: #4e1266;
+}
+
+.um-btn-danger {
+  padding: 0.7em 1.6em;
+  border-radius: 20px;
+  border: none;
+  background: #ffe0e0;
+  color: #c0392b;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.um-btn-danger:hover {
+  background: #FF6B6B;
+  color: white;
+}
+
+.um-feedback {
+  font-size: 13px;
+  min-height: 1.2em;
+  font-weight: 600;
+}
+
+.um-feedback.success { color: #2ecc71; }
+.um-feedback.error   { color: #e74c3c; }
 
