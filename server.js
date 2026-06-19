@@ -46,7 +46,7 @@ let serverReady = false;
 app.use(
   cors({
     origin: [
-      "//https://flowerman.onrender.com",
+      "https://flowerman.onrender.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
@@ -162,6 +162,20 @@ async function initContactsTable() {
   console.log("✅ Contacts table ready");
 }
 
+async function initSharesTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS shares (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      imageUrl TEXT,
+      public_id TEXT,
+      published BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  console.log("✅ Shares table ready");
+}
 // ===== Database =====
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -264,6 +278,7 @@ app.post("/admin/login", (req, res) => {
 
   const token = jwt.sign(
   {
+    id: null, // חייב להעביר null אם אין לאדמין הזה ID בדאטה בייס
     username,
     role: "superadmin"
   },
@@ -449,18 +464,6 @@ app.get("/images/:name", async (req, res) => {
   }
 });
 
-// ===== Published Shares =====
-app.get("/shares/published", cacheMiddleware, async (req, res) => {
-  try {
-    const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
-    if (result.rows.length === 0) return res.json({ message: "לא נמצאו טפסים" });
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
 // ===== Admin Shares =====
 app.get("/admin/shares",authenticateAdmin, async (req, res) => {
   const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
@@ -579,6 +582,8 @@ app.delete("/admin/contacts/:id", authenticateAdmin, async (req, res) => {
 });
 
 // ✅ Public shares route (alias)
+// ===== Published Shares =====
+
 app.get("/shares", cacheMiddleware, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM shares WHERE published=TRUE ORDER BY id DESC");
@@ -822,7 +827,8 @@ app.listen(PORT, () => console.log(`🌸 Server starting on port ${PORT}...`));
 // נתחיל לטעון את ה־DB והטבלאות ברקע
 Promise.all([
   initUsersTable(),
-  initContactsTable()
+  initContactsTable(),
+  initSharesTable()
 ])
   .then(() => {
     serverReady = true;
