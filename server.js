@@ -847,7 +847,7 @@ Promise.all([
   initUsersTable(),
   initContactsTable(),
   initSharesTable(),
-  ensurePublicIdColumn();
+  ensurePublicIdColumn()
 
 ])
   .then(() => {
