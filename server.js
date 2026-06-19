@@ -787,20 +787,6 @@ app.post("/auth/login", async (req,res) => {
   }
 });
 
-app.get("/fix-superadmin", async (req, res) => {
-  try {
-    const hash = await bcrypt.hash("Yannai100", 10);
-    await db.query(
-      "UPDATE users SET role='superadmin', username='iluz_yan', fullname='ינאי אילוז', password_hash=$1 WHERE email='yannai.iluz@gmail.com'",
-      [hash]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
 // ===== Catch-All =====
 app.get("*", cacheMiddleware, (req, res) => {
   // תמיד מאפשר robots.txt גם אם serverReady=false
