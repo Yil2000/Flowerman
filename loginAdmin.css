@@ -381,19 +381,209 @@ color: #350847;
     }
 
 
-      /* ===== ניהול משתמשים ===== */
-.um-select-wrap {
+/* ===== כפתורי Header ===== */
+#user-btn {
+  cursor: pointer;
+  z-index: 10;
+  position: fixed;
+  top: 1em;
+  left: 1.5em;
+  font-family: var(--p-font);
+  font-size: 1.4em;
+  color: var(--purple);
+  border: none;
+  background-color: transparent;
+  transition: 0.2s;
+}
+#user-btn:hover { color: #4e1266; }
+
+#logout-btn {
+  cursor: pointer;
+  z-index: 10;
+  position: fixed;
+  top: 1em;
+  left: 4em;
+  padding: 0.5em 1.2em;
+  font-family: var(--p-font);
+  font-size: 0.9em;
+  background-color: var(--purple);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  transition: 0.2s;
+}
+#logout-btn:hover { background-color: #4e1266; }
+
+/* ===== Overlay חלונית פרופיל אישי ===== */
+#my-profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#my-profile-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(155,89,182,0.18);
+  padding: 2em;
+  width: 480px;
+  max-width: 95vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+  direction: rtl;
+}
+
+#close-profile-btn {
+  position: absolute;
+  top: 1em;
+  left: 1em;
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  color: #aaa;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#close-profile-btn:hover { color: #333; }
+
+.profile-top {
   display: flex;
   align-items: center;
   gap: 1em;
-  margin-bottom: 2em;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+}
+
+.profile-username {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 0.8em;
   flex-wrap: wrap;
 }
 
-.um-select-wrap label {
+#my-edit-btn {
+  padding: 0.6em 1.4em;
+  border-radius: 20px;
+  border: none;
+  background: var(--purple);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#my-edit-btn:hover { background: #4e1266; }
+
+#my-save-btn {
+  padding: 0.6em 1.4em;
+  border-radius: 20px;
+  border: none;
+  background: #2ecc71;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#my-save-btn:hover { background: #27ae60; }
+
+/* ===== ניהול משתמשים ===== */
+.um-section-title {
+  font-size: 15px;
   font-weight: 700;
   color: var(--purple);
-  font-size: 14px;
+  margin-bottom: 1em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.um-count-badge {
+  background: var(--pink);
+  color: white;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* כרטיסי ממתינים */
+.um-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.um-pending-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 1em 1.2em;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  border-right: 4px solid #FFC107;
+}
+
+.um-pending-card .um-pcard-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: #222;
+}
+.um-pending-card .um-pcard-username {
+  font-size: 12px;
+  color: #888;
+}
+.um-pending-card .um-pcard-email {
+  font-size: 11px;
+  color: #aaa;
+}
+.um-pending-card .um-pcard-date {
+  font-size: 11px;
+  color: #ccc;
+}
+.um-pending-card .um-pcard-actions {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.4em;
+}
+
+/* Dropdown בחירת משתמש */
+.um-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  margin-bottom: 1.5em;
+  flex-wrap: wrap;
 }
 
 #um-user-select {
@@ -404,16 +594,14 @@ color: #350847;
   color: #333;
   background: white;
   cursor: pointer;
-  min-width: 220px;
+  min-width: 240px;
   outline: none;
+  direction: rtl;
 }
-
-#um-user-select:focus {
-  border-color: #4e1266;
-}
+#um-user-select:focus { border-color: #4e1266; }
 
 #um-refresh-btn {
-  padding: 0.6em 1.2em;
+  padding: 0.6em 1em;
   border-radius: 20px;
   border: 1.5px solid var(--purple);
   background: transparent;
@@ -422,17 +610,13 @@ color: #350847;
   cursor: pointer;
   transition: 0.2s;
 }
+#um-refresh-btn:hover { background: var(--purple); color: white; }
 
-#um-refresh-btn:hover {
-  background: var(--purple);
-  color: white;
-}
-
-/* כרטיס משתמש */
+/* כרטיס משתמש נבחר */
 #um-user-card {
   background: white;
   border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(155, 89, 182, 0.12);
+  box-shadow: 0 4px 20px rgba(155,89,182,0.12);
   padding: 1.8em;
   max-width: 520px;
   display: flex;
@@ -460,23 +644,16 @@ color: #350847;
   flex-shrink: 0;
 }
 
-.um-fullname {
-  font-size: 17px;
-  font-weight: 700;
-  color: #222;
-}
-
-.um-username-display {
-  font-size: 13px;
-  color: #999;
-}
+.um-fullname         { font-size: 17px; font-weight: 700; color: #222; }
+.um-username-display { font-size: 13px; color: #999; }
 
 .um-badge {
-  margin-right: auto;
-  padding: 4px 14px;
+  display: inline-block;
+  padding: 3px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  margin-top: 4px;
 }
 
 .badge-pending    { background: #FFF3CD; color: #856404; }
@@ -487,7 +664,6 @@ color: #350847;
 .um-divider {
   height: 1px;
   background: #eee;
-  margin: 0.2em 0;
 }
 
 /* שדות עריכה */
@@ -519,18 +695,17 @@ color: #350847;
   outline: none;
   transition: border 0.2s;
   background: white;
+  direction: rtl;
 }
 
 .um-field-group input:focus,
-.um-field-group select:focus {
-  border-color: var(--purple);
-}
+.um-field-group select:focus  { border-color: var(--purple); }
+.um-field-group input:disabled { background: #f9f9f9; color: #aaa; cursor: default; }
 
 /* כפתורי פעולה */
 .um-card-actions {
   display: flex;
   gap: 0.8em;
-  margin-top: 0.4em;
 }
 
 #um-save-btn {
@@ -543,10 +718,7 @@ color: #350847;
   cursor: pointer;
   transition: 0.2s;
 }
-
-#um-save-btn:hover {
-  background: #4e1266;
-}
+#um-save-btn:hover { background: #4e1266; }
 
 .um-btn-danger {
   padding: 0.7em 1.6em;
@@ -558,18 +730,54 @@ color: #350847;
   cursor: pointer;
   transition: 0.2s;
 }
+.um-btn-danger:hover { background: var(--pink); color: white; }
 
-.um-btn-danger:hover {
-  background: #FF6B6B;
+.um-btn-approve {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: none;
+  background: var(--purple);
   color: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
 }
+.um-btn-approve:hover { background: #4e1266; }
+
+.um-btn-reject {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #ffe0e0;
+  color: #c0392b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.um-btn-reject:hover { background: var(--pink); color: white; }
+
+.um-btn-secondary {
+  padding: 0.6em 1.4em;
+  border-radius: 20px;
+  border: 1.5px solid #ddd;
+  background: transparent;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.um-btn-secondary:hover { background: #f0f0f0; }
 
 .um-feedback {
   font-size: 13px;
   min-height: 1.2em;
   font-weight: 600;
 }
-
 .um-feedback.success { color: #2ecc71; }
 .um-feedback.error   { color: #e74c3c; }
 
+.um-empty {
+  color: #aaa;
+  font-size: 14px;
+  padding: 1em 0;
+}
