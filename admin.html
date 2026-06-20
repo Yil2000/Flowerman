@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
@@ -6,82 +6,79 @@
     <title>Flowerman</title>
     <link rel="stylesheet" href="loginAdmin.css" />
     <link rel="icon" href="flowerman-logo.PNG" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
   <body>
-    <div id="admin-content" style="display: none">
+    <div id="admin-content" style="display:none">
+
       <!-- Sidebar -->
       <div id="sidebar">
-        <img src="flowerman-logo.PNG" alt="Flowerman Logo" />
+        <img src="media/flowerman-logo.PNG" alt="Flowerman Logo" />
         <button data-target="comments-section">קיר השיתופים</button>
         <button data-target="contacts-container">טפסי יצירת קשר</button>
         <button data-target="upload-section">העלאת תמונות</button>
+        <!-- מוצג רק לאדמין/סופראדמין — נשלט מ-JS -->
         <button data-target="manage-users" id="manage-users-btn" style="display:none">ניהול משתמשים</button>
       </div>
 
       <!-- Content -->
       <div id="content">
+
+        <!-- כפתור יוזר — שמאל למעלה, תמיד -->
+        <button id="user-btn" title="הפרופיל שלי">
+          <i class="fa-solid fa-user"></i>
+        </button>
         <button id="logout-btn">התנתקות</button>
 
-      <di<div id="manage-users" class="section">
-  <h2>ניהול משתמשים</h2>
+        <!-- ======= חלונית פרופיל אישי (overlay) ======= -->
+        <div id="my-profile-overlay" style="display:none">
+          <div id="my-profile-card">
+            <button id="close-profile-btn" title="סגור"><i class="fa-solid fa-xmark"></i></button>
 
-  <!-- בחירת משתמש -->
-  <div class="um-select-wrap">
-    <label for="um-user-select">בחר משתמש</label>
-    <select id="um-user-select">
-      <option value="">-- בחר משתמש --</option>
-    </select>
-    <button id="um-refresh-btn">↻ רענן רשימה</button>
-  </div>
+            <div class="profile-top">
+              <div class="profile-avatar" id="my-avatar">א</div>
+              <div>
+                <div class="profile-name" id="my-display-name">שם מלא</div>
+                <div class="profile-username" id="my-display-username">@username</div>
+                <span class="um-badge" id="my-role-badge">role</span>
+              </div>
+            </div>
 
-  <!-- כרטיס משתמש -->
-  <div id="um-user-card" style="display:none">
+            <div class="um-divider"></div>
 
-    <div class="um-card-top">
-      <div class="um-avatar" id="um-avatar">א</div>
-      <div>
-        <div class="um-fullname" id="um-fullname">שם מלא</div>
-        <div class="um-username-display" id="um-username-display">@username</div>
-      </div>
-      <span class="um-badge" id="um-role-badge">role</span>
-    </div>
+            <div class="um-fields">
+              <div class="um-field-group">
+                <label>שם מלא</label>
+                <input type="text"     id="my-fullname"  disabled />
+              </div>
+              <div class="um-field-group">
+                <label>שם משתמש</label>
+                <input type="text"     id="my-username"  disabled />
+              </div>
+              <div class="um-field-group">
+                <label>אימייל</label>
+                <input type="email"    id="my-email"     disabled />
+              </div>
+              <div class="um-field-group">
+                <label>סיסמה חדשה</label>
+                <input type="password" id="my-password"  disabled placeholder="השאר ריק לאי-שינוי" />
+              </div>
+            </div>
 
-    <div class="um-divider"></div>
-
-    <!-- פרטי משתמש לעריכה -->
-    <div class="um-fields">
-      <div class="um-field-group">
-        <label>שם מלא</label>
-        <input type="text" id="um-edit-fullname" placeholder="שם מלא" />
-      </div>
-      <div class="um-field-group">
-        <label>שם משתמש</label>
-        <input type="text" id="um-edit-username" placeholder="username" />
-      </div>
-      <div class="um-field-group">
-        <label>אימייל</label>
-        <input type="email" id="um-edit-email" placeholder="email" />
-      </div>
-      <div class="um-field-group" id="um-role-field">
-        <label>הרשאה (Role)</label>
-        <select id="um-edit-role">
-          <option value="pending">ממתין (pending)</option>
-          <option value="user">משתמש (user)</option>
-          <option value="admin">מנהל (admin)</option>
-          <option value="superadmin">סופר מנהל (superadmin)</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="um-card-actions">
-      <button id="um-save-btn">שמור שינויים</button>
-      <button id="um-delete-btn" class="um-btn-danger">מחק משתמש</button>
-    </div>
-
-    <div id="um-feedback" class="um-feedback"></div>
-  </div>
-</div>
-
+            <div class="profile-actions">
+              <button id="my-edit-btn">עדכון פרטים</button>
+              <button id="my-save-btn" style="display:none">אישור שמירה</button>
+              <button id="my-cancel-btn" style="display:none" class="um-btn-secondary">ביטול</button>
+            </div>
+            <div id="my-feedback" class="um-feedback"></div>
+          </div>
+        </div>
 
         <!-- תגובות -->
         <div id="comments-section" class="section">
@@ -95,10 +92,9 @@
           <div id="contacts-list"></div>
         </div>
 
-
         <!-- העלאת תמונות -->
         <div id="upload-section" class="section">
-          <h2>העלאת תמונות לאתר)</h2>
+          <h2>העלאת תמונות לאתר</h2>
           <label for="upload-tag">בחרו קטגוריה</label>
           <select id="upload-tag">
             <option value="homepage">עמוד הבית</option>
@@ -110,35 +106,105 @@
             <option value="julis">ג'וליס</option>
             <option value="shatz">שערי צדק</option>
           </select>
-
           <input type="file" id="upload-files" multiple />
           <button id="upload-btn">העלה תמונות</button>
           <button id="clear-file" style="display:none">X</button>
           <div id="upload-status"></div>
         </div>
-      </div>
-    </div>
 
-    <div id="unauthorized" style="display: none">
-     <!--  <h1>גישה לא מורשית</h1>
-      <p>אנא התחבר מחדש</p> -->
-      <h1>עמוד הניהול בתיקונים זמנית, עמכם הסליחה</h1>
-      <p>למשהו דחוף צרו קשר עם ינאי אילוז</p>
-      
+        <!-- ======= ניהול משתמשים ======= -->
+        <div id="manage-users" class="section">
+          <h2>ניהול משתמשים</h2>
+
+          <!-- ממתינים לאישור -->
+          <div id="pending-section">
+            <h3 class="um-section-title">
+              <i class="fa-solid fa-clock"></i>
+              ממתינים לאישור
+              <span class="um-count-badge" id="pending-count" style="display:none">0</span>
+            </h3>
+            <div class="um-cards" id="pending-users-list">
+              <p class="um-empty">טוען...</p>
+            </div>
+          </div>
+
+          <div class="um-divider" style="margin: 1.5em 0"></div>
+
+          <!-- כל המשתמשים — dropdown + כרטיס -->
+          <div id="all-users-section">
+            <h3 class="um-section-title">
+              <i class="fa-solid fa-users"></i>
+              כל המשתמשים
+            </h3>
+
+            <div class="um-select-wrap">
+              <select id="um-user-select">
+                <option value="">-- בחר משתמש לצפייה/עריכה --</option>
+              </select>
+              <button id="um-refresh-btn" title="רענן רשימה">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </div>
+
+            <!-- כרטיס משתמש נבחר -->
+            <div id="um-user-card" style="display:none">
+              <div class="um-card-top">
+                <div class="um-avatar" id="um-avatar">א</div>
+                <div>
+                  <div class="um-fullname"         id="um-fullname">שם מלא</div>
+                  <div class="um-username-display" id="um-username-display">@username</div>
+                  <span class="um-badge"           id="um-role-badge">role</span>
+                </div>
+              </div>
+
+              <div class="um-divider"></div>
+
+              <div class="um-fields">
+                <div class="um-field-group">
+                  <label>שם מלא</label>
+                  <input type="text"  id="um-edit-fullname" />
+                </div>
+                <div class="um-field-group">
+                  <label>שם משתמש</label>
+                  <input type="text"  id="um-edit-username" />
+                </div>
+                <div class="um-field-group">
+                  <label>אימייל</label>
+                  <input type="email" id="um-edit-email" />
+                </div>
+                <!-- סיסמה — רק לסופראדמין -->
+                <div class="um-field-group" id="um-password-field" style="display:none">
+                  <label>סיסמה (צפייה בלבד)</label>
+                  <input type="text"  id="um-view-password" readonly />
+                </div>
+                <!-- role — לפי הרשאות -->
+                <div class="um-field-group" id="um-role-field" style="display:none">
+                  <label>הרשאה (Role)</label>
+                  <select id="um-edit-role">
+                    <option value="user">משתמש (user)</option>
+                    <option value="admin">מנהל (admin)</option>
+                    <option value="superadmin">סופר מנהל (superadmin)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="um-card-actions">
+                <button id="um-save-btn">שמור שינויים</button>
+                <button id="um-delete-btn" class="um-btn-danger">מחק משתמש</button>
+              </div>
+              <div id="um-feedback" class="um-feedback"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#content -->
+    </div><!-- /#admin-content -->
+
+    <div id="unauthorized" style="display:none">
+      <h1>גישה לא מורשית</h1>
+      <p>אנא התחבר מחדש</p>
     </div>
 
     <script src="/admin.js" defer></script>
-<!--     <script src="/admin-index.js" defer></script> -->
   </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
