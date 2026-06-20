@@ -30,10 +30,17 @@ if (!window.hasRunAdminUnified) {
     function jsonHeaders()   { return { ...authHeader(), "Content-Type": "application/json" }; }
 
     function getCurrentPayload() {
-      const t = getToken();
-      if (!t) return null;
-      try { return JSON.parse(atob(t.split(".")[1])); } catch { return null; }
-    }
+  const t = getToken();
+  if (!t) return null;
+  try {
+    const base64Url = t.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch { return null; }
+}
     function getCurrentRole() { return getCurrentPayload()?.role || null; }
     function getCurrentId()   { return getCurrentPayload()?.id   || null; }
 
@@ -55,18 +62,35 @@ if (!window.hasRunAdminUnified) {
     }
 
     function showNotification(text, isError = false) {
-      const notif = document.createElement("div");
-      notif.textContent = text;
-      notif.style.cssText = `
-        position:fixed; top:20px; right:20px;
-        background:${isError ? "#e74c3c" : "#4caf50"}; color:white;
-        padding:10px 20px; border-radius:8px; z-index:9999;
-        font-family:Arial,sans-serif; font-size:14px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      `;
-      document.body.appendChild(notif);
-      setTimeout(() => notif.remove(), 2500);
-    }
+  // בדיקה אם כבר קיים קונטיינר להתראות על המסך, אם לא - ניצור אותו
+  let container = document.getElementById("toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    container.style.cssText = `
+      position: fixed; top: 20px; right: 20px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 9999; font-family: Arial, sans-serif;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const notif = document.createElement("div");
+  notif.textContent = text;
+  notif.style.cssText = `
+    background: ${isError ? "#e74c3c" : "#4caf50"}; color: white;
+    padding: 10px 20px; border-radius: 8px; font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px; text-align: center;
+  `;
+  
+  container.appendChild(notif);
+  
+  setTimeout(() => {
+    notif.remove();
+    // אם אין יותר התראות אקטיביות, ננקה גם את הקונטיינר מה-DOM
+    if (container.children.length === 0) container.remove();
+  }, 2500);
+}
 
     function showError(reason) {
       console.warn("Unauthorized:", reason);
@@ -598,17 +622,6 @@ if (myLogoutBtn) {
       document.getElementById("um-edit-fullname").value = user.fullname || "";
       document.getElementById("um-edit-username").value = user.username || "";
       document.getElementById("um-edit-email").value    = user.email    || "";
-
-    const passField = document.getElementById("um-password-field");
-    if (passField) {
-      if (myRole === "superadmin" && user.password_hash) {
-        passField.style.display = "flex";
-        document.getElementById("um-view-password").value = user.password_hash;
-      } else {
-        passField.style.display = "none";
-        document.getElementById("um-view-password").value = "";
-      }
-    }
 
       // role selector — superadmin לכולם, admin רק לuser ולמטה, אף אחד לא לעצמו
       const roleField  = document.getElementById("um-role-field");
