@@ -406,17 +406,17 @@ if (!window.hasRunAdminUnified) {
     const myCancelBtn = document.getElementById("my-cancel-btn");
 
     if (myEditBtn)   myEditBtn.addEventListener("click",   () => setProfileEditMode(true));
-    if (myCancelBtn) myCancelBtn.addEventListener("click", () => {
-      const myLogoutBtn = document.getElementById("my-logout-btn");
+  if (myCancelBtn) myCancelBtn.addEventListener("click", () => {
+  if (myProfileData) renderMyProfile(myProfileData);
+  setProfileEditMode(false);
+});
+    const myLogoutBtn = document.getElementById("my-logout-btn");
 if (myLogoutBtn) {
   myLogoutBtn.addEventListener("click", () => {
     sessionStorage.removeItem("userToken");
     window.location.replace("/index.html");
   });
 }
-      if (myProfileData) renderMyProfile(myProfileData);
-      setProfileEditMode(false);
-    });
 
     if (mySaveBtn) {
       mySaveBtn.addEventListener("click", async () => {
