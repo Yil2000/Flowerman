@@ -357,7 +357,7 @@ if (!window.hasRunAdminUnified) {
       el("my-fullname").value  = u.fullname  || "";
       el("my-username").value  = u.username  || "";
       el("my-email").value     = u.email     || "";
-      el("my-password").value  = "";
+      el("my-password").value = u.password_display || "";
     }
 
     // פתיחה/סגירה של חלונית פרופיל
@@ -407,6 +407,13 @@ if (!window.hasRunAdminUnified) {
 
     if (myEditBtn)   myEditBtn.addEventListener("click",   () => setProfileEditMode(true));
     if (myCancelBtn) myCancelBtn.addEventListener("click", () => {
+      const myLogoutBtn = document.getElementById("my-logout-btn");
+if (myLogoutBtn) {
+  myLogoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("userToken");
+    window.location.replace("/index.html");
+  });
+}
       if (myProfileData) renderMyProfile(myProfileData);
       setProfileEditMode(false);
     });
