@@ -200,7 +200,6 @@ app.get("/admin/users/all",
         ? "id, fullname, username, email, role, created_at, last_login, password_hash"
         : "id, fullname, username, email, role, created_at, last_login";
       const result = await db.query(`SELECT ${fields} FROM users ORDER BY created_at DESC`);
-            );
       res.json(result.rows);
     } catch (err) {
       console.error("GET /admin/users/all:", err.stack);
@@ -380,75 +379,6 @@ app.get("/robots.txt", (req, res) => {
   res.set("Cache-Control", "public, max-age=86400");
   res.type("text/plain");
   res.sendFile(path.join(__dirname, "robots.txt"));
-});
-
-// ===== Admin Users Management =====
-
-// GET כל המשתמשים
-app.get("/admin/users/all", requireRole(["admin", "superadmin"]), async (req, res) => {
-  try {
-    const result = await db.query(
-      "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-// PUT עדכון פרטי משתמש
-app.put("/admin/users/:id", requireRole(["admin", "superadmin"]), async (req, res) => {
-  const userId = parseInt(req.params.id, 10);
-  const { fullname, username, email, role } = req.body;
-
-  if (!fullname || !username) return res.status(400).json({ error: "Missing required fields" });
-
-  const allowRoleChange = req.user.role === "superadmin" && role;
-
-  if (role === "superadmin" && req.user.role !== "superadmin") {
-    return res.status(403).json({ error: "Not authorized to set superadmin" });
-  }
-
-  try {
-    const check = await db.query("SELECT role FROM users WHERE id=$1", [userId]);
-    if (!check.rows.length) return res.status(404).json({ error: "User not found" });
-    if (check.rows[0].role === "superadmin" && req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Cannot edit superadmin" });
-    }
-
-    let query, params;
-    if (allowRoleChange) {
-      query = `UPDATE users SET fullname=$1, username=$2, email=$3, role=$4 WHERE id=$5 RETURNING id, fullname, username, email, role`;
-      params = [fullname, username, email || null, role, userId];
-    } else {
-      query = `UPDATE users SET fullname=$1, username=$2, email=$3 WHERE id=$4 RETURNING id, fullname, username, email, role`;
-      params = [fullname, username, email || null, userId];
-    }
-
-    const result = await db.query(query, params);
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    console.error("Update user error:", err.stack);
-    if (err.code === "23505") return res.status(400).json({ error: "Username or email already exists" });
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-// DELETE מחיקת משתמש (הכפילות הוסרה)
-app.delete("/admin/users/:id", requireRole(["admin", "superadmin"]), async (req, res) => {
-  const userId = parseInt(req.params.id, 10);
-  try {
-    const result = await db.query(
-      "DELETE FROM users WHERE id=$1 AND role != 'superadmin' RETURNING id",
-      [userId]
-    );
-    if (!result.rows.length) return res.status(404).json({ error: "User not found or protected" });
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Delete user error:", err.stack);
-    res.status(500).json({ error: "DB error" });
-  }
 });
 
 // GET רשימת משתמשים ממתינים
