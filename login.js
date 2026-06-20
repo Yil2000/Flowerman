@@ -52,7 +52,7 @@ form.addEventListener("submit", async (e) => {
     sessionStorage.setItem("userToken", data.token);
 
     // אם המשתמש מנהל/סופר־אדמין יכול לגשת ל־/admin.html
-    if (data.user.role === "admin" || data.user.role === "superadmin") {
+    if (data.user.role === "admin" || data.user.role === "superadmin" || data.user.role === "user") {
       window.location.href = "/admin.html?ts=" + new Date().getTime();
     } else {
       window.location.href = "/index.html";
