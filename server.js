@@ -48,10 +48,14 @@ const db = { query: (text, params) => pool.query(text, params) };
 app.get("/auth/me", authenticateUser, async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, fullname, username, email, role, created_at, last_login FROM users WHERE id=$1",
+      "SELECT id, fullname, username, email, role, created_at, last_login, password_hash FROM users WHERE id=$1",
       [req.user.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+    const user = result.rows[0];
+    user.password_display = user.password_hash; // מציג hash — superadmin יודע מה זה
+    delete user.password_hash; // לא שולחים את שם השדה הגולמי
+    res.json(user);
     res.json(result.rows[0]);
   } catch (err) {
     console.error("GET /auth/me error:", err.stack);
