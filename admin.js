@@ -604,9 +604,21 @@ if (myLogoutBtn) {
       const myRole     = getCurrentRole();
       const card       = document.getElementById("um-user-card");
       const feedback   = document.getElementById("um-feedback");
-
+      
       if (!card) return;
 
+      document.getElementById("um-edit-fullname").disabled = true;
+      document.getElementById("um-edit-username").disabled = true;
+      document.getElementById("um-edit-email").disabled = true;
+      document.getElementById("um-edit-role").disabled = true;
+
+      document.getElementById("um-toggle-edit-btn").addEventListener("click", () => {
+    const fields = ["um-edit-fullname", "um-edit-username", "um-edit-email", "um-edit-role"];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.disabled = !el.disabled; // הפוך מצב (נעול <-> פתוח)
+    });
+});
       // avatar
       const initial = (user.fullname || user.username || "?")[0];
       document.getElementById("um-avatar").textContent      = initial;
