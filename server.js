@@ -194,7 +194,6 @@ app.get("/admin/users/all",
   requireRole(["admin","superadmin"]),
   async (req, res) => {
     try {
-      const result = await db.query(
       // ✅ מה שצריך — הוסף שדה מותנה לפי role של המבקש:
      const isSuperAdmin = req.user.role === "superadmin";
       const fields = isSuperAdmin
