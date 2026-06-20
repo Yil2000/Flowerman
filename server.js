@@ -44,6 +44,83 @@ const pool = new Pool({
 const db = { query: (text, params) => pool.query(text, params) };
 
 
+
+// ===== Cloudinary Config =====
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
+  api_key: process.env.CLOUDINARY_API_KEY || "",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "",
+});
+
+// ===== Multer Config =====
+const storage = multer.memoryStorage();
+const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new Error("Unsupported file type"));
+    }
+    cb(null, true);
+  }
+});
+
+// ===== Middlewares =====
+app.use(
+  cors({
+    origin: ["https://flowerman.onrender.com"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
+
+app.use("/admin.html", (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  next();
+});
+
+// ===== Helper Functions & Auth Middlewares =====
+function signUserToken(user) {
+  return jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: "2h" });
+}
+
+function authenticateUser(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token" });
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(403).json({ error: "Invalid token" });
+  }
+}
+
+// מאחד את הלוגיקה - בודק תפקיד מתוך req.user
+function requireRole(roles = []) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+    if (!roles.includes(req.user.role)) return res.status(403).json({ error: "Not authorized" });
+    next();
+  };
+}
+
+// הגנה גורפת על נתיבי הניהול - משתמשת בבסיס האחיד של authenticateUser
+app.use("/admin", (req, res, next) => {
+  if (req.path === "/login" || req.path === "/verify-token") return next();
+  return authenticateUser(req, res, () => {
+    if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+    next();
+  });
+});
+
 // ===== GET /auth/me — פרטי המשתמש המחובר =====
 app.get("/auth/me", authenticateUser, async (req, res) => {
   try {
@@ -56,7 +133,6 @@ app.get("/auth/me", authenticateUser, async (req, res) => {
     user.password_display = user.password_hash; // מציג hash — superadmin יודע מה זה
     delete user.password_hash; // לא שולחים את שם השדה הגולמי
     res.json(user);
-    res.json(result.rows[0]);
   } catch (err) {
     console.error("GET /auth/me error:", err.stack);
     res.status(500).json({ error: "DB error" });
@@ -120,12 +196,12 @@ app.get("/admin/users/all",
     try {
       const result = await db.query(
       // ✅ מה שצריך — הוסף שדה מותנה לפי role של המבקש:
-      const isSuperAdmin = req.user.role === "superadmin";
+     const isSuperAdmin = req.user.role === "superadmin";
       const fields = isSuperAdmin
         ? "id, fullname, username, email, role, created_at, last_login, password_hash"
         : "id, fullname, username, email, role, created_at, last_login";
       const result = await db.query(`SELECT ${fields} FROM users ORDER BY created_at DESC`);
-      );
+            );
       res.json(result.rows);
     } catch (err) {
       console.error("GET /admin/users/all:", err.stack);
@@ -299,81 +375,6 @@ pool.on("error", (err) => {
   console.error("❌ Unexpected PG Pool Error:", err.stack);
 });
 
-// ===== Cloudinary Config =====
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
-  api_key: process.env.CLOUDINARY_API_KEY || "",
-  api_secret: process.env.CLOUDINARY_API_SECRET || "",
-});
-
-// ===== Multer Config =====
-const storage = multer.memoryStorage();
-const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      return cb(new Error("Unsupported file type"));
-    }
-    cb(null, true);
-  }
-});
-
-// ===== Middlewares =====
-app.use(
-  cors({
-    origin: ["https://flowerman.onrender.com"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-  })
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
-
-app.use("/admin.html", (req, res, next) => {
-  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-  next();
-});
-
-// ===== Helper Functions & Auth Middlewares =====
-function signUserToken(user) {
-  return jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: "2h" });
-}
-
-function authenticateUser(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token" });
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(403).json({ error: "Invalid token" });
-  }
-}
-
-// מאחד את הלוגיקה - בודק תפקיד מתוך req.user
-function requireRole(roles = []) {
-  return (req, res, next) => {
-    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
-    if (!roles.includes(req.user.role)) return res.status(403).json({ error: "Not authorized" });
-    next();
-  };
-}
-
-// הגנה גורפת על נתיבי הניהול - משתמשת בבסיס האחיד של authenticateUser
-app.use("/admin", (req, res, next) => {
-  if (req.path === "/login" || req.path === "/verify-token") return next();
-  return authenticateUser(req, res, () => {
-    if (req.user.role !== "admin" && req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Not authorized" });
-    }
-    next();
-  });
-});
 
 // ===== Static & Public Routes =====
 app.get("/robots.txt", (req, res) => {
