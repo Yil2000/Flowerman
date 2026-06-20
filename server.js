@@ -115,7 +115,12 @@ app.get("/admin/users/all",
   async (req, res) => {
     try {
       const result = await db.query(
-        "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
+      // ✅ מה שצריך — הוסף שדה מותנה לפי role של המבקש:
+      const isSuperAdmin = req.user.role === "superadmin";
+      const fields = isSuperAdmin
+        ? "id, fullname, username, email, role, created_at, last_login, password_hash"
+        : "id, fullname, username, email, role, created_at, last_login";
+      const result = await db.query(`SELECT ${fields} FROM users ORDER BY created_at DESC`);
       );
       res.json(result.rows);
     } catch (err) {
