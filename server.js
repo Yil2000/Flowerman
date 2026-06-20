@@ -43,6 +43,249 @@ const pool = new Pool({
 });
 const db = { query: (text, params) => pool.query(text, params) };
 
+
+// ===== GET /auth/me — פרטי המשתמש המחובר =====
+app.get("/auth/me", authenticateUser, async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT id, fullname, username, email, role, created_at, last_login FROM users WHERE id=$1",
+      [req.user.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("GET /auth/me error:", err.stack);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+
+// ===== PUT /auth/me — עדכון פרטים אישיים (כל משתמש לעצמו) =====
+// כל משתמש מאושר יכול לעדכן את הפרטים שלו בלבד
+// אסור לשנות role דרך route זה
+app.put("/auth/me", authenticateUser, requireRole(["user","admin","superadmin"]), async (req, res) => {
+  const { fullname, username, email, password } = req.body;
+
+  if (!fullname || !username) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  if (username.length < 3 || username.length > 30) {
+    return res.status(400).json({ error: "Username must be 3–30 characters" });
+  }
+
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return res.status(400).json({ error: "Username may only contain letters, digits, underscores" });
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Invalid email" });
+  }
+
+  try {
+    let query, params;
+
+    if (password && password.length >= 5) {
+      const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      query  = `UPDATE users SET fullname=$1, username=$2, email=$3, password_hash=$4 WHERE id=$5
+                RETURNING id, fullname, username, email, role`;
+      params = [fullname, username, email || null, hash, req.user.id];
+    } else {
+      query  = `UPDATE users SET fullname=$1, username=$2, email=$3 WHERE id=$4
+                RETURNING id, fullname, username, email, role`;
+      params = [fullname, username, email || null, req.user.id];
+    }
+
+    const result = await db.query(query, params);
+    if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error("PUT /auth/me error:", err.stack);
+    if (err.code === "23505") return res.status(400).json({ error: "Username or email already exists" });
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+
+// ===== GET /admin/users/all — כל המשתמשים (admin/superadmin בלבד) =====
+app.get("/admin/users/all",
+  authenticateUser,
+  requireRole(["admin","superadmin"]),
+  async (req, res) => {
+    try {
+      const result = await db.query(
+        "SELECT id, fullname, username, email, role, created_at, last_login FROM users ORDER BY created_at DESC"
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("GET /admin/users/all:", err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
+
+// ===== PUT /admin/users/:id — עדכון פרטי משתמש (admin/superadmin) =====
+// חוקי שינוי role:
+//   superadmin → יכול לשנות role של כולם חוץ מעצמו
+//   admin      → יכול לשנות user ↔ admin בלבד, לא superadmin, לא עצמו
+//   אף אחד לא יכול לשנות role של superadmin
+app.put("/admin/users/:id",
+  authenticateUser,
+  requireRole(["admin","superadmin"]),
+  async (req, res) => {
+    const targetId = parseInt(req.params.id, 10);
+    const { fullname, username, email, role } = req.body;
+    const myId   = req.user.id;
+    const myRole = req.user.role;
+
+    if (!fullname || !username) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // אסור לערוך את עצמך דרך route זה (לזה יש PUT /auth/me)
+    if (targetId === myId) {
+      return res.status(403).json({ error: "Use /auth/me to edit your own profile" });
+    }
+
+    try {
+      // שלוף את היוזר הנערך
+      const check = await db.query("SELECT role FROM users WHERE id=$1", [targetId]);
+      if (!check.rows.length) return res.status(404).json({ error: "User not found" });
+      const targetRole = check.rows[0].role;
+
+      // הגנה: admin לא יכול לערוך superadmin
+      if (targetRole === "superadmin" && myRole !== "superadmin") {
+        return res.status(403).json({ error: "Cannot edit superadmin" });
+      }
+
+      // בדיקת הרשאת role
+      let newRole = undefined;
+      if (role && role !== targetRole) {
+        if (myRole === "superadmin") {
+          // superadmin יכול לשנות לכולם
+          newRole = role;
+        } else if (myRole === "admin") {
+          // admin יכול רק user ↔ admin
+          if (!["user","admin"].includes(role)) {
+            return res.status(403).json({ error: "Admins can only set user or admin role" });
+          }
+          if (targetRole === "superadmin") {
+            return res.status(403).json({ error: "Cannot change superadmin role" });
+          }
+          newRole = role;
+        }
+      }
+
+      let query, params;
+      if (newRole) {
+        query  = `UPDATE users SET fullname=$1, username=$2, email=$3, role=$4
+                  WHERE id=$5 RETURNING id, fullname, username, email, role`;
+        params = [fullname, username, email || null, newRole, targetId];
+      } else {
+        query  = `UPDATE users SET fullname=$1, username=$2, email=$3
+                  WHERE id=$4 RETURNING id, fullname, username, email, role`;
+        params = [fullname, username, email || null, targetId];
+      }
+
+      const result = await db.query(query, params);
+      if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+      res.json({ success: true, user: result.rows[0] });
+
+    } catch (err) {
+      console.error("PUT /admin/users/:id:", err.stack);
+      if (err.code === "23505") return res.status(400).json({ error: "Username or email already exists" });
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
+
+// ===== DELETE /admin/users/:id — מחיקת משתמש (admin/superadmin) =====
+// superadmin מוגן לחלוטין ממחיקה
+// אף אחד לא יכול למחוק את עצמו
+app.delete("/admin/users/:id",
+  authenticateUser,
+  requireRole(["admin","superadmin"]),
+  async (req, res) => {
+    const targetId = parseInt(req.params.id, 10);
+    const myId     = req.user.id;
+    const myRole   = req.user.role;
+
+    if (targetId === myId) {
+      return res.status(403).json({ error: "Cannot delete yourself" });
+    }
+
+    try {
+      // שלוף role של היוזר הנמחק
+      const check = await db.query("SELECT role FROM users WHERE id=$1", [targetId]);
+      if (!check.rows.length) return res.status(404).json({ error: "User not found" });
+      const targetRole = check.rows[0].role;
+
+      // superadmin לא נמחק
+      if (targetRole === "superadmin") {
+        return res.status(403).json({ error: "Cannot delete superadmin" });
+      }
+
+      // admin לא יכול למחוק admin אחר
+      if (myRole === "admin" && targetRole === "admin") {
+        return res.status(403).json({ error: "Admins cannot delete other admins" });
+      }
+
+      const result = await db.query("DELETE FROM users WHERE id=$1 RETURNING id", [targetId]);
+      if (!result.rows.length) return res.status(404).json({ error: "User not found" });
+      res.json({ success: true });
+
+    } catch (err) {
+      console.error("DELETE /admin/users/:id:", err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
+
+// ===== POST /admin/users/approve/:id — אישור pending → user =====
+app.post("/admin/users/approve/:id",
+  authenticateUser,
+  requireRole(["admin","superadmin"]),
+  async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+    try {
+      const result = await db.query(
+        "UPDATE users SET role='user', approved_by=$1 WHERE id=$2 AND role='pending' RETURNING id, username, role",
+        [req.user.id, userId]
+      );
+      if (!result.rows.length) return res.status(404).json({ error: "User not found or not pending" });
+      res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+      console.error("Approve error:", err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
+
+// ===== POST /admin/users/reject/:id — דחיית pending (מחיקה) =====
+app.post("/admin/users/reject/:id",
+  authenticateUser,
+  requireRole(["admin","superadmin"]),
+  async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+    try {
+      const result = await db.query(
+        "DELETE FROM users WHERE id=$1 AND role='pending' RETURNING id",
+        [userId]
+      );
+      if (!result.rows.length) return res.status(404).json({ error: "User not found or not pending" });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Reject error:", err.stack);
+      res.status(500).json({ error: "DB error" });
+    }
+  }
+);
+
 pool.on("error", (err) => {
   console.error("❌ Unexpected PG Pool Error:", err.stack);
 });
@@ -203,34 +446,6 @@ app.delete("/admin/users/:id", requireRole(["admin", "superadmin"]), async (req,
 app.get("/admin/users/pending", requireRole(["admin", "superadmin"]), async (req, res) => {
   const result = await db.query("SELECT id, fullname, username, email, created_at FROM users WHERE role='pending' ORDER BY created_at ASC");
   res.json(result.rows);
-});
-
-// POST אישור משתמש
-app.post("/admin/users/approve/:id", requireRole(["admin", "superadmin"]), async (req, res) => {
-  const userId = parseInt(req.params.id, 10);
-  try {
-    const result = await db.query(
-      "UPDATE users SET role='user', approved_by=$1 WHERE id=$2 AND role='pending' RETURNING id, username, role",
-      [req.user.id, userId]
-    );
-    if (!result.rows.length) return res.status(404).json({ error: "User not found or not pending" });
-    res.json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    console.error("Approve error:", err.stack);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-// POST דחיית משתמש
-app.post("/admin/users/reject/:id", requireRole(["admin", "superadmin"]), async (req, res) => {
-  const userId = parseInt(req.params.id, 10);
-  try {
-    await db.query("DELETE FROM users WHERE id=$1 AND role='pending'", [userId]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Reject error:", err.stack);
-    res.status(500).json({ error: "DB error" });
-  }
 });
 
 // ===== Token Utilities =====
