@@ -558,7 +558,8 @@ if (!window.hasRunAdminUnified) {
       const current = select.value;
       select.innerHTML = '<option value="">-- בחר משתמש לצפייה/עריכה --</option>';
       // מסנן החוצה pending (כבר בסקציה הנפרדת)
-      users.filter(u => u.role !== "pending").forEach(u => {
+        const myId = getCurrentId();
+        users.filter(u => u.role !== "pending" && String(u.id) !== String(myId)).forEach(u => {
         const opt = document.createElement("option");
         opt.value       = u.id;
         opt.textContent = (u.fullname || u.username) + ` (${roleBadgeLabel(u.role)})`;
@@ -591,16 +592,16 @@ if (!window.hasRunAdminUnified) {
       document.getElementById("um-edit-username").value = user.username || "";
       document.getElementById("um-edit-email").value    = user.email    || "";
 
-      // סיסמה — רק superadmin
-      const passField = document.getElementById("um-password-field");
-      if (passField) {
-        if (myRole === "superadmin") {
-          passField.style.display = "flex";
-          document.getElementById("um-view-password").value = user.password_plain || "(מוצפן)";
-        } else {
-          passField.style.display = "none";
-        }
+    const passField = document.getElementById("um-password-field");
+    if (passField) {
+      if (myRole === "superadmin" && user.password_hash) {
+        passField.style.display = "flex";
+        document.getElementById("um-view-password").value = user.password_hash;
+      } else {
+        passField.style.display = "none";
+        document.getElementById("um-view-password").value = "";
       }
+    }
 
       // role selector — superadmin לכולם, admin רק לuser ולמטה, אף אחד לא לעצמו
       const roleField  = document.getElementById("um-role-field");
