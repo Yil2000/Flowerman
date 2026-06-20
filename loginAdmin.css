@@ -630,6 +630,12 @@ color: #350847;
   gap: 1em;
 }
 
+input:disabled {
+    background-color: #f2f2f2;
+    cursor: not-allowed;
+    border: 1px solid #ddd;
+}
+
 .um-avatar {
   width: 52px;
   height: 52px;
