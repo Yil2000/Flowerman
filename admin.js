@@ -116,7 +116,7 @@ if (!window.hasRunAdminUnified) {
         if (!data.valid) return showError("טוקן לא תקין");
 
         const payload = getCurrentPayload();
-        if (!payload || !["admin","superadmin"].includes(payload.role)) {
+        if (!payload || !["user","admin","superadmin"].includes(payload.role)) {
           return showError("אין הרשאות");
         }
 
