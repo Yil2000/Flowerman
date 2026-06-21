@@ -116,7 +116,7 @@ if (!window.hasRunAdminUnified) {
     // =========================================================
     // Logout
     // =========================================================
-    const logoutBtn = document.getElementById("my-logout-btn");
+    const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
         // 1. מחיקת כל הנתונים של המשתמש
