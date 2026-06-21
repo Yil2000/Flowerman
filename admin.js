@@ -30,17 +30,10 @@ if (!window.hasRunAdminUnified) {
     function jsonHeaders()   { return { ...authHeader(), "Content-Type": "application/json" }; }
 
     function getCurrentPayload() {
-  const t = getToken();
-  if (!t) return null;
-  try {
-    const base64Url = t.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  } catch { return null; }
-}
+      const t = getToken();
+      if (!t) return null;
+      try { return JSON.parse(atob(t.split(".")[1])); } catch { return null; }
+    }
     function getCurrentRole() { return getCurrentPayload()?.role || null; }
     function getCurrentId()   { return getCurrentPayload()?.id   || null; }
 
@@ -62,35 +55,18 @@ if (!window.hasRunAdminUnified) {
     }
 
     function showNotification(text, isError = false) {
-  // בדיקה אם כבר קיים קונטיינר להתראות על המסך, אם לא - ניצור אותו
-  let container = document.getElementById("toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "toast-container";
-    container.style.cssText = `
-      position: fixed; top: 20px; right: 20px;
-      display: flex; flex-direction: column; gap: 10px;
-      z-index: 9999; font-family: Arial, sans-serif;
-    `;
-    document.body.appendChild(container);
-  }
-
-  const notif = document.createElement("div");
-  notif.textContent = text;
-  notif.style.cssText = `
-    background: ${isError ? "#e74c3c" : "#4caf50"}; color: white;
-    padding: 10px 20px; border-radius: 8px; font-size: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px; text-align: center;
-  `;
-  
-  container.appendChild(notif);
-  
-  setTimeout(() => {
-    notif.remove();
-    // אם אין יותר התראות אקטיביות, ננקה גם את הקונטיינר מה-DOM
-    if (container.children.length === 0) container.remove();
-  }, 2500);
-}
+      const notif = document.createElement("div");
+      notif.textContent = text;
+      notif.style.cssText = `
+        position:fixed; top:20px; right:20px;
+        background:${isError ? "#e74c3c" : "#4caf50"}; color:white;
+        padding:10px 20px; border-radius:8px; z-index:9999;
+        font-family:Arial,sans-serif; font-size:14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 2500);
+    }
 
     function showError(reason) {
       console.warn("Unauthorized:", reason);
@@ -116,35 +92,19 @@ if (!window.hasRunAdminUnified) {
         if (!data.valid) return showError("טוקן לא תקין");
 
         const payload = getCurrentPayload();
-        if (!payload || !["user","admin","superadmin"].includes(payload.role)) {
+        if (!payload || !["admin","superadmin"].includes(payload.role)) {
           return showError("אין הרשאות");
         }
 
         if (content)  content.style.display  = "flex";
-        // הגבלת תפריט לפי role
-        const role = payload.role;
-        if (role === "user") {
-          // הסתר כל כפתורי סיידבר חוץ מהעלאת תמונות
-          document.querySelectorAll("#sidebar button[data-target]").forEach(btn => {
-            if (btn.dataset.target !== "upload-section") {
-              btn.style.display = "none";
-            }
-          });
-          // פתח אוטומטית את סקציית ההעלאה
-          document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-          const uploadSec = document.getElementById("upload-section");
-          if (uploadSec) uploadSec.classList.add("active");
-        }
-        // הצג ניהול משתמשים רק לadmin/superadmin
         if (errorDiv) errorDiv.style.display = "none";
 
+        // הצג כפתור ניהול משתמשים
         const manageBtn = document.getElementById("manage-users-btn");
-        if (manageBtn) manageBtn.style.display = (role === "admin" || role === "superadmin") ? "block" : "none";
+        if (manageBtn) manageBtn.style.display = "block";
 
-        if (role === "admin" || role === "superadmin") {
-          loadShares(token);
-          loadContacts(token);
-        }
+        loadShares(token);
+        loadContacts(token);
         loadMyProfile();
 
       } catch (err) {
@@ -283,70 +243,45 @@ if (!window.hasRunAdminUnified) {
     // =========================================================
     // Contacts
     // =========================================================
-  async function loadContacts(token) {
-  if (!contactsContainer) return;
-  try {
-    const res = await fetch(`${serverUrl}/admin/contacts`, { headers: authHeader() });
-    if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
-    const contacts = await res.json();
-    contactsContainer.innerHTML = "";
-    if (!contacts || contacts.length === 0) {
-      contactsContainer.innerHTML = "<p class='um-empty'>לא נמצאו פניות</p>";
-      return;
-    }
-    contacts.forEach(contact => {
-      const div = document.createElement("div");
-      div.className = "contact-card";
-      div.innerHTML = `
-        <div class="contact-card-header">
-          <div class="contact-card-info">
-            <span class="contact-name-badge">${contact.name}</span>
-            <span class="contact-region-badge">${contact.region}</span>
-          </div>
-          <span class="contact-date">
-            <i class="fa-solid fa-calendar-days"></i>
-            ${contact.created_at
-              ? new Date(contact.created_at).toLocaleDateString("he-IL", {
-                  day:"2-digit", month:"2-digit", year:"numeric",
-                  hour:"2-digit", minute:"2-digit"
-                })
-              : ""}
-          </span>
-        </div>
-        <div class="contact-card-body">
-          <div class="contact-field">
-            <span class="contact-label"><i class="fa-solid fa-phone"></i> טלפון</span>
-            <span class="contact-value">${contact.phone}</span>
-          </div>
-          <div class="contact-field">
-            <span class="contact-label"><i class="fa-solid fa-message"></i> הודעה</span>
-            <span class="contact-value contact-message">${contact.message}</span>
-          </div>
-        </div>
-        <div class="contact-card-footer">
-          <button class="delete-contact-btn">
-            <i class="fa-solid fa-check"></i> סמן כטופל ומחק
-          </button>
-        </div>
-      `;
-      contactsContainer.appendChild(div);
-      div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
-        if (!confirm("להסיר את הפנייה?")) return;
-        try {
-          const delRes = await fetch(`${serverUrl}/admin/contacts/${contact.id}`, {
-            method: "DELETE", headers: authHeader()
+    async function loadContacts(token) {
+      if (!contactsContainer) return;
+      try {
+        const res = await fetch(`${serverUrl}/admin/contacts`, { headers: authHeader() });
+        if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
+        const contacts = await res.json();
+        contactsContainer.innerHTML = "";
+        if (!contacts || contacts.length === 0) {
+          contactsContainer.innerHTML = "<p class='um-empty'>לא נמצאו פניות</p>";
+          return;
+        }
+        contacts.forEach(contact => {
+          const div = document.createElement("div");
+          div.className = "contact-card";
+          div.innerHTML = `
+            <p><strong>שם:</strong> ${contact.name}</p>
+            <p><strong>טלפון:</strong> ${contact.phone}</p>
+            <p><strong>אזור:</strong> ${contact.region}</p>
+            <p><strong>הודעה:</strong> ${contact.message}</p>
+            <button class="delete-contact-btn">סמן כטופל ומחק</button>
+          `;
+          contactsContainer.appendChild(div);
+          div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
+            if (!confirm("להסיר את הפנייה?")) return;
+            try {
+              const delRes = await fetch(`${serverUrl}/admin/contacts/${contact.id}`, {
+                method: "DELETE", headers: authHeader()
+              });
+              if (!delRes.ok) throw new Error("שגיאה במחיקה");
+              div.remove();
+              showNotification("🗑️ הפנייה נמחקה!");
+            } catch (err) { console.error(err); }
           });
-          if (!delRes.ok) throw new Error("שגיאה במחיקה");
-          div.remove();
-          showNotification("🗑️ הפנייה נמחקה!");
-        } catch (err) { console.error(err); }
-      });
-    });
-  } catch (err) {
-    console.error(err);
-    contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
-  }
-}
+        });
+      } catch (err) {
+        console.error(err);
+        contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
+      }
+    }
 
     // =========================================================
     // Upload
@@ -422,7 +357,7 @@ if (!window.hasRunAdminUnified) {
       el("my-fullname").value  = u.fullname  || "";
       el("my-username").value  = u.username  || "";
       el("my-email").value     = u.email     || "";
-      el("my-password").value = "" || "";
+      el("my-password").value  = "";
     }
 
     // פתיחה/סגירה של חלונית פרופיל
@@ -471,17 +406,10 @@ if (!window.hasRunAdminUnified) {
     const myCancelBtn = document.getElementById("my-cancel-btn");
 
     if (myEditBtn)   myEditBtn.addEventListener("click",   () => setProfileEditMode(true));
-  if (myCancelBtn) myCancelBtn.addEventListener("click", () => {
-  if (myProfileData) renderMyProfile(myProfileData);
-  setProfileEditMode(false);
-});
-    const myLogoutBtn = document.getElementById("my-logout-btn");
-if (myLogoutBtn) {
-  myLogoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("userToken");
-    window.location.replace("/index.html");
-  });
-}
+    if (myCancelBtn) myCancelBtn.addEventListener("click", () => {
+      if (myProfileData) renderMyProfile(myProfileData);
+      setProfileEditMode(false);
+    });
 
     if (mySaveBtn) {
       mySaveBtn.addEventListener("click", async () => {
@@ -630,8 +558,7 @@ if (myLogoutBtn) {
       const current = select.value;
       select.innerHTML = '<option value="">-- בחר משתמש לצפייה/עריכה --</option>';
       // מסנן החוצה pending (כבר בסקציה הנפרדת)
-        const myId = getCurrentId();
-        users.filter(u => u.role !== "pending" && String(u.id) !== String(myId)).forEach(u => {
+      users.filter(u => u.role !== "pending").forEach(u => {
         const opt = document.createElement("option");
         opt.value       = u.id;
         opt.textContent = (u.fullname || u.username) + ` (${roleBadgeLabel(u.role)})`;
@@ -640,123 +567,79 @@ if (myLogoutBtn) {
       if (current) select.value = current;
     }
 
-  function showUserCard(user) {
-  const card     = document.getElementById("um-user-card");
-  const feedback = document.getElementById("um-feedback");
-  const myId     = getCurrentId();
-  const myRole   = getCurrentRole();
+    function showUserCard(user) {
+      const myId       = getCurrentId();
+      const myRole     = getCurrentRole();
+      const card       = document.getElementById("um-user-card");
+      const feedback   = document.getElementById("um-feedback");
 
-  if (!card) return;
+      if (!card) return;
 
-  // ===== reset כפתורים — חייב להיות לפני cloneNode =====
-  const tBtn = document.getElementById("um-toggle-edit-btn");
-  const sBtn = document.getElementById("um-save-btn");
-  const cBtn = document.getElementById("um-cancel-btn");
-  if (tBtn) tBtn.style.display = "inline-block";
-  if (sBtn) sBtn.style.display = "none";
-  if (cBtn) cBtn.style.display = "none";
+      // avatar
+      const initial = (user.fullname || user.username || "?")[0];
+      document.getElementById("um-avatar").textContent      = initial;
+      document.getElementById("um-avatar").style.background = avatarColor(user.fullname || user.username);
+      document.getElementById("um-fullname").textContent         = user.fullname || "—";
+      document.getElementById("um-username-display").textContent = "@" + user.username;
 
-  // ===== נעל שדות =====
-  ["um-edit-fullname","um-edit-username","um-edit-email","um-edit-role"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = true;
-  });
+      const badge = document.getElementById("um-role-badge");
+      badge.textContent = roleBadgeLabel(user.role);
+      badge.className   = "um-badge " + roleBadgeClass(user.role);
 
-  // ===== Toggle edit button =====
-  const toggleBtn   = document.getElementById("um-toggle-edit-btn");
-  const saveBtn     = document.getElementById("um-save-btn");
-  const cancelUmBtn = document.getElementById("um-cancel-btn");
+      // שדות
+      document.getElementById("um-edit-fullname").value = user.fullname || "";
+      document.getElementById("um-edit-username").value = user.username || "";
+      document.getElementById("um-edit-email").value    = user.email    || "";
 
-  if (toggleBtn) {
-    const newToggle = toggleBtn.cloneNode(true);
-    toggleBtn.parentNode.replaceChild(newToggle, toggleBtn);
-
-    newToggle.addEventListener("click", () => {
-      ["um-edit-fullname","um-edit-username","um-edit-email","um-edit-role"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && !el.closest(".um-field-group").style.display?.includes("none")) {
-          el.disabled = false;
+      // סיסמה — רק superadmin
+      const passField = document.getElementById("um-password-field");
+      if (passField) {
+        if (myRole === "superadmin") {
+          passField.style.display = "flex";
+          document.getElementById("um-view-password").value = user.password_plain || "(מוצפן)";
+        } else {
+          passField.style.display = "none";
         }
-      });
-      newToggle.style.display = "none";
-      if (saveBtn)     saveBtn.style.display     = "inline-block";
-      if (cancelUmBtn) cancelUmBtn.style.display = "inline-block";
-    });
-  }
-
-  if (cancelUmBtn) {
-    const newCancel = cancelUmBtn.cloneNode(true);
-    cancelUmBtn.parentNode.replaceChild(newCancel, cancelUmBtn);
-
-    newCancel.addEventListener("click", () => {
-      const cached = allUsersCache.find(u => String(u.id) === card.dataset.userId);
-      if (cached) {
-        document.getElementById("um-edit-fullname").value = cached.fullname || "";
-        document.getElementById("um-edit-username").value = cached.username || "";
-        document.getElementById("um-edit-email").value    = cached.email    || "";
-        const roleSelect = document.getElementById("um-edit-role");
-        if (roleSelect) roleSelect.value = cached.role;
       }
-      ["um-edit-fullname","um-edit-username","um-edit-email","um-edit-role"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = true;
-      });
-      const toggle = document.getElementById("um-toggle-edit-btn");
-      if (toggle)  toggle.style.display  = "inline-block";
-      if (saveBtn) saveBtn.style.display = "none";
-      newCancel.style.display = "none";
+
+      // role selector — superadmin לכולם, admin רק לuser ולמטה, אף אחד לא לעצמו
+      const roleField  = document.getElementById("um-role-field");
+      const roleSelect = document.getElementById("um-edit-role");
+
+      const isSelf = String(user.id) === String(myId);
+
+      if (roleField && roleSelect) {
+        let showRole = false;
+
+        if (!isSelf) {
+          if (myRole === "superadmin") {
+            // superadmin — יכול לשנות לכולם
+            showRole = true;
+            roleSelect.innerHTML = `
+              <option value="user">משתמש (user)</option>
+              <option value="admin">מנהל (admin)</option>
+              <option value="superadmin">סופר מנהל (superadmin)</option>
+            `;
+          } else if (myRole === "admin" && (user.role === "user" || user.role === "admin")) {
+            // admin — יכול לשנות user → admin ואחורה, לא superadmin
+            showRole = true;
+            roleSelect.innerHTML = `
+              <option value="user">משתמש (user)</option>
+              <option value="admin">מנהל (admin)</option>
+            `;
+          }
+        }
+
+        roleField.style.display = showRole ? "flex" : "none";
+        if (showRole) roleSelect.value = user.role;
+      }
+
       if (feedback) { feedback.textContent = ""; feedback.className = "um-feedback"; }
-    });
-  }
 
-  // ===== Avatar =====
-  const initial = (user.fullname || user.username || "?")[0];
-  document.getElementById("um-avatar").textContent      = initial;
-  document.getElementById("um-avatar").style.background = avatarColor(user.fullname || user.username);
-  document.getElementById("um-fullname").textContent         = user.fullname || "—";
-  document.getElementById("um-username-display").textContent = "@" + user.username;
-
-  const badge = document.getElementById("um-role-badge");
-  badge.textContent = roleBadgeLabel(user.role);
-  badge.className   = "um-badge " + roleBadgeClass(user.role);
-
-  // ===== שדות =====
-  document.getElementById("um-edit-fullname").value = user.fullname || "";
-  document.getElementById("um-edit-username").value = user.username || "";
-  document.getElementById("um-edit-email").value    = user.email    || "";
-
-  // ===== Role selector =====
-  const roleField  = document.getElementById("um-role-field");
-  const roleSelect = document.getElementById("um-edit-role");
-  const isSelf     = String(user.id) === String(myId);
-
-  if (roleField && roleSelect) {
-    let showRole = false;
-    if (!isSelf) {
-      if (myRole === "superadmin") {
-        showRole = true;
-        roleSelect.innerHTML = `
-          <option value="user">משתמש (user)</option>
-          <option value="admin">מנהל (admin)</option>
-          <option value="superadmin">סופר מנהל (superadmin)</option>
-        `;
-      } else if (myRole === "admin" && (user.role === "user" || user.role === "admin")) {
-        showRole = true;
-        roleSelect.innerHTML = `
-          <option value="user">משתמש (user)</option>
-          <option value="admin">מנהל (admin)</option>
-        `;
-      }
+      card.style.display  = "flex";
+      card.dataset.userId = user.id;
     }
-    roleField.style.display = showRole ? "flex" : "none";
-    if (showRole) roleSelect.value = user.role;
-  }
 
-  if (feedback) { feedback.textContent = ""; feedback.className = "um-feedback"; }
-
-  card.style.display  = "flex";
-  card.dataset.userId = user.id;
-}
     // Dropdown change
     const umSelect = document.getElementById("um-user-select");
     if (umSelect) {
