@@ -121,14 +121,30 @@ if (!window.hasRunAdminUnified) {
         }
 
         if (content)  content.style.display  = "flex";
+        // הגבלת תפריט לפי role
+        const role = payload.role;
+        if (role === "user") {
+          // הסתר כל כפתורי סיידבר חוץ מהעלאת תמונות
+          document.querySelectorAll("#sidebar button[data-target]").forEach(btn => {
+            if (btn.dataset.target !== "upload-section") {
+              btn.style.display = "none";
+            }
+          });
+          // פתח אוטומטית את סקציית ההעלאה
+          document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+          const uploadSec = document.getElementById("upload-section");
+          if (uploadSec) uploadSec.classList.add("active");
+        }
+        // הצג ניהול משתמשים רק לadmin/superadmin
         if (errorDiv) errorDiv.style.display = "none";
 
-        // הצג כפתור ניהול משתמשים
         const manageBtn = document.getElementById("manage-users-btn");
-        if (manageBtn) manageBtn.style.display = "block";
+        if (manageBtn) manageBtn.style.display = (role === "admin" || role === "superadmin") ? "block" : "none";
 
-        loadShares(token);
-        loadContacts(token);
+        if (role === "admin" || role === "superadmin") {
+          loadShares(token);
+          loadContacts(token);
+        }
         loadMyProfile();
 
       } catch (err) {
@@ -381,7 +397,7 @@ if (!window.hasRunAdminUnified) {
       el("my-fullname").value  = u.fullname  || "";
       el("my-username").value  = u.username  || "";
       el("my-email").value     = u.email     || "";
-      el("my-password").value = u.password_display || "";
+      el("my-password").value = "" || "";
     }
 
     // פתיחה/סגירה של חלונית פרופיל
@@ -599,80 +615,123 @@ if (myLogoutBtn) {
       if (current) select.value = current;
     }
 
-    function showUserCard(user) {
-      const myId       = getCurrentId();
-      const myRole     = getCurrentRole();
-      const card       = document.getElementById("um-user-card");
-      const feedback   = document.getElementById("um-feedback");
-      
-      if (!card) return;
+  function showUserCard(user) {
+  const card     = document.getElementById("um-user-card");
+  const feedback = document.getElementById("um-feedback");
+  const myId     = getCurrentId();
+  const myRole   = getCurrentRole();
 
-      document.getElementById("um-edit-fullname").disabled = true;
-      document.getElementById("um-edit-username").disabled = true;
-      document.getElementById("um-edit-email").disabled = true;
-      document.getElementById("um-edit-role").disabled = true;
+  if (!card) return;
 
-      document.getElementById("um-toggle-edit-btn").addEventListener("click", () => {
-    const fields = ["um-edit-fullname", "um-edit-username", "um-edit-email", "um-edit-role"];
-    fields.forEach(id => {
+  // ===== reset כפתורים — חייב להיות לפני cloneNode =====
+  const tBtn = document.getElementById("um-toggle-edit-btn");
+  const sBtn = document.getElementById("um-save-btn");
+  const cBtn = document.getElementById("um-cancel-btn");
+  if (tBtn) tBtn.style.display = "inline-block";
+  if (sBtn) sBtn.style.display = "none";
+  if (cBtn) cBtn.style.display = "none";
+
+  // ===== נעל שדות =====
+  ["um-edit-fullname","um-edit-username","um-edit-email","um-edit-role"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = true;
+  });
+
+  // ===== Toggle edit button =====
+  const toggleBtn   = document.getElementById("um-toggle-edit-btn");
+  const saveBtn     = document.getElementById("um-save-btn");
+  const cancelUmBtn = document.getElementById("um-cancel-btn");
+
+  if (toggleBtn) {
+    const newToggle = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(newToggle, toggleBtn);
+
+    newToggle.addEventListener("click", () => {
+      ["um-edit-fullname","um-edit-username","um-edit-email","um-edit-role"].forEach(id => {
         const el = document.getElementById(id);
-        if(el) el.disabled = !el.disabled; // הפוך מצב (נעול <-> פתוח)
-    });
-});
-      // avatar
-      const initial = (user.fullname || user.username || "?")[0];
-      document.getElementById("um-avatar").textContent      = initial;
-      document.getElementById("um-avatar").style.background = avatarColor(user.fullname || user.username);
-      document.getElementById("um-fullname").textContent         = user.fullname || "—";
-      document.getElementById("um-username-display").textContent = "@" + user.username;
-
-      const badge = document.getElementById("um-role-badge");
-      badge.textContent = roleBadgeLabel(user.role);
-      badge.className   = "um-badge " + roleBadgeClass(user.role);
-
-      // שדות
-      document.getElementById("um-edit-fullname").value = user.fullname || "";
-      document.getElementById("um-edit-username").value = user.username || "";
-      document.getElementById("um-edit-email").value    = user.email    || "";
-
-      // role selector — superadmin לכולם, admin רק לuser ולמטה, אף אחד לא לעצמו
-      const roleField  = document.getElementById("um-role-field");
-      const roleSelect = document.getElementById("um-edit-role");
-
-      const isSelf = String(user.id) === String(myId);
-
-      if (roleField && roleSelect) {
-        let showRole = false;
-
-        if (!isSelf) {
-          if (myRole === "superadmin") {
-            // superadmin — יכול לשנות לכולם
-            showRole = true;
-            roleSelect.innerHTML = `
-              <option value="user">משתמש (user)</option>
-              <option value="admin">מנהל (admin)</option>
-              <option value="superadmin">סופר מנהל (superadmin)</option>
-            `;
-          } else if (myRole === "admin" && (user.role === "user" || user.role === "admin")) {
-            // admin — יכול לשנות user → admin ואחורה, לא superadmin
-            showRole = true;
-            roleSelect.innerHTML = `
-              <option value="user">משתמש (user)</option>
-              <option value="admin">מנהל (admin)</option>
-            `;
-          }
+        if (el && !el.closest(".um-field-group").style.display?.includes("none")) {
+          el.disabled = false;
         }
+      });
+      newToggle.style.display = "none";
+      if (saveBtn)     saveBtn.style.display     = "inline-block";
+      if (cancelUmBtn) cancelUmBtn.style.display = "inline-block";
+    });
+  }
 
-        roleField.style.display = showRole ? "flex" : "none";
-        if (showRole) roleSelect.value = user.role;
+  if (cancelUmBtn) {
+    const newCancel = cancelUmBtn.cloneNode(true);
+    cancelUmBtn.parentNode.replaceChild(newCancel, cancelUmBtn);
+
+    newCancel.addEventListener("click", () => {
+      const cached = allUsersCache.find(u => String(u.id) === card.dataset.userId);
+      if (cached) {
+        document.getElementById("um-edit-fullname").value = cached.fullname || "";
+        document.getElementById("um-edit-username").value = cached.username || "";
+        document.getElementById("um-edit-email").value    = cached.email    || "";
+        const roleSelect = document.getElementById("um-edit-role");
+        if (roleSelect) roleSelect.value = cached.role;
       }
-
+      ["um-edit-fullname","um-edit-username","um-edit-email","um-edit-role"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+      });
+      const toggle = document.getElementById("um-toggle-edit-btn");
+      if (toggle)  toggle.style.display  = "inline-block";
+      if (saveBtn) saveBtn.style.display = "none";
+      newCancel.style.display = "none";
       if (feedback) { feedback.textContent = ""; feedback.className = "um-feedback"; }
+    });
+  }
 
-      card.style.display  = "flex";
-      card.dataset.userId = user.id;
+  // ===== Avatar =====
+  const initial = (user.fullname || user.username || "?")[0];
+  document.getElementById("um-avatar").textContent      = initial;
+  document.getElementById("um-avatar").style.background = avatarColor(user.fullname || user.username);
+  document.getElementById("um-fullname").textContent         = user.fullname || "—";
+  document.getElementById("um-username-display").textContent = "@" + user.username;
+
+  const badge = document.getElementById("um-role-badge");
+  badge.textContent = roleBadgeLabel(user.role);
+  badge.className   = "um-badge " + roleBadgeClass(user.role);
+
+  // ===== שדות =====
+  document.getElementById("um-edit-fullname").value = user.fullname || "";
+  document.getElementById("um-edit-username").value = user.username || "";
+  document.getElementById("um-edit-email").value    = user.email    || "";
+
+  // ===== Role selector =====
+  const roleField  = document.getElementById("um-role-field");
+  const roleSelect = document.getElementById("um-edit-role");
+  const isSelf     = String(user.id) === String(myId);
+
+  if (roleField && roleSelect) {
+    let showRole = false;
+    if (!isSelf) {
+      if (myRole === "superadmin") {
+        showRole = true;
+        roleSelect.innerHTML = `
+          <option value="user">משתמש (user)</option>
+          <option value="admin">מנהל (admin)</option>
+          <option value="superadmin">סופר מנהל (superadmin)</option>
+        `;
+      } else if (myRole === "admin" && (user.role === "user" || user.role === "admin")) {
+        showRole = true;
+        roleSelect.innerHTML = `
+          <option value="user">משתמש (user)</option>
+          <option value="admin">מנהל (admin)</option>
+        `;
+      }
     }
+    roleField.style.display = showRole ? "flex" : "none";
+    if (showRole) roleSelect.value = user.role;
+  }
 
+  if (feedback) { feedback.textContent = ""; feedback.className = "um-feedback"; }
+
+  card.style.display  = "flex";
+  card.dataset.userId = user.id;
+}
     // Dropdown change
     const umSelect = document.getElementById("um-user-select");
     if (umSelect) {
