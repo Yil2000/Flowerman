@@ -283,27 +283,70 @@ if (!window.hasRunAdminUnified) {
     // =========================================================
     // Contacts
     // =========================================================
-    async function loadContacts(token) {
-      if (!contactsContainer) return;
-      try {
-        const res = await fetch(`${serverUrl}/admin/contacts`, { headers: authHeader() });
-        if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
-        const contacts = await res.json();
-        contactsContainer.innerHTML = "";
-        if (!contacts || contacts.length === 0) {
-          contactsContainer.innerHTML = "<p class='um-empty'>לא נמצאו פניות</p>";
-          return;
-        }
-        contacts.forEach(contact => {
-          const div = document.createElement("div");
-          div.className = "contact-card";
-          div.innerHTML = `
-            <p><strong>שם:</strong> ${contact.name}</p>
-            <p><strong>טלפון:</strong> ${contact.phone}</p>
-            <p><strong>אזור:</strong> ${contact.region}</p>
-            <p><strong>הודעה:</strong> ${contact.message}</p>
-            <button class="delete-contact-btn">סמן כטופל ומחק</button>
-          `;
+  async function loadContacts(token) {
+  if (!contactsContainer) return;
+  try {
+    const res = await fetch(`${serverUrl}/admin/contacts`, { headers: authHeader() });
+    if (!res.ok) throw new Error("שגיאה בשליפת הפניות");
+    const contacts = await res.json();
+    contactsContainer.innerHTML = "";
+    if (!contacts || contacts.length === 0) {
+      contactsContainer.innerHTML = "<p class='um-empty'>לא נמצאו פניות</p>";
+      return;
+    }
+    contacts.forEach(contact => {
+      const div = document.createElement("div");
+      div.className = "contact-card";
+      div.innerHTML = `
+        <div class="contact-card-header">
+          <div class="contact-card-info">
+            <span class="contact-name-badge">${contact.name}</span>
+            <span class="contact-region-badge">${contact.region}</span>
+          </div>
+          <span class="contact-date">
+            <i class="fa-solid fa-calendar-days"></i>
+            ${contact.created_at
+              ? new Date(contact.created_at).toLocaleDateString("he-IL", {
+                  day:"2-digit", month:"2-digit", year:"numeric",
+                  hour:"2-digit", minute:"2-digit"
+                })
+              : ""}
+          </span>
+        </div>
+        <div class="contact-card-body">
+          <div class="contact-field">
+            <span class="contact-label"><i class="fa-solid fa-phone"></i> טלפון</span>
+            <span class="contact-value">${contact.phone}</span>
+          </div>
+          <div class="contact-field">
+            <span class="contact-label"><i class="fa-solid fa-message"></i> הודעה</span>
+            <span class="contact-value contact-message">${contact.message}</span>
+          </div>
+        </div>
+        <div class="contact-card-footer">
+          <button class="delete-contact-btn">
+            <i class="fa-solid fa-check"></i> סמן כטופל ומחק
+          </button>
+        </div>
+      `;
+      contactsContainer.appendChild(div);
+      div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
+        if (!confirm("להסיר את הפנייה?")) return;
+        try {
+          const delRes = await fetch(`${serverUrl}/admin/contacts/${contact.id}`, {
+            method: "DELETE", headers: authHeader()
+          });
+          if (!delRes.ok) throw new Error("שגיאה במחיקה");
+          div.remove();
+          showNotification("🗑️ הפנייה נמחקה!");
+        } catch (err) { console.error(err); }
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
+  }
+}
           contactsContainer.appendChild(div);
           div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
             if (!confirm("להסיר את הפנייה?")) return;
