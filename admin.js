@@ -650,6 +650,18 @@ if (!window.hasRunAdminUnified) {
       card.dataset.userId = user.id;
     }
 
+    setUMEditMode(false); 
+    }
+
+    document.getElementById("um-edit-btn")?.addEventListener("click", () => setUMEditMode(true));
+    document.getElementById("um-cancel-btn")?.addEventListener("click", () => {
+    // טעינה מחדש של פרטי המשתמש מהקאש כדי לבטל שינויים
+    const card = document.getElementById("um-user-card");
+    const user = allUsersCache.find(u => String(u.id) === card.dataset.userId);
+    if(user) showUserCard(user); 
+    setUMEditMode(false);
+});
+    
     // Dropdown change
     const umSelect = document.getElementById("um-user-select");
     if (umSelect) {
@@ -755,6 +767,22 @@ if (!window.hasRunAdminUnified) {
         } catch (err) { console.error(err); }
       });
     }
+
+    function setUMEditMode(editing) {
+  const fields = ["um-edit-fullname", "um-edit-username", "um-edit-email", "um-edit-role"];
+  const editBtn = document.getElementById("um-edit-btn"); // וודא שהכפתורים האלו קיימים ב-HTML
+  const saveBtn = document.getElementById("um-save-btn");
+  const cancelBtn = document.getElementById("um-cancel-btn");
+
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) el.disabled = !editing;
+  });
+
+  if (editBtn) editBtn.style.display = editing ? "none" : "inline-block";
+  if (saveBtn) saveBtn.style.display = editing ? "inline-block" : "none";
+  if (cancelBtn) cancelBtn.style.display = editing ? "inline-block" : "none";
+}
 
     // =========================================================
     // Start
