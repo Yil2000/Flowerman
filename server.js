@@ -531,37 +531,66 @@ app.get("/images/:name", async (req, res) => {
 });
 
 // ===== Admin Shares Actions =====
-app.get("/admin/shares", async (req, res) => {
+app.get("/admin/shares", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
   const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
   res.json(result.rows);
 });
 
-app.post("/admin/shares/publish/:id", async (req, res) => {
+app.post("/admin/shares/publish/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
   const result = await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
   if (result.rowCount === 0) return res.status(404).json({ error: "Share not found" });
   res.json({ success: true });
 });
 
-app.post("/admin/shares/unpublish/:id", async (req, res) => {
+app.post("/admin/shares/unpublish/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
   const result = await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
   if (result.rowCount === 0) return res.status(404).json({ error: "Share not found" });
   res.json({ success: true });
 });
 
-app.delete("/admin/shares/:id", async (req, res) => {
+app.delete("/admin/shares/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
   try {
     const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: "Not found" });
-
     const share = rows[0];
     await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
-
     if (share.public_id) {
-      try {
-        await cloudinary.uploader.destroy(share.public_id);
-      } catch (err) {
-        console.error("❌ Failed to delete from Cloudinary:", err.stack);
-      }
+      try { await cloudinary.uploader.destroy(share.public_id); }
+      catch (err) { console.error("❌ Cloudinary delete failed:", err.stack); }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err.stack);
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
+
+app.get("/admin/shares", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
+  const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
+  res.json(result.rows);
+});
+
+app.post("/admin/shares/publish/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
+  const result = await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
+  if (result.rowCount === 0) return res.status(404).json({ error: "Share not found" });
+  res.json({ success: true });
+});
+
+app.post("/admin/shares/unpublish/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
+  const result = await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
+  if (result.rowCount === 0) return res.status(404).json({ error: "Share not found" });
+  res.json({ success: true });
+});
+
+app.delete("/admin/shares/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
+  try {
+    const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: "Not found" });
+    const share = rows[0];
+    await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
+    if (share.public_id) {
+      try { await cloudinary.uploader.destroy(share.public_id); }
+      catch (err) { console.error("❌ Cloudinary delete failed:", err.stack); }
     }
     res.json({ success: true });
   } catch (err) {
@@ -581,17 +610,6 @@ app.post("/contacts", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Database error" });
   }
-});
-
-app.get("/admin/contacts", async (req, res) => {
-  const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
-  res.json(result.rows);
-});
-
-app.delete("/admin/contacts/:id", async (req, res) => {
-  const result = await db.query("DELETE FROM contacts WHERE id=$1", [req.params.id]);
-  if (result.rowCount === 0) return res.status(404).json({ error: "Contact not found" });
-  res.json({ success: true });
 });
 
 // ===== Authentication / Registration =====
