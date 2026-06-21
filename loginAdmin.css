@@ -787,3 +787,15 @@ input:disabled {
   font-size: 14px;
   padding: 1em 0;
 }
+
+#um-toggle-edit-btn {
+  padding: 0.7em 1.6em;
+  border-radius: 20px;
+  border: none;
+  background: var(--purple);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#um-toggle-edit-btn:hover { background: #4e1266; }
