@@ -565,37 +565,14 @@ app.delete("/admin/shares/:id", authenticateUser, requireRole(["admin","superadm
   }
 });
 
-app.get("/admin/shares", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
-  const result = await db.query("SELECT * FROM shares ORDER BY id DESC");
-  res.json(result.rows);
-});
-
-app.post("/admin/shares/publish/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
-  const result = await db.query("UPDATE shares SET published=TRUE WHERE id=$1", [req.params.id]);
-  if (result.rowCount === 0) return res.status(404).json({ error: "Share not found" });
-  res.json({ success: true });
-});
-
-app.post("/admin/shares/unpublish/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
-  const result = await db.query("UPDATE shares SET published=FALSE WHERE id=$1", [req.params.id]);
-  if (result.rowCount === 0) return res.status(404).json({ error: "Share not found" });
-  res.json({ success: true });
-});
-
-app.delete("/admin/shares/:id", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
+// הוסף את זה לקובץ server.js ליד נתיבי ה-admin האחרים
+app.get("/admin/contacts", authenticateUser, requireRole(["admin", "superadmin"]), async (req, res) => {
   try {
-    const { rows } = await db.query("SELECT * FROM shares WHERE id=$1", [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: "Not found" });
-    const share = rows[0];
-    await db.query("DELETE FROM shares WHERE id=$1", [req.params.id]);
-    if (share.public_id) {
-      try { await cloudinary.uploader.destroy(share.public_id); }
-      catch (err) { console.error("❌ Cloudinary delete failed:", err.stack); }
-    }
-    res.json({ success: true });
+    const result = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
+    res.json(result.rows);
   } catch (err) {
-    console.error(err.stack);
-    res.status(500).json({ error: "Delete failed" });
+    console.error("GET /admin/contacts error:", err.stack);
+    res.status(500).json({ error: "DB error" });
   }
 });
 
