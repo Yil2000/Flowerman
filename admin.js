@@ -119,8 +119,12 @@ if (!window.hasRunAdminUnified) {
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
+        // 1. מחיקת כל הנתונים של המשתמש
         sessionStorage.removeItem("userToken");
-        window.location.replace("/index.html");
+        sessionStorage.clear(); 
+        
+        // 2. ניתוב לעמוד הבית והבטחה שהדף יטען מחדש ללא מטמון
+        window.location.href = "/index.html";
       });
     }
 
@@ -555,15 +559,21 @@ if (!window.hasRunAdminUnified) {
     function populateUserSelect(users) {
       const select = document.getElementById("um-user-select");
       if (!select) return;
+      
       const current = select.value;
+      const myId = getCurrentId(); // פונקציה שכבר קיימת אצלך
+      
       select.innerHTML = '<option value="">-- בחר משתמש לצפייה/עריכה --</option>';
-      // מסנן החוצה pending (כבר בסקציה הנפרדת)
-      users.filter(u => u.role !== "pending").forEach(u => {
+      
+      // סינון: משתמשים שהם לא pending וגם לא "אני"
+      users.filter(u => u.role !== "pending" && String(u.id) !== String(myId))
+           .forEach(u => {
         const opt = document.createElement("option");
-        opt.value       = u.id;
+        opt.value = u.id;
         opt.textContent = (u.fullname || u.username) + ` (${roleBadgeLabel(u.role)})`;
         select.appendChild(opt);
       });
+      
       if (current) select.value = current;
     }
 
