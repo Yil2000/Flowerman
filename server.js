@@ -189,21 +189,21 @@ app.put("/auth/me", authenticateUser, requireRole(["user","admin","superadmin"])
 
 
 // ===== GET /admin/users/all — כל המשתמשים (admin/superadmin בלבד) =====
-app.get("/admin/users/all",
-  authenticateUser,
-  requireRole(["admin","superadmin"]),
-  async (req, res) => {
-    try {
-      // מושכים רק את השדות הבטוחים, ללא password_hash
-      const fields = "id, fullname, username, email, role, created_at, last_login";
-      const result = await db.query(`SELECT ${fields} FROM users ORDER BY created_at DESC`);
-      res.json(result.rows);
-    } catch (err) {
-      console.error("GET /admin/users/all:", err.stack);
-      res.status(500).json({ error: "DB error" });
-    }
+// עדכן את הנתיב הזה בשרת שלך:
+app.get("/admin/users/all", authenticateUser, requireRole(["admin","superadmin"]), async (req, res) => {
+  try {
+    // שינוי קטן בשאילתה: WHERE id != $1
+    const fields = "id, fullname, username, email, role, created_at, last_login";
+    const result = await db.query(
+      `SELECT ${fields} FROM users WHERE id != $1 ORDER BY created_at DESC`, 
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("GET /admin/users/all:", err.stack);
+    res.status(500).json({ error: "DB error" });
   }
-);
+});
 
 
 // ===== PUT /admin/users/:id — עדכון פרטי משתמש (admin/superadmin) =====
