@@ -347,24 +347,6 @@ if (!window.hasRunAdminUnified) {
     contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
   }
 }
-          contactsContainer.appendChild(div);
-          div.querySelector(".delete-contact-btn").addEventListener("click", async () => {
-            if (!confirm("להסיר את הפנייה?")) return;
-            try {
-              const delRes = await fetch(`${serverUrl}/admin/contacts/${contact.id}`, {
-                method: "DELETE", headers: authHeader()
-              });
-              if (!delRes.ok) throw new Error("שגיאה במחיקה");
-              div.remove();
-              showNotification("🗑️ הפנייה נמחקה!");
-            } catch (err) { console.error(err); }
-          });
-        });
-      } catch (err) {
-        console.error(err);
-        contactsContainer.innerHTML = "<p>❌ שגיאה בשליפת הפניות</p>";
-      }
-    }
 
     // =========================================================
     // Upload
