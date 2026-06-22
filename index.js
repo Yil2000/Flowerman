@@ -229,17 +229,23 @@ if (contactForm) {
     }, 5000);
   }
 
-  async function loadPublishedShares() {
+ async function loadPublishedShares() {
+    console.log("פונקציית הטעינה הופעלה!"); // בדיקה אם זה בכלל רץ
     try {
-      const res = await fetch(`${serverUrl}/shares/published?${Date.now()}`);
-      if (!res.ok) throw new Error("שגיאה בשליפת השיתופים");
-      const data = await res.json();
-      renderSharesOnWall(data);
+        const url = `${serverUrl}/shares?t=${Date.now()}`;
+        console.log("פונה לכתובת:", url);
+        
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("שגיאה בקבלת נתונים מהשרת");
+        
+        const data = await res.json();
+        console.log("נתונים שהתקבלו:", data);
+        
+        renderSharesOnWall(data);
     } catch (err) {
-      console.error(err);
-      alertMessage(err.message, "error");
+        console.error("שגיאה קריטית בטעינת השיתופים:", err);
     }
-  }
+}
 
   function renderSharesOnWall(shares) {
     // הוספת בדיקה אם בכלל הגיעו שיתופים
@@ -409,11 +415,6 @@ function startCarousel(carousel) {
       }
     });
   }
-  // ===== טעינת שיתופים מהשרת מייד כשנכנסים לדף =====
- /*  const wallContainer = document.querySelector(".messages-wall-cards");
-  if (wallContainer) {
-      loadPublishedShares();
-  } */
 
 };
 });
