@@ -395,8 +395,6 @@ function startCarousel(carousel) {
 
         window.alert("השיתוף נשלח לבדיקת מנהל בהצלחה!");
         shareForm.reset();
-
-        if (data && data.share) renderSharesOnWall([data.share]);
           // ===== טעינת שיתופים מהשרת =====
         loadPublishedShares();
         } catch (err) {
@@ -410,4 +408,4 @@ function startCarousel(carousel) {
   if (wallContainer) {
       loadPublishedShares();
   }
-};
+});
