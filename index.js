@@ -404,10 +404,10 @@ function startCarousel(carousel) {
     });
   }
   // ===== טעינת שיתופים מהשרת מייד כשנכנסים לדף =====
-  const wallContainer = document.querySelector(".messages-wall-cards");
+ /*  const wallContainer = document.querySelector(".messages-wall-cards");
   if (wallContainer) {
       loadPublishedShares();
-  }
+  } */
 
 };
 });
