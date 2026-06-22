@@ -5,8 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Clean old JWT =====
   localStorage.removeItem("token");
 
-
-
   // ===== Admin Login Button =====
   const adminLoginBtn = document.querySelector(".nav-login-btn");
   if (adminLoginBtn) {
@@ -180,6 +178,8 @@ if (contactForm) {
       showContactMessage("נא למלא את כל השדות", "error");
       return;
     }
+    });
+  }
 
     try {
       const res = await fetch("https://flowerman.onrender.com/contacts", {
@@ -201,7 +201,6 @@ if (contactForm) {
       console.error(err);
       showContactMessage(err.message || "שגיאה בשרת", "error");
     }
-  });
 
   function showContactMessage(msg, type = "info") {
     contactMessage.innerText = msg;
@@ -229,36 +228,24 @@ if (contactForm) {
     }, 5000);
   }
 
- async function loadPublishedShares() {
-    console.log("פונקציית הטעינה הופעלה!"); // בדיקה אם זה בכלל רץ
-    try {
-        const url = `${serverUrl}/shares?t=${Date.now()}`;
-        console.log("פונה לכתובת:", url);
-        
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("שגיאה בקבלת נתונים מהשרת");
-        
-        const data = await res.json();
-        console.log("נתונים שהתקבלו:", data);
-        
-        renderSharesOnWall(data);
-    } catch (err) {
-        console.error("שגיאה קריטית בטעינת השיתופים:", err);
-    }
+async function loadPublishedShares() {
+  try {
+    const res = await fetch(`${serverUrl}/shares?t=${Date.now()}`); 
+    if (!res.ok) throw new Error("שגיאה בשליפת השיתופים");
+    const data = await res.json();
+    renderSharesOnWall(data);
+  } catch (err) {
+    console.error("שגיאה בטעינה:", err);
+  }
 }
 
   function renderSharesOnWall(shares) {
-    // הוספת בדיקה אם בכלל הגיעו שיתופים
-    if (!shares || shares.length === 0) {
-        wallContainer.innerHTML = "<p>אין כרגע שיתופים להצגה.</p>";
-        return;
-    }
-    const wallContainer = document.querySelector(".messages-wall-cards");
-    if (!wallContainer) return;
+  const wallContainer = document.querySelector(".messages-wall-cards");
+  if (!wallContainer) return;
 
-    
-    wallContainer.innerHTML = "";
-
+  // בודקים אם בכלל יש נתונים לפני שמוחקים את הקיים
+  if (shares && shares.length > 0) {
+    wallContainer.innerHTML = ""; // מוחקים רק אם יש לנו מה להציג במקום
     shares.forEach(share => {
       let imgSrc = "flowerman-logo.PNG";
 
@@ -305,10 +292,12 @@ if (share.imageurl && share.imageurl.trim() !== "") {
     
     div.appendChild(content);
       wallContainer.appendChild(div);
-    });
-
+ });
     startCarousel(wallContainer);
+  } else {
+    console.log("לא התקבלו שיתופים מהשרת");
   }
+}
 
 function startCarousel(carousel) {
   if (!carousel) return;
@@ -381,7 +370,7 @@ function startCarousel(carousel) {
 }
 
 
-  // ===== Share Form submit =====
+ // ===== Share Form submit =====
   if (shareForm) {
     shareForm.addEventListener("submit", async e => {
       e.preventDefault();
@@ -401,20 +390,24 @@ function startCarousel(carousel) {
         uploadData.append("message", message);
         if (file && file.size > 0) uploadData.append("file", file);
 
+        // תוקן הנתיב ל-/shares (במקום /shares/published)
         const res = await fetch(`${serverUrl}/shares`, { method: "POST", body: uploadData });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "שגיאה בשליחת השיתוף");
 
         window.alert("השיתוף נשלח לבדיקת מנהל בהצלחה!");
         shareForm.reset();
-          // ===== טעינת שיתופים מהשרת =====
         loadPublishedShares();
-        } catch (err) {
+      } catch (err) {
         console.error(err);
         alertMessage(err.message || "שגיאה בשרת", "error");
       }
     });
   }
 
-};
+  // ===== טעינת שיתופים מהשרת מייד כשנכנסים לדף =====
+  const wallContainer = document.querySelector(".messages-wall-cards");
+  if (wallContainer) {
+    loadPublishedShares();
+  }
 });
