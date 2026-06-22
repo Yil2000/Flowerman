@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLang = localStorage.getItem("lang") || "";
 
   function applyTranslations() {
+    if (Object.keys(translations).length === 0) return;
    document.querySelectorAll("[data-translation]").forEach(el => {
   const key = el.getAttribute("data-translation");
   const text = translations[currentLang]?.[key];
@@ -164,15 +165,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSliding(".special-activity-content-sliding-img");
 
 // ===== Contact Form =====
-  const contactForm = document.querySelector(".contact-form");
+const contactForm = document.querySelector(".contact-form");
+if (contactForm) {
+    const contactMessage = document.createElement("div");
+    contactMessage.className = "contact-message";
+    contactForm.after(contactMessage);
 
-  if (!contactForm) return; // אם אין טופס בדף, לא עושים כלום
-
-  const contactMessage = document.createElement("div");
-  contactMessage.className = "contact-message";
-  contactForm.after(contactMessage); // מצמידים את ההודעה אחרי הטופס
-
-  contactForm.addEventListener("submit", async (e) => {
+    contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -378,9 +377,11 @@ function startCarousel(carousel) {
     });
   }
   // ===== טעינת שיתופים מהשרת מייד כשנכנסים לדף =====
-loadPublishedShares();
-
- });
+  const wallContainer = document.querySelector(".messages-wall-cards");
+  if (wallContainer) {
+      loadPublishedShares();
+  }
+});
 
 
 
