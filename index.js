@@ -410,4 +410,4 @@ function startCarousel(carousel) {
   if (wallContainer) {
       loadPublishedShares();
   }
-});
+};
