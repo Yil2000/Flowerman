@@ -242,9 +242,15 @@ if (contactForm) {
   }
 
   function renderSharesOnWall(shares) {
+    // הוספת בדיקה אם בכלל הגיעו שיתופים
+    if (!shares || shares.length === 0) {
+        wallContainer.innerHTML = "<p>אין כרגע שיתופים להצגה.</p>";
+        return;
+    }
     const wallContainer = document.querySelector(".messages-wall-cards");
     if (!wallContainer) return;
 
+    
     wallContainer.innerHTML = "";
 
     shares.forEach(share => {
