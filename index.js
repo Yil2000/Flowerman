@@ -207,15 +207,8 @@ if (contactForm) {
             console.error(err);
             showContactMessage(err.message || "שגיאה בשרת", "error");
         }
-
-      function showContactMessage(msg, type = "info") {
-        contactMessage.innerText = msg;
-        contactMessage.className = `contact-message ${type}`;
-        setTimeout(() => {
-          contactMessage.innerText = "";
-          contactMessage.className = "contact-message";
-        }, 5000);
-      }
+       });
+  }
 
 
 
@@ -410,7 +403,6 @@ function startCarousel(carousel) {
       }
     });
   }
-
   // ===== טעינת שיתופים מהשרת מייד כשנכנסים לדף =====
   const wallContainer = document.querySelector(".messages-wall-cards");
   if (wallContainer) {
