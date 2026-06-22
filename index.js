@@ -1,5 +1,5 @@
 // index.js
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const serverUrl = "https://flowerman.onrender.com";
 
   // ===== Clean old JWT =====
