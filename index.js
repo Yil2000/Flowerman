@@ -166,50 +166,56 @@ if (contactForm) {
     contactMessage.className = "contact-message";
     contactForm.after(contactMessage);
 
+    function showContactMessage(msg, type = "info") {
+        contactMessage.innerText = msg;
+        contactMessage.className = `contact-message ${type}`;
+        setTimeout(() => {
+            contactMessage.innerText = "";
+            contactMessage.className = "contact-message";
+        }, 5000);
+    }
+
     contactForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
 
-    const formData = new FormData(contactForm);
-    const data = Object.fromEntries(formData.entries());
+        const formData = new FormData(contactForm);
+        const data = Object.fromEntries(formData.entries());
 
-    console.log(data); // מה נשלח לפני הבדיקה
-    if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
-      showContactMessage("נא למלא את כל השדות", "error");
-      return;
-    }
-    });
-  }
+        if (!data.contact_name || !data.phone || !data.region || data.region === "choose" || !data.message) {
+            showContactMessage("נא למלא את כל השדות", "error");
+            return;
+        }
 
-    try {
-      const res = await fetch("https://flowerman.onrender.com/contacts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contact_name: data.contact_name,
-          phone: data.phone,
-          region: data.region,
-          message: data.message
-        })
-      });
+        try {
+            const res = await fetch("https://flowerman.onrender.com/contacts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contact_name: data.contact_name,
+                    phone: data.phone,
+                    region: data.region,
+                    message: data.message
+                })
+            });
 
-      if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
+            if (!res.ok) throw new Error("שגיאה בשליחת הפנייה");
 
-      showContactMessage("הטופס נשלח בהצלחה!", "success");
-      contactForm.reset();
-    } catch (err) {
-      console.error(err);
-      showContactMessage(err.message || "שגיאה בשרת", "error");
-    }
+            showContactMessage("הטופס נשלח בהצלחה!", "success");
+            contactForm.reset();
+        } catch (err) {
+            console.error(err);
+            showContactMessage(err.message || "שגיאה בשרת", "error");
+        }
 
-  function showContactMessage(msg, type = "info") {
-    contactMessage.innerText = msg;
-    contactMessage.className = `contact-message ${type}`;
-    setTimeout(() => {
-      contactMessage.innerText = "";
-      contactMessage.className = "contact-message";
-    }, 5000);
-  }
+      function showContactMessage(msg, type = "info") {
+        contactMessage.innerText = msg;
+        contactMessage.className = `contact-message ${type}`;
+        setTimeout(() => {
+          contactMessage.innerText = "";
+          contactMessage.className = "contact-message";
+        }, 5000);
+      }
 
 
 
