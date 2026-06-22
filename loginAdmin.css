@@ -833,7 +833,7 @@ input:disabled {
   cursor: pointer;
   transition: 0.2s;
 }
-#um-save-btn:hover { background: #4e1266; }
+#um-save-btn:hover { background: #27ae60; }
 
 .um-btn-danger {
   padding: 0.7em 1.6em;
