@@ -38,14 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-  function updateDirectionAndAlign() {
-    document.body.setAttribute("dir", currentLang === "eng" ? "ltr" : "rtl");
-    document.querySelectorAll("*").forEach(el => {
-      const style = window.getComputedStyle(el);
-      if (currentLang === "eng" && style.textAlign === "right") el.style.textAlign = "left";
-      if (currentLang !== "eng" && style.textAlign === "left") el.style.textAlign = "right";
-    });
-  }
+    function updateDirectionAndAlign() {
+      document.documentElement.dir =
+        currentLang === "eng" ? "ltr" : "rtl";
+    }
 
   function setLanguage(lang) {
     if (!translations[lang]) return;
@@ -119,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
             img.style.opacity = 0;
           }
         });
-      }, transitionTime);
+      }, 100);
     });
   });
 
@@ -130,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     containers.forEach(container => {
       const slides = Array.from(container.children);
+      if (slides.length <= 1) return;
       let currentIndex = 0;
       let slideInterval;
 
@@ -251,20 +248,50 @@ if (contactForm) {
     wallContainer.innerHTML = "";
 
     shares.forEach(share => {
-      const imgSrc = share.imageurl && share.imageurl.trim() !== "" ? share.imageurl : "flowerman-logo.PNG";
+      let imgSrc = "flowerman-logo.PNG";
+
+if (share.imageurl && share.imageurl.trim() !== "") {
+  try {
+    const url = new URL(share.imageurl);
+
+    if (
+      url.protocol === "http:" ||
+      url.protocol === "https:"
+    ) {
+      imgSrc = share.imageurl;
+    }
+  } catch {}
+}
       const div = document.createElement("div");
       div.classList.add("messages-wall-card");
-      div.innerHTML = `
-        <div class="messages-wall-card-content">
-          <div class="messages-wall-card-content-text">
-            <h5>${share.name}</h5>
-            <p>${share.message}</p>
-          </div>
-          <div class="messages-wall-card-img">
-            <img src="${imgSrc}" alt="" />
-          </div>
-        </div>
-      `;
+    const content = document.createElement("div");
+    content.className = "messages-wall-card-content";
+    
+    const textDiv = document.createElement("div");
+    textDiv.className = "messages-wall-card-content-text";
+    
+    const title = document.createElement("h5");
+    title.textContent = share.name;
+    
+    const message = document.createElement("p");
+    message.textContent = share.message;
+    
+    textDiv.appendChild(title);
+    textDiv.appendChild(message);
+    
+    const imgDiv = document.createElement("div");
+    imgDiv.className = "messages-wall-card-img";
+    
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    img.alt = "";
+    
+    imgDiv.appendChild(img);
+    
+    content.appendChild(textDiv);
+    content.appendChild(imgDiv);
+    
+    div.appendChild(content);
       wallContainer.appendChild(div);
     });
 
@@ -289,18 +316,18 @@ function startCarousel(carousel) {
 
   carousel.style.cursor = "grab";
 
-  carousel.addEventListener("pointerdown", (e) => {
-    isDragging = true;
-    startX = e.pageX;
-    scrollStart = carousel.scrollLeft;
+ carousel.addEventListener("pointerdown", (e) => {
+  isDragging = true;
+  startX = e.pageX;
+  scrollStart = carousel.scrollLeft;
 
-    velocity = 0;
-    lastX = e.pageX;
-    lastTime = Date.now();
+  velocity = 0;
+  lastX = e.pageX;
+  lastTime = Date.now();
 
-    cancelAnimationFrame(momentumID);
-    carousel.style.cursor = "grabbing";
-  });
+  cancelAnimationFrame(momentumID);
+  carousel.style.cursor = "grabbing";
+}, { passive: true });
 
   carousel.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
@@ -309,7 +336,9 @@ function startCarousel(carousel) {
     const dx = e.pageX - lastX;
     const dt = now - lastTime;
 
+    if (dt > 0) {
     velocity = dx / dt;
+  }
 
     lastX = e.pageX;
     lastTime = now;
@@ -382,10 +411,3 @@ function startCarousel(carousel) {
       loadPublishedShares();
   }
 });
-
-
-
-
-
-
-
