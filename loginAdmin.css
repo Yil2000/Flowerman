@@ -41,7 +41,7 @@
 /* login css */
 
 #site-content{
-    height: 100vh;
+    height: 100%;
     width: 100vw;
     background:linear-gradient(128deg,#ecbcff,#fac6d7 );
     display: flex;
