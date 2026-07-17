@@ -277,7 +277,15 @@ if (!window.hasRunAdminUnified) {
         contacts.forEach(contact => {
           const div = document.createElement("div");
           div.className = "contact-card";
+          const dateStr = contact.created_at
+            ? new Date(contact.created_at).toLocaleDateString("he-IL", {
+                day: "2-digit", month: "2-digit", year: "numeric",
+                hour: "2-digit", minute: "2-digit"
+              })
+            : "";
+
           div.innerHTML = `
+           ${dateStr ? `<p><strong>תאריך שליחה:</strong> ${dateStr}</p>` : ""}
             <p><strong>שם:</strong> ${contact.name}</p>
             <p><strong>טלפון:</strong> ${contact.phone}</p>
             <p><strong>אזור:</strong> ${contact.region}</p>
