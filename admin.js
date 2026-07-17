@@ -92,19 +92,35 @@ if (!window.hasRunAdminUnified) {
         if (!data.valid) return showError("טוקן לא תקין");
 
         const payload = getCurrentPayload();
-        if (!payload || !["admin","superadmin"].includes(payload.role)) {
+        if (!payload || !["user","admin","superadmin"].includes(payload.role)) {
           return showError("אין הרשאות");
         }
 
+        const role = payload.role;
+
+        // הגבלת תפריט לפי role
+        if (role === "user") {
+          document.querySelectorAll("#sidebar button[data-target]").forEach(btn => {
+            if (btn.dataset.target !== "upload-section") btn.style.display = "none";
+          });
+          document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+          const uploadSec = document.getElementById("upload-section");
+          if (uploadSec) uploadSec.classList.add("active");
+        }
+
+        // הצג ניהול משתמשים רק לadmin/superadmin
+        const manageBtn = document.getElementById("manage-users-btn");
+        if (manageBtn) manageBtn.style.display = (role === "admin" || role === "superadmin") ? "block" : "none";
+
         if (content)  content.style.display  = "flex";
         if (errorDiv) errorDiv.style.display = "none";
-
-        // הצג כפתור ניהול משתמשים
-        const manageBtn = document.getElementById("manage-users-btn");
-        if (manageBtn) manageBtn.style.display = "block";
-
-        loadShares(token);
-        loadContacts(token);
+        
+       if (role === "admin" || role === "superadmin") {
+          loadShares(token);
+          loadContacts(token);
+          loadManageUsers(token);
+         
+        }
         loadMyProfile();
 
       } catch (err) {
