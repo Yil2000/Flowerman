@@ -279,8 +279,7 @@ if (!window.hasRunAdminUnified) {
           div.className = "contact-card";
           const dateStr = contact.created_at
             ? new Date(contact.created_at).toLocaleDateString("he-IL", {
-                day: "2-digit", month: "2-digit", year: "numeric",
-                hour: "2-digit", minute: "2-digit"
+                day: "2-digit", month: "2-digit", year: "numeric"
               })
             : "";
 
