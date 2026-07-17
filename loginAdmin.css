@@ -266,18 +266,22 @@ color: #350847;
         font-family: Arial, sans-serif;
         display: flex;
         flex-direction: row;
+        min-height: 100vh;
       }
 
       /* Sidebar */
       #sidebar{
-        height: 100%;
-        width: 20vw;
-        background: #ff9b9b65;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        padding: 20px;
-      }
+          width: 20vw;
+          min-height: 100vh;
+          background: #ff9b9b65;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          padding: 20px;
+          position: sticky;
+          top: 0;
+          align-self: flex-start;
+        }
 
       #sidebar button{
         background: none;
