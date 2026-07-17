@@ -602,14 +602,15 @@ if (!window.hasRunAdminUnified) {
       document.getElementById("um-edit-email").value    = user.email    || "";
 
       // סיסמה — רק superadmin
+      // סיסמה — superadmin לכולם חוץ מsuperadmin אחר, admin רק לuser
       const passField = document.getElementById("um-password-field");
+      const passInput = document.getElementById("um-new-password");
       if (passField) {
-        if (myRole === "superadmin") {
-          passField.style.display = "flex";
-          document.getElementById("um-view-password").value = user.password_plain || "(מוצפן)";
-        } else {
-          passField.style.display = "none";
-        }
+        const canChangePass =
+          (myRole === "superadmin" && user.role !== "superadmin") ||
+          (myRole === "admin" && user.role === "user");
+        passField.style.display = canChangePass ? "flex" : "none";
+        if (passInput) passInput.value = "";
       }
 
       // role selector — superadmin לכולם, admin רק לuser ולמטה, אף אחד לא לעצמו
@@ -714,10 +715,11 @@ if (!window.hasRunAdminUnified) {
         const userId   = card.dataset.userId;
         const isSelf   = String(userId) === String(myId);
 
-        const fullname = document.getElementById("um-edit-fullname")?.value.trim();
-        const username = document.getElementById("um-edit-username")?.value.trim();
-        const email    = document.getElementById("um-edit-email")?.value.trim();
-        const role     = document.getElementById("um-edit-role")?.value;
+        const fullname    = document.getElementById("um-edit-fullname")?.value.trim();
+        const username    = document.getElementById("um-edit-username")?.value.trim();
+        const email       = document.getElementById("um-edit-email")?.value.trim();
+        const role        = document.getElementById("um-edit-role")?.value;
+        const newPassword = document.getElementById("um-new-password")?.value;
 
         if (!fullname || !username) {
           feedback.textContent = "שם מלא ושם משתמש הם שדות חובה";
@@ -726,6 +728,7 @@ if (!window.hasRunAdminUnified) {
         }
 
         const body = { fullname, username, email };
+        if (newPassword && newPassword.length >= 5) body.password = newPassword;
         // role — רק אם מותר ולא עצמו
         if (!isSelf && role) {
           if (myRole === "superadmin") body.role = role;
