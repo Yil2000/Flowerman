@@ -270,7 +270,7 @@ color: #350847;
 
       /* Sidebar */
       #sidebar{
-        height: 100vh;
+        height: 100%;
         width: 20vw;
         background: #ff9b9b65;
         color: white;
