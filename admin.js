@@ -655,7 +655,7 @@ if (!window.hasRunAdminUnified) {
 
     // --- 1. הגדרת פונקציית עזר למצב עריכה ---
     function setUMEditMode(editing) {
-        const fields = ["um-edit-fullname", "um-edit-username", "um-edit-email", "um-edit-role"];
+        const fields = ["um-edit-fullname", "um-edit-username", "um-edit-email", "um-edit-role","um-new-password"];
         const toggleBtn = document.getElementById("um-toggle-edit-btn");
         const saveBtn = document.getElementById("um-save-btn");
         const cancelBtn = document.getElementById("um-cancel-btn");
