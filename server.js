@@ -258,11 +258,36 @@ app.put("/admin/users/:id",
         }
       }
 
+     // בדיקת הרשאת שינוי סיסמה:
+      // superadmin — יכול לשנות סיסמה לכולם (חוץ מעצמו, וחוץ מsuperadmin אחר)
+      // admin — יכול לשנות סיסמה רק לuser
+      const { password: newPassword } = req.body;
+      let hashedNewPassword = null;
+
+      if (newPassword && newPassword.length >= 5) {
+        const canChangePassword =
+          (myRole === "superadmin" && targetRole !== "superadmin") ||
+          (myRole === "admin" && targetRole === "user");
+
+        if (!canChangePassword) {
+          return res.status(403).json({ error: "Not authorized to change this user's password" });
+        }
+        hashedNewPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+      }
+
       let query, params;
-      if (newRole) {
+      if (newRole && hashedNewPassword) {
+        query  = `UPDATE users SET fullname=$1, username=$2, email=$3, role=$4, password_hash=$5
+                  WHERE id=$6 RETURNING id, fullname, username, email, role`;
+        params = [fullname, username, email || null, newRole, hashedNewPassword, targetId];
+      } else if (newRole) {
         query  = `UPDATE users SET fullname=$1, username=$2, email=$3, role=$4
                   WHERE id=$5 RETURNING id, fullname, username, email, role`;
         params = [fullname, username, email || null, newRole, targetId];
+      } else if (hashedNewPassword) {
+        query  = `UPDATE users SET fullname=$1, username=$2, email=$3, password_hash=$4
+                  WHERE id=$5 RETURNING id, fullname, username, email, role`;
+        params = [fullname, username, email || null, hashedNewPassword, targetId];
       } else {
         query  = `UPDATE users SET fullname=$1, username=$2, email=$3
                   WHERE id=$4 RETURNING id, fullname, username, email, role`;
