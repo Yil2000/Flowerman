@@ -282,12 +282,17 @@ if (!window.hasRunAdminUnified) {
                 day: "2-digit", month: "2-digit", year: "numeric"
               })
             : "";
-
+             const regionLabels = {
+            north:     "צפון",
+            south:     "דרום",
+            center:    "מרכז",
+            jerusalem: "ירושלים"
+          };
           div.innerHTML = `
            ${dateStr ? `<p><strong>תאריך שליחה:</strong> ${dateStr}</p>` : ""}
             <p><strong>שם:</strong> ${contact.name}</p>
             <p><strong>טלפון:</strong> ${contact.phone}</p>
-            <p><strong>אזור:</strong> ${contact.region}</p>
+            <p><strong>אזור:</strong> ${regionLabels[contact.region] || contact.region}</p>
             <p><strong>הודעה:</strong> ${contact.message}</p>
             <button class="delete-contact-btn">סמן כטופל ומחק</button>
           `;
